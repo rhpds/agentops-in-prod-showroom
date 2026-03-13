@@ -1,0 +1,167 @@
+= Conclusion and next steps
+:navtitle: Conclusion
+:toc:
+:toc-placement: preamble
+:icons: font
+
+Congratulations! You've completed the AgentOps in Production workshop.
+
+== What you've learned
+
+Throughout this workshop, you've gained hands-on experience with end-to-end observability for multi-agent AI systems:
+
+* ✅ Explored a production-grade multi-agent mortgage lending system built with LangGraph
+* ✅ Understood the three pillars of observability and how they apply to agentic AI
+* ✅ Built Grafana dashboards with agent-specific metrics and KPIs
+* ✅ Configured MLflow tracing for multi-agent workflows and MCP tool calls
+* ✅ Implemented LLM evaluations for quality assurance
+* ✅ Diagnosed and fixed distributed failures using the complete observability stack
+
+You now have the practical skills to implement AgentOps discipline at your organization.
+
+== Key takeaways
+
+The most important concepts to remember:
+
+. **Agentic AI apps fail distributedly**: Multi-agent systems require observability that spans the entire workflow, not just individual components. Traditional monitoring approaches fall short.
+
+. **The three pillars work together**: Metrics detect anomalies, traces locate problems, and logs explain root causes. Effective AgentOps requires all three.
+
+. **Different personas, different needs**: SRE/Platform Engineers focus on system health and SLOs; AI Developers focus on model behavior and quality. Both perspectives are essential.
+
+. **Tracing is the cornerstone**: MLflow tracing provides the end-to-end visibility needed to understand multi-agent decision paths and diagnose distributed failures.
+
+. **Evaluations ensure quality**: Observability tells you if systems work; evaluations tell you if they work *well*. Continuous evaluation prevents quality regression.
+
+== Acme FinTech's transformation
+
+Remember where we started? Acme FinTech was facing:
+
+* Blind spots in agent interactions
+* Hidden latency bottlenecks
+* Silent failures in MCP tools
+* No quality baseline
+
+With the AgentOps observability stack you implemented, they now have:
+
+[cols="1,2",options="header"]
+|===
+|Before |After
+
+|Hours to diagnose issues
+|Minutes to pinpoint root cause
+
+|No visibility into agent decisions
+|Complete trace of every request
+
+|Reactive incident response
+|Proactive alerting and monitoring
+
+|Unknown quality levels
+|Baseline metrics with regression detection
+|===
+
+== Next steps
+
+Ready to continue your AgentOps journey? Here are some recommended paths:
+
+=== Apply to your own systems
+
+. **Start with tracing**: If you only implement one thing, make it MLflow tracing. It provides the most value for debugging.
+
+. **Define your personas**: Identify who needs observability data and what questions they need answered.
+
+. **Build incrementally**: Start with basic metrics, add tracing, then implement evaluations.
+
+. **Practice incident response**: Run game days with simulated failures to build team skills.
+
+=== Recommended resources
+
+Deepen your knowledge with these resources:
+
+==== MLflow and tracing
+
+* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow Tracing Documentation^] -- Comprehensive guide to MLflow tracing
+* link:https://mlflow.org/docs/latest/llms/index.html[MLflow LLMs^] -- LLM tracking and deployment
+
+==== Red Hat OpenShift AI
+
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/[Red Hat OpenShift AI Documentation^] -- Official product documentation
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.18/html/managing_openshift_ai/managing-observability_managing-rhoai[RHOAI Observability Guide^] -- Managing observability in RHOAI
+
+==== Multi-agent frameworks
+
+* link:https://langchain-ai.github.io/langgraph/[LangGraph Documentation^] -- Build stateful multi-agent applications
+* link:https://modelcontextprotocol.io/[Model Context Protocol^] -- MCP specification and tools
+
+==== Observability
+
+* link:https://opentelemetry.io/docs/[OpenTelemetry Documentation^] -- Industry standard for observability
+* link:https://grafana.com/docs/grafana/latest/[Grafana Documentation^] -- Dashboard and visualization
+
+=== Related workshops
+
+Explore these workshops to expand your skills:
+
+* **Introduction to Red Hat OpenShift AI** -- Foundational RHOAI skills
+* **Building Multi-Agent Applications with LangGraph** -- Deep dive into agent development
+* **GitOps for AI/ML Workloads** -- Managing AI infrastructure with GitOps
+
+=== Practice projects
+
+Put your new skills to work:
+
+. **Instrument your own agents**: Take an existing LangChain/LangGraph application and add MLflow tracing.
+
+. **Build a custom dashboard**: Create a Grafana dashboard tailored to your specific AI workloads.
+
+. **Implement evaluation pipelines**: Set up continuous evaluation for your production agents.
+
+. **Create runbooks**: Document troubleshooting procedures for common failure modes.
+
+=== Get certified
+
+Validate your expertise with Red Hat certifications:
+
+* link:https://www.redhat.com/en/services/certification[Red Hat Certification Program^]
+* link:https://www.redhat.com/en/services/training/do316-managing-virtual-machines-red-hat-openshift-ai[Red Hat OpenShift AI Training^]
+
+== Share your feedback
+
+Help us improve this workshop:
+
+* What did you find most valuable?
+* What could be improved?
+* What topics would you like to see covered in future workshops?
+
+Contact us with your feedback!
+
+== Thank you!
+
+Thank you for participating in this workshop. You've taken an important step toward making your multi-agent AI systems observable, reliable, and maintainable.
+
+Remember: **Agentic AI apps don't fail silently -- they fail distributedly.** But with proper AgentOps observability, you can see everything, diagnose quickly, and maintain quality.
+
+Keep building, keep learning, keep observing!
+
+---
+
+**Workshop**: AgentOps in Production: Agentic End-to-End Observability with Red Hat AI +
+**Completed**: {localdate} +
+**Platform**: Red Hat Showroom
+
+== References
+
+The following resources were used in creating this workshop:
+
+=== Documentation
+
+* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow Tracing for GenAI^] -- MLflow tracing concepts and implementation
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.3/html/managing_openshift_ai/managing-observability_managing-rhoai[RHOAI Observability Documentation^] -- Red Hat OpenShift AI observability features
+
+=== Frameworks and tools
+
+* link:https://langchain-ai.github.io/langgraph/[LangGraph^] -- Multi-agent orchestration framework
+* link:https://modelcontextprotocol.io/[Model Context Protocol (MCP)^] -- Tool integration protocol
+* link:https://grafana.com/[Grafana^] -- Metrics visualization platform
+* link:https://prometheus.io/[Prometheus^] -- Metrics collection and alerting

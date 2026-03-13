@@ -11,23 +11,18 @@ view_switcher:
   default_mode: split
 
 tabs:
-  # OCP Console
-  # - name: OCP Console
-  #   url: 'https://console-openshift-console.${DOMAIN}'
+  # OCP Console - embedded OpenShift web console
+  - name: OCP Console
+    url: 'https://console-openshift-console.%DOMAIN%'
 
-  # Single terminal
-  # - name: Bastion
-  #   path: /wetty
-  #   port: 443
+  # Terminal access to bastion host
+  - name: Terminal
+    path: /wetty
+    port: 443
 
-  # Vertical split terminals
-  # - name: Bastion
-  #   path: /wetty
-  #   port: 443
-  #   secondary_name: Bastion
-  #   secondary_path: /wetty
-  #   secondary_port: 443
+  # External documentation
+  - name: MLflow Docs
+    url: 'https://mlflow.org/docs/latest/genai/tracing/'
 
-  # External page
-  - name: Llamastack Docs
-    url: 'https://llama-stack.readthedocs.io/en/latest/'
+  - name: RHOAI Docs
+    url: 'https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/'

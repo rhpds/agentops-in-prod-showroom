@@ -1,0 +1,96 @@
+= Workshop overview
+:navtitle: Workshop Overview
+:toc:
+:toc-placement: preamble
+:icons: font
+
+== Your role and mission
+
+You're a senior engineer at Acme FinTech, a mortgage lending company that has deployed a sophisticated multi-agent AI system to handle the complete lending lifecycle. The system uses five distinct LangGraph agents -- each serving a different persona: prospect inquiry, borrower application intake, loan officer pipeline management, underwriter compliance checks, and executive analytics.
+
+Your CTO has called an emergency meeting: "Our AI agents are failing in production, but we can't see where or why. Customer complaints are rising, loan processing times are unpredictable, and we have no visibility into what's happening inside these multi-agent workflows. We need end-to-end observability -- yesterday."
+
+**Your assignment**: Implement a comprehensive AgentOps observability strategy using Red Hat OpenShift AI to gain full visibility into your multi-agent system.
+
+**The objective**: Establish monitoring, tracing, and evaluation capabilities that allow your team to diagnose distributed failures, understand agent decision paths, and ensure consistent quality across all AI-powered workflows.
+
+== Success criteria for your mission
+
+By the end of this workshop, you'll have practical AgentOps skills to address Acme FinTech's observability requirements:
+
+* Understand the multi-agent architecture and why observability matters → Clear mental model of distributed AI system challenges
+* Master the three pillars of observability (metrics, logs, traces) → Foundation for systematic monitoring
+* Implement metrics dashboards with RHOAI and Grafana → Real-time visibility into system health
+* Configure MLflow tracing for multi-agent workflows → End-to-end request tracking across agents
+* Set up LLM evaluations for quality assurance → Continuous validation of agent outputs
+* Diagnose and fix distributed failures → Practical troubleshooting skills for production issues
+
+**Technical outcome**: Hands-on experience with the complete AgentOps observability stack on Red Hat OpenShift AI.
+
+**Business benefit**: Reduced mean time to resolution (MTTR), improved system reliability, and confidence in AI system behavior.
+
+== Target audience
+
+This workshop is designed for:
+
+* SREs and Platform Engineers who need to monitor and maintain AI systems in production
+* AI Developers and ML Engineers building multi-agent applications
+* DevOps engineers evaluating observability solutions for AI workloads
+* Anyone responsible for the reliability of LLM-based applications
+
+== Prerequisites
+
+You should have:
+
+* Basic understanding of Kubernetes and OpenShift concepts
+* Familiarity with AI/ML concepts and LLM-based applications
+* Experience with observability fundamentals (metrics, logs, traces)
+* Basic Python knowledge for understanding agent instrumentation code
+
+== Acme FinTech's challenges
+
+**The situation**: Acme FinTech has deployed a multi-agent AI system handling mortgage applications, but lacks visibility into the distributed workflows spanning multiple agents and MCP tools.
+
+**Project timeline**: The board has given the engineering team two weeks to demonstrate improved observability and reduced incident response time.
+
+**Current challenges** (operational pain points):
+
+* **Blind spots in agent interactions**: When a loan application fails, teams cannot trace the request path across the five agents → Hours spent manually correlating logs
+* **Hidden latency bottlenecks**: Some agents introduce unpredictable delays, but there's no way to identify which ones → Customer complaints about slow processing
+* **Silent failures in MCP tools**: External tool calls (compliance checks, credit scoring) fail without alerting → Incomplete loan applications discovered days later
+* **No quality baseline**: No systematic way to evaluate if agents are providing consistent, accurate responses → Risk of compliance violations
+
+**The opportunity**: Red Hat OpenShift AI provides an integrated observability stack that can address these challenges. You've been selected to evaluate and implement it for Acme FinTech's use case.
+
+**Technical perspective**: "MLflow tracing combined with RHOAI's metrics stack can give us the visibility we need, but we need to validate how it integrates with our LangGraph agents and MCP tools."
+
+== Your vision of success
+
+If the AgentOps observability implementation proves effective for Acme FinTech, here are the potential improvements:
+
+**Immediate improvements** (Week 1-2):
+
+* **End-to-end visibility**: Full request tracing across all five agents → Identify exactly where failures occur
+* **Proactive alerting**: Metrics dashboards with threshold alerts → Catch issues before customers complain
+
+**Strategic benefits** (Month 1-3):
+
+* **Reduced MTTR**: From hours to minutes for incident diagnosis → Engineering time saved for innovation
+* **Quality assurance**: LLM evaluations ensure consistent agent behavior → Reduced compliance risk
+* **Capacity planning**: Historical metrics enable data-driven scaling decisions → Optimized infrastructure costs
+
+**Success metric**: Demonstrate a complete trace from customer inquiry to loan decision, with the ability to pinpoint any failure or bottleneck within 5 minutes.
+
+== Common questions
+
+**"How does MLflow tracing work with AI agents?"**
+→ Module 4 covers the integration in detail, showing how to instrument AI Agent workflows for automatic trace capture.
+
+**"What metrics should we monitor for AI agents?"**
+→ Module 3 introduces the key KPIs for agentic applications and how to build dashboards in Grafana/Perses.
+
+**"How do we handle the multi-tenancy limitations in MLflow?"**
+→ Module 4 discusses workarounds for the current MLflow version and future improvements in RHOAI.
+
+**"Can we simulate failures to test our observability setup?"**
+→ Module 6 is entirely dedicated to simulating and diagnosing distributed failures in the multi-agent system.

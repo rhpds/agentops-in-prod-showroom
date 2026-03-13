@@ -1,0 +1,128 @@
+= Workshop details
+:navtitle: Workshop Details
+:toc:
+:toc-placement: preamble
+:icons: font
+
+== Timing and schedule
+
+=== Full workshop (1 hour 30 minutes)
+
+* **Module 1**: The Agentic App and Why Observability Matters (15 minutes)
+* **Module 2**: Observability Pillars, Concepts, and Personas (10 minutes)
+* **Module 3**: Metrics and KPIs for Agentic Applications (15 minutes)
+* **Module 4**: Tracing and MLflow (20 minutes)
+* **Module 5**: LLM Evaluations (15 minutes)
+* **Module 6**: Troubleshooting Distributed Failures (15 minutes)
+
+=== Abbreviated workshop (45 minutes)
+
+* **Module 1**: The Agentic App and Why Observability Matters (10 minutes)
+* **Module 3**: Metrics and KPIs for Agentic Applications (15 minutes)
+* **Module 4**: Tracing and MLflow (20 minutes)
+
+== Technical requirements
+
+=== Software versions
+
+* Red Hat OpenShift Container Platform {ocp_version}
+* Red Hat OpenShift AI 3.4
+* MLflow 3.9.1
+* LangGraph/LangChain (latest stable)
+* Grafana/Perses for dashboards
+* Web browser (Chrome, Firefox, Safari, Edge)
+
+=== Environment access
+
+Participants need access to:
+
+* Red Hat OpenShift AI cluster (provided during workshop)
+* MLflow tracking server
+* Grafana dashboards
+* Terminal/command line environment
+* Code editor (VS Code recommended)
+
+=== Network requirements
+
+* Internet connectivity for accessing documentation and external resources
+* Access to the OpenShift cluster and its services
+* Red Hat Demo Platform network access (specific URLs provided)
+
+== Environment setup
+
+=== Pre-workshop checklist
+
+□ **OpenShift access confirmed** - Test login credentials at {openshift_console_url} +
+□ **CLI tools installed** - Verify `oc` client installation +
+□ **Python environment ready** - Python 3.11+ with pip +
+□ **Workshop repository cloned** - Clone the multi-agent loan app repository +
+□ **Network connectivity verified** - Test access to required URLs
+
+=== Setup validation
+
+Participants should run these commands to verify setup:
+
+[source,bash]
+----
+# Verify OpenShift CLI
+oc version
+
+# Login to OpenShift cluster
+oc login {openshift_api_url} -u {user} -p {password}
+
+# Verify project access
+oc project
+
+# Test connectivity to MLflow
+curl -s https://mlflow-route.apps.cluster.example.com/health | head -5
+----
+
+== Troubleshooting guide
+
+=== Common setup issues
+
+**Problem**: "error: You must be logged in to the server (Unauthorized)"
+→ **Solution**: Re-run the `oc login` command with correct credentials. Verify username and password.
+
+**Problem**: "oc: command not found"
+→ **Solution**: Download and install the OpenShift CLI from {oc_client_download_url}. Add to your PATH.
+
+**Problem**: "Unable to connect to the server: dial tcp: lookup api.cluster..."
+→ **Solution**: Verify network connectivity. Check if VPN is required. Contact workshop facilitator.
+
+**Problem**: "Permission denied when accessing MLflow UI"
+→ **Solution**: Ensure you're logged into OpenShift. MLflow uses OpenShift OAuth for authentication.
+
+=== During workshop support
+
+* Encourage participants to help each other
+* Use the bastion host for CLI access if local setup fails: `ssh {bastion_user}@{bastion_host}`
+* Have backup environments ready for technical difficulties
+* Use screen sharing for complex troubleshooting
+
+== Follow-up resources
+
+=== Next steps for participants
+
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/[Red Hat OpenShift AI Documentation^]: Official product documentation
+* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow Tracing Documentation^]: Deep dive into GenAI tracing capabilities
+* link:https://langchain-ai.github.io/langgraph/[LangGraph Documentation^]: Build stateful multi-agent applications
+* link:https://modelcontextprotocol.io/[Model Context Protocol^]: MCP specification and tools
+
+=== Additional learning paths
+
+* **Intermediate**: Advanced MLflow features, custom scorers, trace analysis
+* **Advanced**: Building custom observability pipelines, OpenTelemetry integration
+* **Certification**: Red Hat Certified Specialist in AI/ML
+
+== Authors and contributors
+
+**Primary Author**: Red Hat AI Business Unit +
+**Last Updated**: March 2026 +
+**Workshop Version**: 1.0
+
+**Contact Information**:
+
+* Workshop feedback: ai-practice@redhat.com
+* Technical questions: Red Hat Support Portal
+* Content updates: GitHub repository issues

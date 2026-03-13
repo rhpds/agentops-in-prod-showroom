@@ -1,18 +1,16 @@
-* xref:index.adoc[What is Showroom?]
+* xref:index.adoc[Welcome]
 
-.Content Developer Guide
-* xref:quick-start.adoc[Quick Start]
-* xref:content-repo.adoc[Creating a Content Repository]
-* xref:agnosticv-config.adoc[AgnosticV Configuration]
-* xref:ui-config.adoc[UI Configuration]
-* xref:user-data.adoc[User Data and Variables]
-* xref:ocp4-role-reference.adoc[OCP4 Role Reference]
-* xref:vm-role-reference.adoc[VM Role Reference]
+.Workshop
+* xref:01-overview.adoc[Workshop Overview]
+* xref:02-details.adoc[Workshop Details]
 
-.Showroom Developer Guide
-* xref:architecture.adoc[Architecture]
-* xref:deployer.adoc[Showroom Deployer]
-* xref:images.adoc[Showroom Images]
-* xref:nookbag.adoc[Nookbag UI]
-* xref:ocp-integration.adoc[OCP Integration]
-* xref:contributing.adoc[Contributing]
+.Modules
+* xref:03-module-01-agentic-app.adoc[Module 1: The Agentic App]
+* xref:04-module-02-observability-pillars.adoc[Module 2: Observability Pillars]
+* xref:05-module-03-metrics-kpis.adoc[Module 3: Metrics & KPIs]
+* xref:06-module-04-tracing-mlflow.adoc[Module 4: Tracing & MLflow]
+* xref:07-module-05-evals.adoc[Module 5: LLM Evaluations]
+* xref:08-module-06-troubleshooting.adoc[Module 6: Troubleshooting]
+
+.Wrap-up
+* xref:09-conclusion.adoc[Conclusion]

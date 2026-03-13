@@ -1,0 +1,432 @@
+= Module 4: Tracing and MLflow
+:navtitle: Module 4: Tracing & MLflow
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+Metrics tell you *what* is happening, but traces tell you *why*. In this module, you'll configure MLflow tracing to gain end-to-end visibility into the Acme FinTech multi-agent mortgage system. You'll learn how to trace requests across LangGraph agents and MCP tool calls, enabling rapid root cause analysis.
+
+This module represents the largest portion of the lab, as tracing is the cornerstone of AgentOps observability.
+
+== Learning objectives
+
+By the end of this module, you'll be able to:
+
+* Configure MLflow tracing for multi-agent LangGraph workflows
+* Instrument agent code for automatic trace capture
+* Navigate the MLflow UI to analyze request traces
+* Correlate traces across multiple agents and MCP tool calls
+
+== Introduction to MLflow tracing
+
+MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that captures inputs, outputs, and metadata for each step of a request. For Acme FinTech, this means visibility into:
+
+* The complete path of a loan application across all five agents
+* Every LLM inference call with prompt and response
+* All MCP tool invocations and their results
+* Agent decision points and handoffs
+
+=== Key concepts
+
+* **Trace**: A complete record of a request's journey through the system
+* **Span**: A single operation within a trace (e.g., one LLM call, one tool invocation)
+* **Parent-child relationships**: Spans form a tree showing the call hierarchy
+* **Attributes**: Metadata attached to spans (tokens used, model name, etc.)
+
+// TODO: Diagram showing trace structure with spans
+image::module-04-trace-structure.png[MLflow trace structure with spans,link=self,window=blank,width=700]
+
+== Exercise 1: Access the MLflow tracking server
+
+Red Hat OpenShift AI includes MLflow as part of the platform. Let's access the MLflow UI.
+
+. Get the MLflow route:
++
+[source,bash]
+----
+MLFLOW_ROUTE=$(oc get route -n redhat-ods-applications mlflow -o jsonpath='{.spec.host}' 2>/dev/null || echo "mlflow-redhat-ods-applications.apps.cluster.example.com")
+echo "MLflow UI: https://${MLFLOW_ROUTE}"
+----
+
+. Open the MLflow UI in your browser and authenticate with your OpenShift credentials.
+
+. Explore the MLflow interface:
++
+--
+* **Experiments**: Organized collections of runs and traces
+* **Models**: Registered model versions
+* **Traces**: End-to-end request traces (our focus)
+--
+
+. Check the MLflow version:
++
+[source,bash]
+----
+# Query MLflow API
+curl -s https://${MLFLOW_ROUTE}/api/2.0/mlflow/version | jq .
+----
+
+NOTE: RHOAI 3.4 ships with MLflow 3.9.1. If you're on RHOAI 3.3, you may have MLflow 3.6.0 with some feature differences.
+
+=== Multi-tenancy note
+
+IMPORTANT: The current version of MLflow in RHOAI does not fully support multi-tenancy. For this workshop, each user works in a separate namespace. In production environments, this limitation should be considered when planning your MLflow deployment strategy.
+
+=== Verify
+
+Confirm MLflow is accessible:
+
+[source,bash]
+----
+curl -s -o /dev/null -w "%{http_code}" https://${MLFLOW_ROUTE}/health
+----
+
+Expected output: `200`
+
+✓ MLflow UI is accessible +
+✓ Can authenticate with OpenShift credentials +
+✓ MLflow version is confirmed
+
+// TODO: Screenshot of MLflow UI main page
+image::module-04-mlflow-ui.png[MLflow UI main page,link=self,window=blank,width=700]
+
+== Exercise 2: Enable tracing for LangGraph agents
+
+Now let's configure the Acme FinTech agents to send traces to MLflow. MLflow provides automatic instrumentation for LangChain and LangGraph.
+
+. First, review how the agents are currently configured:
++
+[source,bash]
+----
+# Check the prospect agent configuration
+oc get deployment prospect-agent -n acme-fintech-agents -o yaml | grep -A 20 "env:"
+----
+
+. Update the agent deployment to enable MLflow tracing:
++
+[source,bash]
+----
+# Set MLflow tracking URI for the prospect agent
+oc set env deployment/prospect-agent -n acme-fintech-agents \
+  MLFLOW_TRACKING_URI="https://${MLFLOW_ROUTE}" \
+  MLFLOW_EXPERIMENT_NAME="acme-fintech-agents" \
+  MLFLOW_ENABLE_TRACING="true"
+----
+
+. Apply the same configuration to all agents:
++
+[source,bash]
+----
+for agent in borrower-agent loan-officer-agent underwriter-agent executive-agent; do
+  oc set env deployment/${agent} -n acme-fintech-agents \
+    MLFLOW_TRACKING_URI="https://${MLFLOW_ROUTE}" \
+    MLFLOW_EXPERIMENT_NAME="acme-fintech-agents" \
+    MLFLOW_ENABLE_TRACING="true"
+done
+----
+
+. Wait for the agents to restart:
++
+[source,bash]
+----
+oc rollout status deployment/prospect-agent -n acme-fintech-agents
+----
+
+. Verify the environment variables are set:
++
+[source,bash]
+----
+oc get deployment prospect-agent -n acme-fintech-agents -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="MLFLOW_ENABLE_TRACING")].value}'
+----
+
+=== Verify
+
+Confirm tracing is enabled:
+
+[source,bash]
+----
+# Check all agents have tracing enabled
+for agent in prospect-agent borrower-agent loan-officer-agent underwriter-agent executive-agent; do
+  echo -n "$agent: "
+  oc get deployment ${agent} -n acme-fintech-agents -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="MLFLOW_ENABLE_TRACING")].value}'
+  echo ""
+done
+----
+
+Expected output: All agents show `true`
+
+✓ MLflow tracking URI is configured +
+✓ Tracing is enabled for all agents +
+✓ Agents have restarted with new configuration
+
+== Exercise 3: Generate and view traces
+
+Let's generate some loan application traffic and view the resulting traces in MLflow.
+
+. Submit a loan inquiry to generate a trace:
++
+[source,bash]
+----
+PROSPECT_URL=$(oc get route prospect-agent -n acme-fintech-agents -o jsonpath='{.spec.host}')
+
+curl -X POST https://${PROSPECT_URL}/api/inquiry \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Smith",
+    "email": "john.smith@example.com",
+    "loan_amount": 450000,
+    "property_type": "single_family",
+    "property_state": "CA",
+    "annual_income": 150000,
+    "credit_score_range": "740-799"
+  }'
+----
+
+. Wait a few seconds for the trace to be recorded, then navigate to the MLflow UI.
+
+. In MLflow, go to **Experiments** → **acme-fintech-agents** → **Traces** tab.
+
+. Click on the most recent trace to view its details:
++
+--
+You should see:
+
+* **Root span**: The initial inquiry request
+* **Child spans**: Each agent invocation, LLM call, and MCP tool call
+* **Attributes**: Token counts, model names, latencies
+* **Inputs/Outputs**: The actual prompts and completions
+--
+
+. Explore the trace hierarchy:
++
+[source,bash]
+----
+# Generate more traffic for richer traces
+for i in {1..5}; do
+  curl -X POST https://${PROSPECT_URL}/api/inquiry \
+    -H "Content-Type: application/json" \
+    -d "{
+      \"name\": \"Test User ${i}\",
+      \"email\": \"test${i}@example.com\",
+      \"loan_amount\": $((300000 + i * 50000)),
+      \"property_type\": \"single_family\"
+    }"
+  sleep 2
+done
+----
+
+=== Verify
+
+Confirm traces are being captured:
+
+[source,bash]
+----
+# Query MLflow API for recent traces
+curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/traces?experiment_ids=acme-fintech-agents&max_results=5" | jq '.traces | length'
+----
+
+Expected: A number greater than 0
+
+✓ Traces appear in MLflow UI +
+✓ Trace hierarchy shows agent interactions +
+✓ Span details include LLM prompts and responses
+
+// TODO: Screenshot of MLflow trace view with span hierarchy
+image::module-04-trace-view.png[MLflow trace view showing span hierarchy,link=self,window=blank,width=700]
+
+== Exercise 4: Analyze a multi-agent trace
+
+Let's deep-dive into a trace that shows a complete loan application flow across multiple agents.
+
+. In MLflow, select a trace that has multiple spans (indicating multi-agent involvement).
+
+. Identify the key components in the trace:
++
+--
+* **prospect-agent**: Initial inquiry handling
+* **LLM inference**: The actual model call with prompt/completion
+* **mcp-compliance-server**: External compliance check
+* **borrower-agent**: Application processing (if the inquiry qualified)
+--
+
+. For each span, examine:
++
+--
+* **Duration**: How long did this operation take?
+* **Inputs**: What data was passed to this component?
+* **Outputs**: What was the result?
+* **Attributes**: Model name, token count, status
+--
+
+. Use the trace to answer these questions:
++
+[cols="2,3",options="header"]
+|===
+|Question |Where to Find Answer
+
+|Which agent took the longest?
+|Compare span durations in the timeline view
+
+|What prompt was sent to the LLM?
+|Check the `input` attribute of the LLM span
+
+|Did the compliance check pass?
+|Look at the MCP tool span's output
+
+|How many tokens were used?
+|Sum the `tokens_used` attributes
+|===
+
+. Export trace data for analysis:
++
+[source,bash]
+----
+# Get trace details via API
+TRACE_ID="<your-trace-id>"  # Copy from MLflow UI
+curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/traces/${TRACE_ID}" | jq .
+----
+
+=== Verify
+
+You can effectively analyze traces:
+
+✓ Can identify which agents participated in a request +
+✓ Can view LLM prompts and completions +
+✓ Can measure latency at each step +
+✓ Can see MCP tool call results
+
+// TODO: Screenshot of detailed span view with attributes
+image::module-04-span-details.png[Detailed span view showing attributes and inputs/outputs,link=self,window=blank,width=700]
+
+== Exercise 5: Trace MCP tool calls
+
+MCP (Model Context Protocol) tools are critical external integrations. Let's examine how they appear in traces.
+
+. Generate a request that will trigger MCP tool calls:
++
+[source,bash]
+----
+# This inquiry should trigger compliance and credit checks
+curl -X POST https://${PROSPECT_URL}/api/inquiry \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Maria Garcia",
+    "email": "maria.garcia@example.com",
+    "loan_amount": 500000,
+    "property_type": "multi_family",
+    "property_state": "TX",
+    "annual_income": 200000,
+    "credit_score_range": "800+"
+  }'
+----
+
+. In MLflow, find the resulting trace and expand the MCP tool spans:
++
+--
+* **mcp-compliance-server**: HMDA, ECOA, TRID compliance checks
+* **mcp-credit-server**: Credit score retrieval
+--
+
+. Examine the MCP span attributes:
++
+[cols="1,2",options="header"]
+|===
+|Attribute |Description
+
+|tool_name
+|Name of the MCP tool invoked
+
+|tool_input
+|Parameters passed to the tool
+
+|tool_output
+|Result returned by the tool
+
+|duration_ms
+|Time taken for the tool call
+
+|status
+|Success or failure
+|===
+
+. Identify potential issues in MCP calls:
++
+--
+* Long duration: Tool is slow
+* Error status: Tool failed
+* Empty output: Tool returned no data
+--
+
+=== Verify
+
+You understand MCP tool tracing:
+
+✓ Can locate MCP tool spans in traces +
+✓ Can view tool inputs and outputs +
+✓ Can identify slow or failing tool calls
+
+== Troubleshooting
+
+**Issue**: Traces not appearing in MLflow
+**Solution**:
+
+. Verify MLFLOW_TRACKING_URI is set correctly: `oc get deployment prospect-agent -o yaml | grep MLFLOW`
+. Check agent logs for MLflow errors: `oc logs -l app=prospect-agent | grep -i mlflow`
+. Ensure network connectivity to MLflow: `oc exec deployment/prospect-agent -- curl -s ${MLFLOW_ROUTE}/health`
+. Verify experiment exists: Create it manually if needed
+
+**Issue**: Traces show but spans are missing
+**Solution**:
+
+. Ensure LangChain autolog is enabled in agent code
+. Check that all agents have tracing configured
+. Verify the agent code is using instrumented LangChain/LangGraph calls
+. Review the autolog configuration for completeness
+
+**Issue**: MLflow UI is slow or unresponsive
+**Solution**:
+
+. Check MLflow pod resources: `oc describe pod -l app=mlflow`
+. Review storage usage: Large trace volumes may need cleanup
+. Consider filtering traces by time range
+. Check database connectivity (if using external DB)
+
+**Issue**: Cannot authenticate to MLflow
+**Solution**:
+
+. Verify OAuth is properly configured
+. Check your OpenShift session is valid: `oc whoami`
+. Clear browser cookies and re-authenticate
+. Ensure RBAC allows access to MLflow
+
+== Learning outcomes checkpoint
+
+Before proceeding to Module 5, confirm you can:
+
+* [ ] Access the MLflow UI and navigate to traces
+* [ ] Configure agents to send traces to MLflow
+* [ ] Generate test traffic and view resulting traces
+* [ ] Analyze multi-agent traces to understand request flow
+* [ ] Identify MCP tool calls within traces
+
+== Module summary
+
+You've successfully implemented MLflow tracing for the Acme FinTech multi-agent system.
+
+**What you accomplished:**
+
+* Configured MLflow tracing for all five agents
+* Generated test traffic to create traces
+* Analyzed multi-agent request flows in the MLflow UI
+* Examined MCP tool call traces
+
+**Key takeaways:**
+
+* MLflow tracing provides end-to-end visibility into multi-agent workflows
+* Traces show the complete decision path, not just the final result
+* MCP tool calls are captured as spans, enabling integration monitoring
+* Trace analysis enables rapid root cause identification
+
+**Next steps:**
+
+Module 5 will introduce LLM Evaluations (Evals), combining tracing with quality assessment to ensure your agents maintain high-quality outputs alongside system reliability.

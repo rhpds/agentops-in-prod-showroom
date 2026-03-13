@@ -1,0 +1,624 @@
+= Module 5: LLM evaluations (Evals)
+:navtitle: Module 5: LLM Evaluations
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+Observability tells you if your system is working, but evaluations tell you if your agents are working *well*. In this module, you'll go beyond basic observability by combining tracing with LLM evaluations in MLflow, ensuring Acme FinTech's agents maintain high-quality outputs alongside system reliability.
+
+This is the AI Developer's quality assurance layer -- ensuring that agents don't just respond, but respond correctly.
+
+== Learning objectives
+
+By the end of this module, you'll be able to:
+
+* Explain the role of LLM evaluations in AgentOps observability
+* Create evaluation datasets from production traces
+* Configure MLflow scorers for agent output quality
+* Establish quality baselines and monitor for regression
+
+== Why evaluations matter for AgentOps
+
+In the Acme FinTech mortgage system, agents make consequential decisions:
+
+* The prospect agent qualifies leads -- wrong qualification costs sales
+* The underwriter agent assesses risk -- incorrect assessment creates liability
+* The compliance agent checks regulations -- failures risk legal penalties
+
+Metrics tell you the agent responded. Traces tell you how it responded. **Evaluations tell you if it responded correctly.**
+
+=== The evaluation lifecycle
+
+[cols="1,3",options="header"]
+|===
+|Stage |Purpose
+
+|Dataset Creation
+|Curate representative inputs with known correct outputs
+
+|Scorer Definition
+|Define what "good" looks like (accuracy, relevance, safety)
+
+|Baseline Establishment
+|Run evaluations to set quality benchmarks
+
+|Continuous Monitoring
+|Detect quality regressions over time
+|===
+
+// TODO: Diagram showing evaluation lifecycle
+image::module-05-eval-lifecycle.png[LLM evaluation lifecycle,link=self,window=blank,width=700]
+
+== Exercise 1: Access MLflow evaluations
+
+Let's explore the evaluation capabilities in MLflow.
+
+. Navigate to the MLflow UI:
++
+[source,bash]
+----
+MLFLOW_ROUTE=$(oc get route -n redhat-ods-applications mlflow -o jsonpath='{.spec.host}')
+echo "MLflow UI: https://${MLFLOW_ROUTE}"
+----
+
+. In MLflow, go to **Experiments** → **acme-fintech-agents**.
+
+. Note the evaluation-related features:
++
+--
+* **Runs**: Each evaluation run is recorded
+* **Metrics**: Evaluation scores are tracked as metrics
+* **Artifacts**: Datasets and evaluation results are stored
+--
+
+. Verify the MLflow version supports evaluations:
++
+[source,bash]
+----
+# Check MLflow evaluate endpoint
+curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/registered-models/list" | jq '.registered_models | length'
+----
+
+=== Verify
+
+Confirm MLflow evaluation features are accessible:
+
+✓ Can navigate to experiments in MLflow +
+✓ Evaluation features are available in the UI +
+✓ API endpoints are responding
+
+== Exercise 2: Create an evaluation dataset
+
+The foundation of good evaluations is a high-quality dataset. Let's create one from production traces.
+
+. First, export traces from MLflow to build your dataset:
++
+[source,bash]
+----
+# Create a directory for evaluation data
+mkdir -p /tmp/acme-fintech-evals
+
+# Query recent traces
+curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/traces?experiment_ids=acme-fintech-agents&max_results=20" > /tmp/acme-fintech-evals/traces.json
+----
+
+. Create an evaluation dataset with expected outputs:
++
+[source,python]
+----
+# evaluation_dataset.py
+import json
+
+# Sample evaluation dataset for prospect agent
+evaluation_data = [
+    {
+        "input": {
+            "loan_amount": 300000,
+            "annual_income": 100000,
+            "credit_score_range": "740-799",
+            "property_type": "single_family"
+        },
+        "expected_output": {
+            "qualified": True,
+            "recommended_products": ["30-year fixed", "15-year fixed"],
+            "confidence": 0.85
+        },
+        "tags": ["happy_path", "good_credit"]
+    },
+    {
+        "input": {
+            "loan_amount": 500000,
+            "annual_income": 80000,
+            "credit_score_range": "620-659",
+            "property_type": "multi_family"
+        },
+        "expected_output": {
+            "qualified": False,
+            "rejection_reason": "DTI_TOO_HIGH",
+            "confidence": 0.92
+        },
+        "tags": ["rejection", "high_dti"]
+    },
+    {
+        "input": {
+            "loan_amount": 400000,
+            "annual_income": 150000,
+            "credit_score_range": "800+",
+            "property_type": "single_family"
+        },
+        "expected_output": {
+            "qualified": True,
+            "recommended_products": ["30-year fixed", "15-year fixed", "ARM"],
+            "confidence": 0.95
+        },
+        "tags": ["happy_path", "excellent_credit"]
+    }
+]
+
+# Save dataset
+with open('/tmp/acme-fintech-evals/prospect_dataset.json', 'w') as f:
+    json.dump(evaluation_data, f, indent=2)
+
+print(f"Created dataset with {len(evaluation_data)} examples")
+----
+
+. Save and run the dataset creation script:
++
+[source,bash]
+----
+python3 << 'EOF'
+import json
+
+evaluation_data = [
+    {
+        "input": {
+            "loan_amount": 300000,
+            "annual_income": 100000,
+            "credit_score_range": "740-799",
+            "property_type": "single_family"
+        },
+        "expected_output": {
+            "qualified": True,
+            "recommended_products": ["30-year fixed", "15-year fixed"],
+            "confidence": 0.85
+        },
+        "tags": ["happy_path", "good_credit"]
+    },
+    {
+        "input": {
+            "loan_amount": 500000,
+            "annual_income": 80000,
+            "credit_score_range": "620-659",
+            "property_type": "multi_family"
+        },
+        "expected_output": {
+            "qualified": False,
+            "rejection_reason": "DTI_TOO_HIGH",
+            "confidence": 0.92
+        },
+        "tags": ["rejection", "high_dti"]
+    },
+    {
+        "input": {
+            "loan_amount": 400000,
+            "annual_income": 150000,
+            "credit_score_range": "800+",
+            "property_type": "single_family"
+        },
+        "expected_output": {
+            "qualified": True,
+            "recommended_products": ["30-year fixed", "15-year fixed", "ARM"],
+            "confidence": 0.95
+        },
+        "tags": ["happy_path", "excellent_credit"]
+    }
+]
+
+with open('/tmp/acme-fintech-evals/prospect_dataset.json', 'w') as f:
+    json.dump(evaluation_data, f, indent=2)
+
+print(f"Created dataset with {len(evaluation_data)} examples")
+EOF
+----
+
+=== Verify
+
+Confirm the dataset is created:
+
+[source,bash]
+----
+cat /tmp/acme-fintech-evals/prospect_dataset.json | jq 'length'
+----
+
+Expected output: `3`
+
+✓ Evaluation dataset is created +
+✓ Dataset contains inputs and expected outputs +
+✓ Examples are tagged for categorization
+
+== Exercise 3: Define evaluation scorers
+
+Scorers determine how agent outputs are evaluated. Let's create scorers for the Acme FinTech prospect agent.
+
+. Create a Python script with custom scorers:
++
+[source,python]
+----
+# scorers.py
+from mlflow.metrics import make_metric
+
+def qualification_accuracy(predictions, targets):
+    """Score whether the qualification decision matches expected."""
+    correct = 0
+    for pred, target in zip(predictions, targets):
+        if pred.get("qualified") == target.get("qualified"):
+            correct += 1
+    return correct / len(predictions) if predictions else 0
+
+def confidence_calibration(predictions, targets):
+    """Score how well confidence correlates with correctness."""
+    # High confidence should mean correct predictions
+    calibration_score = 0
+    for pred, target in zip(predictions, targets):
+        is_correct = pred.get("qualified") == target.get("qualified")
+        confidence = pred.get("confidence", 0.5)
+        if is_correct and confidence > 0.8:
+            calibration_score += 1
+        elif not is_correct and confidence < 0.5:
+            calibration_score += 0.5
+    return calibration_score / len(predictions) if predictions else 0
+
+def rejection_reason_accuracy(predictions, targets):
+    """For rejections, check if the reason matches."""
+    rejections = [(p, t) for p, t in zip(predictions, targets)
+                  if not t.get("qualified")]
+    if not rejections:
+        return 1.0  # No rejections to evaluate
+
+    correct = sum(1 for p, t in rejections
+                  if p.get("rejection_reason") == t.get("rejection_reason"))
+    return correct / len(rejections)
+----
+
+. Create an evaluation runner script:
++
+[source,bash]
+----
+cat << 'EOF' > /tmp/acme-fintech-evals/run_eval.py
+import json
+import mlflow
+from mlflow.metrics import make_metric
+import os
+
+# Set MLflow tracking
+mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI"))
+mlflow.set_experiment("acme-fintech-evals")
+
+# Load dataset
+with open('/tmp/acme-fintech-evals/prospect_dataset.json') as f:
+    dataset = json.load(f)
+
+# Define scorers
+def qualification_accuracy(predictions, targets):
+    correct = sum(1 for p, t in zip(predictions, targets)
+                  if p.get("qualified") == t.get("qualified"))
+    return correct / len(predictions) if predictions else 0
+
+# Run evaluation
+with mlflow.start_run(run_name="prospect-agent-baseline"):
+    # Log dataset info
+    mlflow.log_param("dataset_size", len(dataset))
+    mlflow.log_param("dataset_tags", list(set(tag for d in dataset for tag in d.get("tags", []))))
+
+    # Simulate getting predictions (in real scenario, call the agent)
+    # For demo, we'll assume predictions match expected outputs
+    predictions = [d["expected_output"] for d in dataset]
+    targets = [d["expected_output"] for d in dataset]
+
+    # Calculate and log metrics
+    accuracy = qualification_accuracy(predictions, targets)
+    mlflow.log_metric("qualification_accuracy", accuracy)
+    mlflow.log_metric("dataset_coverage", len(dataset))
+
+    print(f"Qualification Accuracy: {accuracy}")
+    print("Evaluation logged to MLflow")
+EOF
+----
+
+. Run the evaluation:
++
+[source,bash]
+----
+export MLFLOW_TRACKING_URI="https://${MLFLOW_ROUTE}"
+python3 /tmp/acme-fintech-evals/run_eval.py
+----
+
+=== Verify
+
+Confirm the evaluation ran successfully:
+
+[source,bash]
+----
+# Check MLflow for the evaluation run
+curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/experiments/get-by-name?experiment_name=acme-fintech-evals" | jq '.experiment.experiment_id'
+----
+
+✓ Evaluation script executed without errors +
+✓ Metrics are logged to MLflow +
+✓ Run appears in MLflow experiments
+
+// TODO: Screenshot of evaluation metrics in MLflow
+image::module-05-eval-metrics.png[Evaluation metrics in MLflow,link=self,window=blank,width=700]
+
+== Exercise 4: Establish a quality baseline
+
+With evaluations running, let's establish a baseline that future evaluations will be compared against.
+
+. Run a comprehensive baseline evaluation:
++
+[source,bash]
+----
+cat << 'EOF' > /tmp/acme-fintech-evals/baseline_eval.py
+import json
+import mlflow
+import os
+from datetime import datetime
+
+mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI"))
+mlflow.set_experiment("acme-fintech-evals")
+
+# Extended dataset for baseline
+baseline_data = [
+    {"input": {"loan_amount": 300000, "annual_income": 100000, "credit_score_range": "740-799"},
+     "expected": {"qualified": True, "confidence": 0.85}},
+    {"input": {"loan_amount": 500000, "annual_income": 80000, "credit_score_range": "620-659"},
+     "expected": {"qualified": False, "confidence": 0.92}},
+    {"input": {"loan_amount": 400000, "annual_income": 150000, "credit_score_range": "800+"},
+     "expected": {"qualified": True, "confidence": 0.95}},
+    {"input": {"loan_amount": 250000, "annual_income": 75000, "credit_score_range": "700-739"},
+     "expected": {"qualified": True, "confidence": 0.78}},
+    {"input": {"loan_amount": 600000, "annual_income": 120000, "credit_score_range": "660-699"},
+     "expected": {"qualified": False, "confidence": 0.88}},
+]
+
+with mlflow.start_run(run_name=f"baseline-{datetime.now().strftime('%Y%m%d')}"):
+    # Log baseline parameters
+    mlflow.log_param("evaluation_type", "baseline")
+    mlflow.log_param("dataset_size", len(baseline_data))
+    mlflow.log_param("model_version", "1.0.0")
+
+    # Calculate baseline metrics (simulated)
+    mlflow.log_metric("qualification_accuracy", 0.95)
+    mlflow.log_metric("confidence_calibration", 0.88)
+    mlflow.log_metric("rejection_precision", 0.92)
+    mlflow.log_metric("latency_p95", 1.2)
+
+    # Log the baseline threshold
+    mlflow.log_param("accuracy_threshold", 0.90)
+    mlflow.log_param("confidence_threshold", 0.80)
+
+    # Tag as baseline
+    mlflow.set_tag("baseline", "true")
+    mlflow.set_tag("environment", "production")
+
+    print("Baseline established:")
+    print("  - Qualification Accuracy: 0.95")
+    print("  - Confidence Calibration: 0.88")
+    print("  - Rejection Precision: 0.92")
+EOF
+
+python3 /tmp/acme-fintech-evals/baseline_eval.py
+----
+
+. View the baseline in MLflow:
++
+--
+Navigate to **Experiments** → **acme-fintech-evals** and find the baseline run.
+
+The baseline metrics become the standard for detecting regressions.
+--
+
+. Document the baseline thresholds:
++
+[cols="2,1,2",options="header"]
+|===
+|Metric |Baseline |Threshold (Alert if below)
+
+|Qualification Accuracy
+|95%
+|90%
+
+|Confidence Calibration
+|88%
+|80%
+
+|Rejection Precision
+|92%
+|85%
+
+|Latency P95
+|1.2s
+|2.0s
+|===
+
+=== Verify
+
+Confirm baseline is established:
+
+[source,bash]
+----
+# Find baseline run
+curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/runs/search" \
+  -H "Content-Type: application/json" \
+  -d '{"experiment_ids": ["acme-fintech-evals"], "filter_string": "tags.baseline = \"true\""}' | jq '.runs[0].info.run_name'
+----
+
+✓ Baseline run is tagged in MLflow +
+✓ Baseline metrics are documented +
+✓ Thresholds for alerting are defined
+
+== Exercise 5: Monitor for quality regression
+
+Now let's set up a process to detect when agent quality degrades.
+
+. Create a regression detection script:
++
+[source,bash]
+----
+cat << 'EOF' > /tmp/acme-fintech-evals/regression_check.py
+import json
+import mlflow
+import os
+
+mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI"))
+mlflow.set_experiment("acme-fintech-evals")
+
+# Define thresholds
+THRESHOLDS = {
+    "qualification_accuracy": 0.90,
+    "confidence_calibration": 0.80,
+    "rejection_precision": 0.85
+}
+
+def check_regression(current_metrics, thresholds):
+    """Check if any metric falls below threshold."""
+    regressions = []
+    for metric, threshold in thresholds.items():
+        current = current_metrics.get(metric, 0)
+        if current < threshold:
+            regressions.append({
+                "metric": metric,
+                "current": current,
+                "threshold": threshold,
+                "delta": threshold - current
+            })
+    return regressions
+
+# Simulate current metrics (in production, these come from actual evaluation)
+current_metrics = {
+    "qualification_accuracy": 0.93,
+    "confidence_calibration": 0.85,
+    "rejection_precision": 0.91
+}
+
+with mlflow.start_run(run_name="regression-check"):
+    # Log current metrics
+    for metric, value in current_metrics.items():
+        mlflow.log_metric(metric, value)
+
+    # Check for regressions
+    regressions = check_regression(current_metrics, THRESHOLDS)
+
+    if regressions:
+        print("⚠️  REGRESSION DETECTED!")
+        for r in regressions:
+            print(f"  - {r['metric']}: {r['current']:.2f} (threshold: {r['threshold']:.2f})")
+        mlflow.set_tag("regression_detected", "true")
+    else:
+        print("✅ All metrics within acceptable range")
+        mlflow.set_tag("regression_detected", "false")
+
+    mlflow.log_param("thresholds", json.dumps(THRESHOLDS))
+EOF
+
+python3 /tmp/acme-fintech-evals/regression_check.py
+----
+
+. Set up automated regression checks (conceptual):
++
+[source,bash]
+----
+# In production, you would schedule this as a CronJob
+cat << 'EOF' | oc apply -f -
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: eval-regression-check
+  namespace: acme-fintech-agents
+spec:
+  schedule: "0 */6 * * *"  # Every 6 hours
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: eval-runner
+            image: python:3.11
+            command: ["python", "/scripts/regression_check.py"]
+            env:
+            - name: MLFLOW_TRACKING_URI
+              value: "https://mlflow-route.apps.cluster.example.com"
+          restartPolicy: OnFailure
+EOF
+----
+
+=== Verify
+
+Confirm regression detection is working:
+
+✓ Regression check script runs successfully +
+✓ Results are logged to MLflow +
+✓ Regressions are flagged appropriately
+
+== Troubleshooting
+
+**Issue**: Evaluation script fails with import errors
+**Solution**:
+
+. Ensure MLflow is installed: `pip install mlflow`
+. Check Python version: `python3 --version` (needs 3.8+)
+. Verify all dependencies: `pip install pandas numpy`
+
+**Issue**: Cannot connect to MLflow from evaluation script
+**Solution**:
+
+. Verify MLFLOW_TRACKING_URI is set: `echo $MLFLOW_TRACKING_URI`
+. Check network access from your environment
+. If running locally, ensure port-forwarding is active
+. Try using the internal service URL from within the cluster
+
+**Issue**: Evaluation metrics not appearing in MLflow
+**Solution**:
+
+. Check that `mlflow.log_metric()` calls are executing
+. Verify the experiment name matches
+. Look for Python exceptions in script output
+. Ensure the run is properly ended with `mlflow.end_run()` or context manager
+
+**Issue**: Baseline comparison not working
+**Solution**:
+
+. Verify baseline run is tagged correctly: `tags.baseline = "true"`
+. Check experiment ID matches between baseline and current runs
+. Ensure metric names are consistent
+
+== Learning outcomes checkpoint
+
+Before proceeding to Module 6, confirm you can:
+
+* [ ] Explain why LLM evaluations are essential for AgentOps
+* [ ] Create an evaluation dataset with inputs and expected outputs
+* [ ] Define custom scorers for agent output quality
+* [ ] Establish a quality baseline and understand regression detection
+
+== Module summary
+
+You've successfully implemented LLM evaluations for the Acme FinTech agents.
+
+**What you accomplished:**
+
+* Understood the role of evaluations in AgentOps observability
+* Created evaluation datasets from production examples
+* Defined custom scorers for qualification accuracy
+* Established baseline metrics and regression detection
+
+**Key takeaways:**
+
+* Observability without evaluations only tells you *if* agents work, not *how well*
+* Evaluation datasets should represent real-world scenarios
+* Baselines enable detection of quality regressions
+* Continuous evaluation ensures sustained agent quality
+
+**Next steps:**
+
+Module 6 will put everything together by simulating real-world failures in the multi-agent system. You'll use the metrics, traces, and evaluations you've configured to diagnose and fix distributed failures.

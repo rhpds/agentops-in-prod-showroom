@@ -1,0 +1,358 @@
+= Module 2: Observability pillars, concepts, and personas
+:navtitle: Module 2: Observability Pillars
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+Now that you've experienced the challenges of monitoring a multi-agent system, it's time to understand the foundational concepts that will guide your observability strategy. Different roles in your organization have different observability needs, and understanding these perspectives is key to building effective monitoring.
+
+In this module, you'll learn the three pillars of observability and how they apply to agentic AI systems, while understanding the distinct needs of SRE/Platform Engineers versus AI Developers/Engineers.
+
+== Learning objectives
+
+By the end of this module, you'll be able to:
+
+* Define the three pillars of observability: metrics, logs, and traces
+* Explain how each pillar applies specifically to multi-agent AI systems
+* Distinguish between the observability needs of SRE/Platform Engineers and AI Developers/Engineers
+* Map observability tools to persona-specific use cases in Acme FinTech
+
+== The three pillars of observability
+
+Before diving into tools and implementation, let's establish a shared vocabulary for observability in the context of agentic AI systems.
+
+=== Pillar 1: Metrics
+
+**Definition**: Numeric measurements collected at regular intervals that represent the state of a system.
+
+**For traditional systems**:
+
+* CPU utilization, memory usage, request rate
+* Error rates, latency percentiles
+* Queue depths, connection counts
+
+**For agentic AI systems**:
+
+* Token usage per agent per request
+* LLM inference latency
+* Agent decision confidence scores
+* MCP tool call success/failure rates
+* Agent handoff frequencies
+* Model response quality scores
+
+=== Pillar 2: Logs
+
+**Definition**: Timestamped, immutable records of discrete events.
+
+**For traditional systems**:
+
+* Application errors and exceptions
+* Access logs, audit trails
+* Debug information
+
+**For agentic AI systems**:
+
+* Agent reasoning chains and decision rationale
+* Prompt/completion pairs for debugging
+* Tool invocation parameters and responses
+* Compliance audit events (critical for Acme FinTech!)
+* Agent state transitions
+
+=== Pillar 3: Traces
+
+**Definition**: Records of the path of a request as it propagates through a distributed system.
+
+**For traditional systems**:
+
+* Service-to-service call chains
+* Database query execution paths
+* External API integrations
+
+**For agentic AI systems**:
+
+* Multi-agent workflow execution paths
+* LLM inference spans with prompt/completion
+* MCP tool call chains
+* Agent-to-agent handoff sequences
+* Complete decision paths from input to output
+
+// TODO: Diagram showing three pillars with AI-specific examples
+image::module-02-three-pillars.png[Three pillars of observability for AI systems,link=self,window=blank,width=700]
+
+== Exercise 1: Map pillars to Acme FinTech needs
+
+Let's apply these concepts to Acme FinTech's multi-agent mortgage system.
+
+. Review this mapping of observability needs:
++
+[cols="1,1,2",options="header"]
+|===
+|Pillar |Traditional Need |Acme FinTech AI Need
+
+|Metrics
+|Request rate, error rate
+|Agent token consumption, model latency, compliance check pass rate
+
+|Logs
+|Error messages
+|Agent reasoning chains, compliance audit trail, PII access logs
+
+|Traces
+|Service call graph
+|Loan application flow across 5 agents, MCP tool execution path
+|===
+
+. Identify which pillar helps answer each question:
++
+--
+* "How many tokens did we consume processing loan applications today?" → *Metrics*
+* "Why did the underwriter agent reject this application?" → *Logs* (reasoning chain)
+* "Where is the bottleneck in our loan processing pipeline?" → *Traces*
+* "Is our compliance check service degrading?" → *Metrics*
+* "What was the complete path of application #12345?" → *Traces*
+--
+
+=== Verify
+
+You understand how each pillar applies to AI observability:
+
+✓ Can identify which pillar answers specific questions +
+✓ Understand the AI-specific additions to each pillar +
+✓ Recognize that all three pillars work together
+
+== Two personas, different needs
+
+At Acme FinTech, two primary teams need observability, but their focus areas differ significantly.
+
+=== Persona 1: SRE/Platform Engineering
+
+**Focus**: System health, reliability, and performance
+
+**Primary concerns**:
+
+* Is the system up and responsive?
+* Are we meeting our SLOs (Service Level Objectives)?
+* Do we have capacity for current and projected load?
+* Are there any infrastructure issues affecting agents?
+
+**Key questions they ask**:
+
+* "What's our P99 latency for loan processing?"
+* "How much GPU/memory are the inference services using?"
+* "Are any pods restarting frequently?"
+* "What's our error budget status?"
+
+**Tools they use**:
+
+* Grafana/Perses dashboards for metrics visualization
+* Prometheus for metrics collection and alerting
+* OpenShift monitoring stack
+* On-call alerting systems
+
+=== Persona 2: AI Developer/Engineer
+
+**Focus**: Model behavior, decision quality, and agent performance
+
+**Primary concerns**:
+
+* Are agents making correct decisions?
+* What's the quality of LLM outputs?
+* Why did an agent behave unexpectedly?
+* How can I improve agent performance?
+
+**Key questions they ask**:
+
+* "What prompt led to this unexpected response?"
+* "Which agent in the chain made the wrong decision?"
+* "What was the confidence score for rejected applications?"
+* "Are there patterns in failed compliance checks?"
+
+**Tools they use**:
+
+* MLflow for tracing and experiment tracking
+* LLM evaluation frameworks
+* Prompt debugging tools
+* Agent workflow visualization
+
+// TODO: Diagram showing persona responsibilities overlap
+image::module-02-personas.png[SRE vs AI Developer observability focus,link=self,window=blank,width=700]
+
+== Exercise 2: Assign responsibilities at Acme FinTech
+
+Based on the personas above, let's map specific observability tasks to the right team.
+
+. Review these scenarios and identify the responsible persona:
++
+[cols="3,1",options="header"]
+|===
+|Scenario |Responsible Persona
+
+|MLflow tracking server is running out of disk space
+|SRE/Platform Engineering
+
+|Loan approval rate dropped 15% after model update
+|AI Developer/Engineer
+
+|P99 latency for underwriter agent exceeded SLO
+|SRE/Platform Engineering
+
+|Agent is providing inconsistent advice to similar inquiries
+|AI Developer/Engineer
+
+|Kubernetes pods for MCP server keep restarting
+|SRE/Platform Engineering
+
+|Compliance check agent is flagging too many false positives
+|AI Developer/Engineer
+|===
+
+. Identify areas of overlap:
++
+--
+Some issues require collaboration:
+
+* **Latency spikes**: SRE identifies the symptom (high latency), AI Developer investigates the cause (complex prompt, model issue)
+* **Error rate increases**: SRE sees the metric, AI Developer analyzes the failed traces
+* **Resource exhaustion**: SRE manages capacity, AI Developer optimizes token usage
+--
+
+=== Verify
+
+You can distinguish persona responsibilities:
+
+✓ Understand SRE focus on system health and SLOs +
+✓ Understand AI Developer focus on model behavior and quality +
+✓ Recognize collaboration points between personas
+
+== The AgentOps observability stack
+
+For Acme FinTech, we'll implement an integrated observability stack that serves both personas:
+
+[cols="1,2,1",options="header"]
+|===
+|Component |Purpose |Primary Persona
+
+|RHOAI Observability Stack
+|Infrastructure metrics, pod health, resource utilization
+|SRE/Platform Engineering
+
+|Grafana/Perses Dashboards
+|Visualization of metrics and KPIs
+|Both
+
+|MLflow Tracing
+|End-to-end request tracing, agent decision paths
+|AI Developer/Engineer
+
+|MLflow Evaluations
+|LLM output quality assessment
+|AI Developer/Engineer
+
+|OpenShift Logging
+|Centralized log aggregation
+|SRE/Platform Engineering
+|===
+
+// TODO: Architecture diagram of the complete observability stack
+image::module-02-stack-architecture.png[AgentOps observability stack architecture,link=self,window=blank,width=700]
+
+== Exercise 3: Review the RHOAI observability stack
+
+Let's explore what's already available in Red Hat OpenShift AI for observability.
+
+. Access the OpenShift console:
++
+[source,bash]
+----
+# Get the console URL
+echo "OpenShift Console: {openshift_console_url}"
+----
+
+. Navigate to **Observe** → **Dashboards** in the OpenShift console.
+
+. Review the available RHOAI dashboards:
++
+--
+* **RHOAI Overview**: High-level view of AI workloads
+* **Model Serving**: Inference endpoint metrics
+* **Data Science Projects**: Resource utilization by project
+--
+
+. Check the available metrics in Prometheus:
++
+[source,bash]
+----
+# Port-forward to Prometheus (if needed)
+oc port-forward -n openshift-monitoring svc/prometheus-k8s 9090:9090 &
+
+# Query for AI-related metrics
+curl -s "http://localhost:9090/api/v1/label/__name__/values" | jq '.data[]' | grep -i "model\|inference\|llm"
+----
+
+=== Verify
+
+You've explored the RHOAI observability capabilities:
+
+[source,bash]
+----
+# Verify you can access monitoring
+oc get route -n openshift-monitoring prometheus-k8s
+----
+
+✓ Can access OpenShift monitoring dashboards +
+✓ Understand what metrics are available out of the box +
+✓ Know where to find RHOAI-specific dashboards
+
+== Troubleshooting
+
+**Issue**: Cannot access OpenShift monitoring dashboards
+**Solution**:
+
+. Verify your user has monitoring access: `oc auth can-i get pods -n openshift-monitoring`
+. Check if monitoring stack is deployed: `oc get pods -n openshift-monitoring`
+. Request elevated permissions from cluster admin if needed
+
+**Issue**: No RHOAI dashboards visible
+**Solution**:
+
+. Verify RHOAI is installed: `oc get csv -n redhat-ods-operator`
+. Check if monitoring is enabled in RHOAI configuration
+. Dashboards may require specific RHOAI components to be deployed
+
+**Issue**: Prometheus port-forward fails
+**Solution**:
+
+. Check if you have network access: `oc get svc -n openshift-monitoring`
+. Try using the route instead: `oc get route -n openshift-monitoring`
+. Use the OpenShift console UI as an alternative
+
+== Learning outcomes checkpoint
+
+Before proceeding to Module 3, confirm you can:
+
+* [ ] Define metrics, logs, and traces in the context of AI observability
+* [ ] Explain AI-specific observability needs for each pillar
+* [ ] Distinguish between SRE and AI Developer observability responsibilities
+* [ ] Identify the key components of the AgentOps observability stack
+
+== Module summary
+
+You've successfully learned the foundational concepts of AgentOps observability.
+
+**What you accomplished:**
+
+* Understood the three pillars of observability for AI systems
+* Learned how different personas approach observability differently
+* Explored the RHOAI observability stack capabilities
+* Mapped responsibilities to the right teams
+
+**Key takeaways:**
+
+* Metrics, logs, and traces each serve unique purposes in AI observability
+* SRE/Platform Engineers focus on system health; AI Developers focus on model behavior
+* Effective AgentOps requires collaboration between both personas
+* RHOAI provides foundational observability that we'll extend in subsequent modules
+
+**Next steps:**
+
+Module 3 will dive into metrics and KPIs for agentic applications, where you'll build custom Grafana/Perses dashboards to monitor the Acme FinTech multi-agent system.

@@ -1,0 +1,512 @@
+= Module 3: Metrics and KPIs for agentic applications
+:navtitle: Module 3: Metrics & KPIs
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+With the observability fundamentals in place, it's time to build practical dashboards that give Acme FinTech's SRE and Platform Engineering teams real-time visibility into the multi-agent mortgage system. You'll use the Red Hat OpenShift AI (RHOAI) Observability stack integrated with Grafana to create actionable dashboards.
+
+In this module, you'll define key metrics for agentic applications and build dashboards that answer critical operational questions.
+
+== Learning objectives
+
+By the end of this module, you'll be able to:
+
+* Identify the key metrics and KPIs specific to multi-agent AI systems
+* Configure the RHOAI Observability stack for agent monitoring
+* Build Grafana dashboards for agentic application metrics
+* Create alerts for critical agent health indicators
+
+== Key metrics for agentic applications
+
+Before building dashboards, let's define what we need to measure. Agentic AI systems require metrics beyond traditional application monitoring.
+
+=== Infrastructure metrics (SRE focus)
+
+[cols="2,3,2",options="header"]
+|===
+|Metric |Description |Why It Matters
+
+|Pod CPU/Memory
+|Resource utilization per agent pod
+|Capacity planning, cost optimization
+
+|Request Rate
+|Requests per second to each agent
+|Load understanding, scaling decisions
+
+|Error Rate
+|Percentage of failed requests
+|System health, SLO tracking
+
+|Latency (P50, P95, P99)
+|Response time distribution
+|Performance monitoring, SLO compliance
+|===
+
+=== AI-specific metrics (AI Developer focus)
+
+[cols="2,3,2",options="header"]
+|===
+|Metric |Description |Why It Matters
+
+|Token Usage
+|Input/output tokens per request
+|Cost management, model efficiency
+
+|Inference Latency
+|Time spent in LLM inference
+|User experience, bottleneck identification
+
+|Agent Handoff Rate
+|Frequency of agent-to-agent transfers
+|Workflow efficiency, routing optimization
+
+|MCP Tool Success Rate
+|Success/failure rate of external tool calls
+|Integration health, reliability
+
+|Confidence Scores
+|Agent decision confidence distribution
+|Quality assurance, model performance
+|===
+
+=== Business KPIs (Executive focus)
+
+[cols="2,3,2",options="header"]
+|===
+|Metric |Description |Why It Matters
+
+|Loan Processing Time
+|End-to-end time from inquiry to decision
+|Customer experience, operational efficiency
+
+|Compliance Check Pass Rate
+|Percentage of applications passing compliance
+|Risk management, regulatory adherence
+
+|Agent Automation Rate
+|Requests handled without human intervention
+|ROI, automation effectiveness
+|===
+
+== Exercise 1: Explore RHOAI observability stack
+
+Let's start by exploring the observability capabilities already available in Red Hat OpenShift AI.
+
+. Access the OpenShift AI dashboard:
++
+[source,bash]
+----
+RHOAI_ROUTE=$(oc get route -n redhat-ods-applications rhods-dashboard -o jsonpath='{.spec.host}')
+echo "RHOAI Dashboard: https://${RHOAI_ROUTE}"
+----
+
+. Navigate to the Data Science Projects section and select the Acme FinTech project.
+
+. Review the built-in monitoring available for model serving endpoints:
++
+--
+* Request count and rate
+* Inference latency
+* Error rates
+* Resource utilization
+--
+
+. Check the Prometheus metrics exposed by RHOAI:
++
+[source,bash]
+----
+# List available RHOAI metrics
+oc exec -n openshift-monitoring prometheus-k8s-0 -- curl -s "http://localhost:9090/api/v1/label/__name__/values" | jq '.data[]' | grep -E "odh_|rhoai_|model_" | head -20
+----
+
+=== Verify
+
+Confirm you can access RHOAI observability features:
+
+[source,bash]
+----
+# Check RHOAI monitoring components
+oc get pods -n redhat-ods-monitoring
+----
+
+✓ RHOAI dashboard is accessible +
+✓ Monitoring components are running +
+✓ Metrics are being collected
+
+// TODO: Screenshot of RHOAI dashboard with monitoring section
+image::module-03-rhoai-dashboard.png[RHOAI observability dashboard,link=self,window=blank,width=700]
+
+== Exercise 2: Access and configure Grafana
+
+Now let's set up Grafana for custom dashboards that go beyond the built-in RHOAI monitoring.
+
+. Check if Grafana is already deployed:
++
+[source,bash]
+----
+oc get pods -n grafana-operator
+oc get route -n grafana-operator
+----
+
+. If Grafana is not deployed, deploy it:
++
+[source,bash]
+----
+# Create namespace for Grafana
+oc new-project grafana-dashboards
+
+# Deploy Grafana operator
+cat << 'EOF' | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: grafana-operator
+  namespace: openshift-operators
+spec:
+  channel: v5
+  name: grafana-operator
+  source: community-operators
+  sourceNamespace: openshift-marketplace
+EOF
+----
+
+. Wait for the operator to be ready:
++
+[source,bash]
+----
+oc wait --for=condition=Ready pod -l control-plane=controller-manager -n openshift-operators --timeout=120s
+----
+
+. Deploy a Grafana instance:
++
+[source,bash]
+----
+cat << 'EOF' | oc apply -f -
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: acme-fintech-grafana
+  namespace: grafana-dashboards
+spec:
+  config:
+    auth:
+      disable_login_form: false
+    security:
+      admin_user: admin
+      admin_password: admin123
+EOF
+----
+
+. Get the Grafana route:
++
+[source,bash]
+----
+oc get route -n grafana-dashboards acme-fintech-grafana-route -o jsonpath='{.spec.host}'
+----
+
+=== Verify
+
+Confirm Grafana is accessible:
+
+[source,bash]
+----
+GRAFANA_ROUTE=$(oc get route -n grafana-dashboards acme-fintech-grafana-route -o jsonpath='{.spec.host}')
+curl -s -o /dev/null -w "%{http_code}" https://${GRAFANA_ROUTE}/login
+----
+
+Expected output: `200`
+
+✓ Grafana is deployed and accessible +
+✓ Can log in with admin credentials
+
+== Exercise 3: Build an agent metrics dashboard
+
+Now let's create a custom dashboard for monitoring the Acme FinTech multi-agent system.
+
+. First, configure Prometheus as a data source in Grafana:
++
+[source,bash]
+----
+cat << 'EOF' | oc apply -f -
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: prometheus-datasource
+  namespace: grafana-dashboards
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: acme-fintech
+  datasource:
+    name: Prometheus
+    type: prometheus
+    access: proxy
+    url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+    isDefault: true
+    jsonData:
+      httpHeaderName1: Authorization
+      tlsSkipVerify: true
+    secureJsonData:
+      httpHeaderValue1: "Bearer ${PROMETHEUS_TOKEN}"
+EOF
+----
+
+. Create the AgentOps dashboard:
++
+[source,bash]
+----
+cat << 'EOF' | oc apply -f -
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: agentops-overview
+  namespace: grafana-dashboards
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: acme-fintech
+  json: |
+    {
+      "title": "AgentOps Overview - Acme FinTech",
+      "description": "Multi-agent mortgage system observability",
+      "panels": [
+        {
+          "title": "Agent Request Rate",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+          "targets": [
+            {
+              "expr": "sum(rate(http_requests_total{namespace=\"acme-fintech-agents\"}[5m])) by (service)",
+              "legendFormat": "{{service}}"
+            }
+          ]
+        },
+        {
+          "title": "Agent Latency (P95)",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=\"acme-fintech-agents\"}[5m])) by (service, le))",
+              "legendFormat": "{{service}}"
+            }
+          ]
+        },
+        {
+          "title": "Error Rate by Agent",
+          "type": "stat",
+          "gridPos": {"h": 4, "w": 6, "x": 0, "y": 8},
+          "targets": [
+            {
+              "expr": "sum(rate(http_requests_total{namespace=\"acme-fintech-agents\", status=~\"5..\"}[5m])) / sum(rate(http_requests_total{namespace=\"acme-fintech-agents\"}[5m])) * 100",
+              "legendFormat": "Error %"
+            }
+          ]
+        },
+        {
+          "title": "MCP Tool Call Success Rate",
+          "type": "gauge",
+          "gridPos": {"h": 4, "w": 6, "x": 6, "y": 8},
+          "targets": [
+            {
+              "expr": "sum(rate(mcp_tool_calls_total{status=\"success\"}[5m])) / sum(rate(mcp_tool_calls_total[5m])) * 100",
+              "legendFormat": "Success %"
+            }
+          ]
+        },
+        {
+          "title": "Token Usage (Last Hour)",
+          "type": "stat",
+          "gridPos": {"h": 4, "w": 6, "x": 12, "y": 8},
+          "targets": [
+            {
+              "expr": "sum(increase(llm_tokens_total[1h]))",
+              "legendFormat": "Total Tokens"
+            }
+          ]
+        },
+        {
+          "title": "Active Agent Pods",
+          "type": "stat",
+          "gridPos": {"h": 4, "w": 6, "x": 18, "y": 8},
+          "targets": [
+            {
+              "expr": "count(kube_pod_status_phase{namespace=\"acme-fintech-agents\", phase=\"Running\"})",
+              "legendFormat": "Running Pods"
+            }
+          ]
+        }
+      ]
+    }
+EOF
+----
+
+. Access the dashboard in Grafana and verify it loads:
++
+[source,bash]
+----
+echo "Grafana Dashboard: https://${GRAFANA_ROUTE}/d/agentops-overview"
+----
+
+=== Verify
+
+Confirm the dashboard is created and displays data:
+
+[source,bash]
+----
+# Check dashboard exists
+oc get grafanadashboard -n grafana-dashboards
+----
+
+✓ Dashboard is deployed +
+✓ Panels show data (or "No data" if no traffic yet) +
+✓ Prometheus data source is connected
+
+// TODO: Screenshot of the AgentOps overview dashboard
+image::module-03-agentops-dashboard.png[AgentOps overview dashboard in Grafana,link=self,window=blank,width=700]
+
+== Exercise 4: Create alerts for agent health
+
+Now let's configure alerts that notify the SRE team when agent health degrades.
+
+. Create a PrometheusRule for agent alerts:
++
+[source,bash]
+----
+cat << 'EOF' | oc apply -f -
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: agentops-alerts
+  namespace: acme-fintech-agents
+spec:
+  groups:
+  - name: agent-health
+    rules:
+    - alert: AgentHighErrorRate
+      expr: |
+        sum(rate(http_requests_total{namespace="acme-fintech-agents", status=~"5.."}[5m]))
+        / sum(rate(http_requests_total{namespace="acme-fintech-agents"}[5m])) > 0.05
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate detected in agent services"
+        description: "Error rate is above 5% for more than 2 minutes"
+
+    - alert: AgentHighLatency
+      expr: |
+        histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace="acme-fintech-agents"}[5m])) by (le)) > 5
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High latency detected in agent services"
+        description: "P95 latency is above 5 seconds for more than 5 minutes"
+
+    - alert: MCPToolFailures
+      expr: |
+        sum(rate(mcp_tool_calls_total{status="error"}[5m])) > 0.1
+      for: 3m
+      labels:
+        severity: critical
+      annotations:
+        summary: "MCP tool calls are failing"
+        description: "MCP tool error rate is elevated for more than 3 minutes"
+EOF
+----
+
+. Verify the alerts are registered:
++
+[source,bash]
+----
+oc get prometheusrule -n acme-fintech-agents
+----
+
+. Check the alert status in the OpenShift console:
++
+--
+Navigate to **Observe** → **Alerting** → **Alerting rules** and filter by `acme-fintech-agents`.
+--
+
+=== Verify
+
+Confirm alerts are configured:
+
+[source,bash]
+----
+# List the alert rules
+oc get prometheusrule agentops-alerts -n acme-fintech-agents -o jsonpath='{.spec.groups[0].rules[*].alert}'
+----
+
+Expected output: `AgentHighErrorRate AgentHighLatency MCPToolFailures`
+
+✓ Alert rules are created +
+✓ Alerts appear in OpenShift alerting UI +
+✓ Alert conditions are defined with appropriate thresholds
+
+== Troubleshooting
+
+**Issue**: Grafana dashboard shows "No data"
+**Solution**:
+
+. Verify Prometheus data source is configured correctly
+. Check if metrics are being scraped: query `up{namespace="acme-fintech-agents"}` in Prometheus
+. Ensure ServiceMonitor is deployed for agent services
+. Check time range in Grafana (try "Last 1 hour")
+
+**Issue**: Cannot connect Grafana to Prometheus
+**Solution**:
+
+. Verify the Prometheus URL is correct
+. Check network policies allow traffic from Grafana namespace
+. Ensure bearer token has correct permissions
+. Try using the internal service URL instead of route
+
+**Issue**: Alerts not firing when expected
+**Solution**:
+
+. Verify PrometheusRule is in the correct namespace
+. Check if the metrics referenced in alert expressions exist
+. Review alert thresholds -- they may be too high
+. Check Prometheus UI for alert rule evaluation status
+
+**Issue**: GrafanaDashboard not appearing
+**Solution**:
+
+. Verify instanceSelector matches the Grafana instance labels
+. Check GrafanaDashboard status: `oc describe grafanadashboard <name>`
+. Review Grafana operator logs for errors
+
+== Learning outcomes checkpoint
+
+Before proceeding to Module 4, confirm you can:
+
+* [ ] List at least 5 key metrics for monitoring multi-agent AI systems
+* [ ] Access and navigate the RHOAI observability stack
+* [ ] Create a Grafana dashboard with agent-specific panels
+* [ ] Configure Prometheus alerts for agent health indicators
+
+== Module summary
+
+You've successfully implemented metrics monitoring for the Acme FinTech multi-agent system.
+
+**What you accomplished:**
+
+* Defined key metrics and KPIs for agentic applications
+* Explored the RHOAI observability stack
+* Built a custom Grafana dashboard for agent monitoring
+* Created alerts for critical agent health conditions
+
+**Key takeaways:**
+
+* Agentic applications require AI-specific metrics beyond traditional monitoring
+* RHOAI provides foundational observability that can be extended
+* Grafana dashboards provide flexible visualization for different personas
+* Proactive alerting enables faster incident response
+
+**Next steps:**
+
+Module 4 will introduce MLflow tracing, enabling end-to-end visibility into multi-agent request flows -- the key to understanding *why* things happen, not just *what* is happening.

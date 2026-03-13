@@ -1,5 +1,13 @@
 name: modules
-title: Showroom Collection
+title: "AgentOps in Production"
 version: ~
 nav:
   - modules/ROOT/nav.adoc
+asciidoc:
+  attributes:
+    # Lab metadata
+    lab_name: "AgentOps in Production: Agentic End-to-End Observability with Red Hat AI"
+    # Version placeholders - can be overridden by Showroom at runtime
+    ocp_version: "4.20"
+    rhoai_version: "3.4"
+    mlflow_version: "3.9.1"

@@ -1,7 +1,7 @@
 ---
 site:
-  title: Showroom Template Demo
-  url: https://github.com/rhpds/showroom_template_nookbag
+  title: "AgentOps in Production: Agentic End-to-End Observability with Red Hat AI"
+  url: https://rhpds.github.io/agentops-in-prod-showroom
   start_page: modules::index.adoc
 
 content:

@@ -1,0 +1,287 @@
+= Module 1: The agentic app and why observability matters
+:navtitle: Module 1: The Agentic App
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+Agentic AI apps don't fail silently -- they fail distributedly. In this module, you'll explore the Acme FinTech multi-agent mortgage lending application and understand why traditional monitoring approaches fall short for these complex systems.
+
+Acme FinTech needs end-to-end visibility into their multi-agent workflows, and you've been tasked with evaluating how observability can help. Before implementing solutions, you need to understand what you're working with.
+
+In this module, you'll experience firsthand why multi-agent systems require a different approach to observability.
+
+== Learning objectives
+
+By the end of this module, you'll be able to:
+
+* Describe the architecture of the Acme FinTech multi-agent mortgage lending system
+* Identify the five distinct agent personas and their responsibilities
+* Explain why distributed AI systems require specialized observability approaches
+* Recognize the key failure modes in multi-agent architectures
+
+== Exercise 1: Explore the multi-agent architecture
+
+Acme FinTech's mortgage lending system is built on LangGraph with five specialized agents, each serving a distinct persona in the lending workflow. Let's explore the deployed application.
+
+. First, verify your environment is ready and log in to OpenShift:
++
+[source,bash]
+----
+oc login {openshift_api_url} -u {user} -p {password}
+----
+
+. Switch to the project containing the multi-agent application:
++
+[source,bash]
+----
+oc project acme-fintech-agents
+----
+
+. List the deployed agent services:
++
+[source,bash]
+----
+oc get deployments
+----
++
+Expected output:
++
+----
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+prospect-agent          1/1     1            1           2d
+borrower-agent          1/1     1            1           2d
+loan-officer-agent      1/1     1            1           2d
+underwriter-agent       1/1     1            1           2d
+executive-agent         1/1     1            1           2d
+mcp-compliance-server   1/1     1            1           2d
+mcp-credit-server       1/1     1            1           2d
+----
+
+. View the agent pods and their status:
++
+[source,bash]
+----
+oc get pods -l app.kubernetes.io/part-of=acme-fintech
+----
+
+=== Verify
+
+Confirm all agent deployments are running:
+
+[source,bash]
+----
+oc get deployments -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,AVAILABLE:.status.availableReplicas
+----
+
+✓ All deployments show READY and AVAILABLE as 1 +
+✓ No pods in CrashLoopBackOff or Error state
+
+// TODO: Screenshot showing the deployed agents in OpenShift console
+image::module-01-agents-deployed.png[Deployed agent services in OpenShift,link=self,window=blank,width=700]
+
+== Exercise 2: Understand the agent personas
+
+Each agent in the Acme FinTech system serves a specific role in the mortgage lending lifecycle. Understanding these roles is crucial for effective observability.
+
+=== The five agent personas
+
+[cols="1,2,2",options="header"]
+|===
+|Agent |Persona |Responsibility
+
+|Prospect Agent
+|Potential customer
+|Handle initial inquiries, provide rate estimates, qualify leads
+
+|Borrower Agent
+|Loan applicant
+|Manage application intake, collect documentation, validate submissions
+
+|Loan Officer Agent
+|Internal staff
+|Pipeline management, application review, customer communication
+
+|Underwriter Agent
+|Risk assessor
+|Compliance checks, risk assessment, approval decisions
+
+|Executive Agent
+|Management
+|Analytics, reporting, portfolio oversight
+|===
+
+. Query the prospect agent to see its capabilities:
++
+[source,bash]
+----
+PROSPECT_URL=$(oc get route prospect-agent -o jsonpath='{.spec.host}')
+curl -s https://${PROSPECT_URL}/api/capabilities | jq .
+----
+
+. Review the agent's MCP tool integrations:
++
+[source,bash]
+----
+curl -s https://${PROSPECT_URL}/api/tools | jq '.tools[] | {name, description}'
+----
+
+=== MCP tool integrations
+
+The agents communicate with external services through Model Context Protocol (MCP) servers:
+
+* **MCP Compliance Server**: Handles HMDA, ECOA, TRID, ATR/QM, and FCRA compliance checks
+* **MCP Credit Server**: Retrieves credit scores and financial data
+
+. Check the MCP server status:
++
+[source,bash]
+----
+oc get pods -l app=mcp-server
+----
+
+=== Verify
+
+Confirm you can access the agent capabilities:
+
+[source,bash]
+----
+curl -s https://${PROSPECT_URL}/health
+----
+
+Expected output:
+----
+{"status": "healthy", "agent": "prospect", "version": "1.0.0"}
+----
+
+✓ Agent responds with healthy status +
+✓ Agent version is displayed
+
+== Exercise 3: Experience distributed failures
+
+Now let's understand why observability is critical by observing what happens when things go wrong in a multi-agent system.
+
+. Submit a test loan inquiry through the prospect agent:
++
+[source,bash]
+----
+curl -X POST https://${PROSPECT_URL}/api/inquiry \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane Doe",
+    "email": "jane.doe@example.com",
+    "loan_amount": 350000,
+    "property_type": "single_family"
+  }'
+----
+
+. Check the application status -- notice the lack of visibility:
++
+[source,bash]
+----
+# Where did the request go?
+# Which agents processed it?
+# How long did each step take?
+# We don't know!
+----
+
+. Try to find what happened using traditional logs:
++
+[source,bash]
+----
+# Check prospect agent logs
+oc logs -l app=prospect-agent --tail=50
+
+# Check borrower agent logs
+oc logs -l app=borrower-agent --tail=50
+
+# Check underwriter agent logs
+oc logs -l app=underwriter-agent --tail=50
+----
++
+IMPORTANT: Notice how difficult it is to correlate events across multiple agents using logs alone. Each agent has its own log stream with no common correlation ID.
+
+=== The observability challenge
+
+Without proper instrumentation, you face these challenges:
+
+* **No request correlation**: Logs from different agents cannot be connected
+* **Hidden latency**: You can't identify which agent or tool is causing delays
+* **Silent failures**: MCP tool failures may not surface in agent logs
+* **No decision visibility**: You can't see why an agent made a particular decision
+
+// TODO: Screenshot showing fragmented logs across multiple agents
+image::module-01-fragmented-logs.png[Fragmented logs across agents,link=self,window=blank,width=700]
+
+=== Verify
+
+You've experienced the observability challenge:
+
+[source,bash]
+----
+# Try to answer these questions using only logs:
+# 1. How many agents processed the inquiry?
+# 2. What was the total end-to-end latency?
+# 3. Did any MCP tool calls fail?
+# 4. What was the final decision path?
+
+# (Hint: You can't easily answer these without proper tracing!)
+----
+
+✓ Understood the limitation of log-only observability +
+✓ Recognized the need for distributed tracing +
+✓ Identified the key questions that require end-to-end visibility
+
+== Troubleshooting
+
+**Issue**: Cannot connect to OpenShift cluster
+**Solution**:
+
+. Verify your credentials are correct
+. Check network connectivity: `ping api.cluster.example.com`
+. If using VPN, ensure it's connected
+. Try accessing via bastion: `ssh {bastion_user}@{bastion_host}`
+
+**Issue**: Agent pods not running
+**Solution**:
+
+. Check pod status: `oc get pods`
+. View pod events: `oc describe pod <pod-name>`
+. Check for resource constraints: `oc get events --sort-by='.lastTimestamp'`
+
+**Issue**: Cannot access agent routes
+**Solution**:
+
+. Verify route exists: `oc get routes`
+. Check route TLS configuration: `oc describe route <route-name>`
+. Test from within cluster: `oc debug deployment/prospect-agent -- curl localhost:8080/health`
+
+== Learning outcomes checkpoint
+
+Before proceeding to Module 2, confirm you can:
+
+* [ ] Describe the five agent personas in the Acme FinTech system
+* [ ] Explain the role of MCP servers in the architecture
+* [ ] Articulate why distributed AI systems require specialized observability
+* [ ] Identify at least three limitations of log-only monitoring for multi-agent systems
+
+== Module summary
+
+You've successfully explored the Acme FinTech multi-agent architecture.
+
+**What you accomplished:**
+
+* Explored the deployed multi-agent mortgage lending system
+* Understood the five agent personas and their responsibilities
+* Experienced the challenge of debugging distributed AI systems
+* Recognized why traditional monitoring falls short for agentic apps
+
+**Key takeaways:**
+
+* Multi-agent systems distribute decision-making across multiple services
+* MCP tools add external dependencies that need monitoring
+* Logs alone cannot provide end-to-end visibility
+* Specialized observability approaches are required for AgentOps
+
+**Next steps:**
+
+Module 2 will introduce the three pillars of observability -- metrics, logs, and traces -- and how different personas (SRE/Platform Engineering vs. AI Developer/Engineer) approach monitoring these systems.

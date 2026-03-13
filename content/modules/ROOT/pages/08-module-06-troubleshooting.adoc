@@ -1,0 +1,497 @@
+= Module 6: Troubleshooting distributed failures
+:navtitle: Module 6: Troubleshooting
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+This is where everything comes together. In this module, you'll simulate real-world failures in the Acme FinTech multi-agent system and use the observability stack you've built to diagnose and fix them. This is the AgentOps discipline in action -- turning cascading errors and hidden latency into solvable problems.
+
+You'll experience what it feels like to be on-call for a multi-agent AI system with proper observability versus without it.
+
+== Learning objectives
+
+By the end of this module, you'll be able to:
+
+* Simulate realistic failures in multi-agent systems
+* Use metrics, traces, and logs together to diagnose issues
+* Identify root causes in distributed AI workflows
+* Apply fixes and verify resolution using the observability stack
+
+== The troubleshooting mindset
+
+When debugging multi-agent systems, follow this diagnostic flow:
+
+. **Detect**: Metrics and alerts tell you something is wrong
+. **Triage**: Determine scope and severity
+. **Investigate**: Use traces to find where the problem occurs
+. **Diagnose**: Examine logs and spans to understand why
+. **Fix**: Apply the correction
+. **Verify**: Confirm the fix resolved the issue
+
+// TODO: Diagram showing diagnostic flow
+image::module-06-diagnostic-flow.png[Diagnostic flow for multi-agent systems,link=self,window=blank,width=700]
+
+== Exercise 1: Simulate MCP server latency
+
+One of the most common issues in production is external service degradation. Let's simulate the MCP compliance server becoming slow.
+
+. First, check current baseline latency:
++
+[source,bash]
+----
+# Get current P95 latency from Grafana/Prometheus
+curl -s "http://localhost:9090/api/v1/query?query=histogram_quantile(0.95,sum(rate(http_request_duration_seconds_bucket{service=\"mcp-compliance-server\"}[5m]))by(le))" | jq '.data.result[0].value[1]'
+----
+
+. Inject latency into the MCP compliance server:
++
+[source,bash]
+----
+# Scale down the healthy deployment
+oc scale deployment mcp-compliance-server -n acme-fintech-agents --replicas=0
+
+# Deploy a version with artificial delay
+cat << 'EOF' | oc apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-compliance-server-slow
+  namespace: acme-fintech-agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-compliance-server
+  template:
+    metadata:
+      labels:
+        app: mcp-compliance-server
+        version: slow
+    spec:
+      containers:
+      - name: compliance-server
+        image: quay.io/acme-fintech/mcp-compliance-server:slow
+        env:
+        - name: ARTIFICIAL_DELAY_MS
+          value: "3000"
+        ports:
+        - containerPort: 8080
+EOF
+----
+
+. Wait for the slow version to be ready:
++
+[source,bash]
+----
+oc rollout status deployment/mcp-compliance-server-slow -n acme-fintech-agents
+----
+
+. Generate traffic to trigger the issue:
++
+[source,bash]
+----
+PROSPECT_URL=$(oc get route prospect-agent -n acme-fintech-agents -o jsonpath='{.spec.host}')
+
+for i in {1..10}; do
+  curl -X POST https://${PROSPECT_URL}/api/inquiry \
+    -H "Content-Type: application/json" \
+    -d '{
+      "name": "Test User '"${i}"'",
+      "email": "test'"${i}"'@example.com",
+      "loan_amount": 400000,
+      "property_type": "single_family"
+    }' &
+done
+wait
+----
+
+=== Observe the impact
+
+. Check Grafana for latency spike:
++
+--
+Navigate to your AgentOps dashboard. You should see:
+
+* P95 latency increasing significantly
+* Possible timeout errors
+* Request queue backing up
+--
+
+. Check alerts:
++
+[source,bash]
+----
+# View firing alerts
+oc get alerts -n acme-fintech-agents
+----
+
+=== Verify
+
+Confirm the latency injection is working:
+
+[source,bash]
+----
+# Time a request
+time curl -s -X POST https://${PROSPECT_URL}/api/inquiry \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Test", "loan_amount": 300000}'
+----
+
+Expected: Response time > 3 seconds
+
+✓ Latency has increased noticeably +
+✓ Grafana shows latency spike +
+✓ Alerts are firing (or pending)
+
+// TODO: Screenshot of Grafana showing latency spike
+image::module-06-latency-spike.png[Grafana showing latency spike,link=self,window=blank,width=700]
+
+== Exercise 2: Diagnose using traces
+
+Now let's use MLflow tracing to pinpoint the source of the latency.
+
+. Open MLflow and navigate to recent traces:
++
+[source,bash]
+----
+echo "MLflow UI: https://${MLFLOW_ROUTE}"
+----
+
+. Find a slow trace:
++
+--
+Look for traces with total duration > 3 seconds.
+
+* Click on a slow trace to expand it
+* Examine the span hierarchy
+--
+
+. Identify the bottleneck:
++
+--
+In the trace view:
+
+. Find the span with the longest duration
+. Note the service name (should be `mcp-compliance-server`)
+. Check the span attributes for clues
+
+You should see:
+
+* `mcp-compliance-server` span taking ~3000ms
+* Other spans completing quickly
+* The compliance check is clearly the bottleneck
+--
+
+. Document your findings:
++
+[cols="1,2",options="header"]
+|===
+|Finding |Evidence
+
+|Bottleneck location
+|mcp-compliance-server span duration: ~3000ms
+
+|Impact scope
+|All requests requiring compliance checks
+
+|Root cause hypothesis
+|MCP server artificial delay or downstream issue
+|===
+
+=== Verify
+
+You've identified the root cause:
+
+✓ Found slow traces in MLflow +
+✓ Identified mcp-compliance-server as the bottleneck +
+✓ Confirmed other spans are unaffected
+
+// TODO: Screenshot of MLflow trace showing slow MCP span
+image::module-06-trace-bottleneck.png[MLflow trace showing MCP bottleneck,link=self,window=blank,width=700]
+
+== Exercise 3: Examine logs for context
+
+Traces show where the problem is. Logs can reveal why.
+
+. Check the MCP compliance server logs:
++
+[source,bash]
+----
+oc logs -l app=mcp-compliance-server -n acme-fintech-agents --tail=50
+----
+
+. Look for relevant log entries:
++
+[source,bash]
+----
+# Filter for slow requests
+oc logs -l app=mcp-compliance-server -n acme-fintech-agents | grep -i "delay\|slow\|timeout"
+----
+
+. Check the agent logs for timeout warnings:
++
+[source,bash]
+----
+oc logs -l app=prospect-agent -n acme-fintech-agents | grep -i "timeout\|slow\|retry"
+----
+
+. Correlate logs with trace IDs:
++
+[source,bash]
+----
+# If your logging includes trace IDs
+TRACE_ID="<trace-id-from-mlflow>"
+oc logs -l app=mcp-compliance-server -n acme-fintech-agents | grep ${TRACE_ID}
+----
+
+=== Verify
+
+You've gathered log evidence:
+
+✓ Found relevant log entries +
+✓ Logs confirm the delay behavior +
+✓ Can correlate logs with trace IDs
+
+== Exercise 4: Apply the fix
+
+Now that you've diagnosed the issue, let's fix it by restoring the healthy MCP server.
+
+. Remove the slow deployment:
++
+[source,bash]
+----
+oc delete deployment mcp-compliance-server-slow -n acme-fintech-agents
+----
+
+. Restore the healthy deployment:
++
+[source,bash]
+----
+oc scale deployment mcp-compliance-server -n acme-fintech-agents --replicas=1
+----
+
+. Wait for the healthy version to be ready:
++
+[source,bash]
+----
+oc rollout status deployment/mcp-compliance-server -n acme-fintech-agents
+----
+
+. Verify the fix with test traffic:
++
+[source,bash]
+----
+# Time a request - should be fast again
+time curl -s -X POST https://${PROSPECT_URL}/api/inquiry \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Fix Test", "loan_amount": 300000}'
+----
+
+=== Verify the resolution
+
+. Check Grafana for latency recovery:
++
+--
+The P95 latency should drop back to baseline (~1-2 seconds).
+--
+
+. Check MLflow for healthy traces:
++
+--
+New traces should show mcp-compliance-server spans completing quickly.
+--
+
+. Verify alerts have resolved:
++
+[source,bash]
+----
+# Check alert status
+oc get alerts -n acme-fintech-agents
+----
+
+=== Verify
+
+Confirm the fix is successful:
+
+✓ Response times back to normal +
+✓ Grafana shows latency recovered +
+✓ New traces show healthy spans +
+✓ Alerts have cleared
+
+// TODO: Screenshot of recovered Grafana dashboard
+image::module-06-latency-recovered.png[Grafana showing recovered latency,link=self,window=blank,width=700]
+
+== Exercise 5: Simulate agent communication failure
+
+Let's simulate a different failure mode -- an agent that starts returning errors.
+
+. Inject errors into the underwriter agent:
++
+[source,bash]
+----
+# Set an environment variable to trigger error mode
+oc set env deployment/underwriter-agent -n acme-fintech-agents ERROR_RATE="0.5"
+
+# Wait for rollout
+oc rollout status deployment/underwriter-agent -n acme-fintech-agents
+----
+
+. Generate traffic that triggers the underwriter:
++
+[source,bash]
+----
+# These requests should go through to underwriting
+for i in {1..20}; do
+  curl -X POST https://${PROSPECT_URL}/api/full-application \
+    -H "Content-Type: application/json" \
+    -d '{
+      "name": "Applicant '"${i}"'",
+      "loan_amount": 400000,
+      "annual_income": 120000,
+      "credit_score": 750,
+      "property_state": "CA"
+    }' &
+done
+wait
+----
+
+. Observe the failures:
++
+--
+* Check Grafana: Error rate should spike
+* Check alerts: Error rate alert should fire
+* Check traces: You'll see failed spans
+--
+
+. Use traces to identify the failing component:
++
+--
+In MLflow:
+
+. Find traces with error status
+. Expand the trace to find the failed span
+. Note the error message and agent name
+--
+
+. Apply the fix:
++
+[source,bash]
+----
+# Remove the error injection
+oc set env deployment/underwriter-agent -n acme-fintech-agents ERROR_RATE-
+
+# Wait for rollout
+oc rollout status deployment/underwriter-agent -n acme-fintech-agents
+----
+
+. Verify resolution:
++
+[source,bash]
+----
+# Test that requests succeed
+curl -X POST https://${PROSPECT_URL}/api/full-application \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Recovery Test", "loan_amount": 400000, "annual_income": 120000}'
+----
+
+=== Verify
+
+Confirm you can handle error failures:
+
+✓ Detected error spike in metrics +
+✓ Used traces to identify failing agent +
+✓ Applied fix and verified resolution
+
+== Troubleshooting reference
+
+Here's a quick reference for common AgentOps issues:
+
+[cols="2,2,3",options="header"]
+|===
+|Symptom |Likely Cause |Diagnostic Steps
+
+|High latency, no errors
+|Slow external service (MCP, LLM)
+|Check trace spans for long-duration operations
+
+|Intermittent errors
+|Flaky dependency, race condition
+|Look for patterns in error traces, check retry logs
+
+|All requests failing
+|Service down, misconfiguration
+|Check pod status, recent deployments, service endpoints
+
+|Quality degradation
+|Model drift, prompt issues
+|Run evaluations, compare against baseline
+
+|Memory pressure
+|Large payloads, memory leaks
+|Check pod resource usage, look for OOM events
+|===
+
+== Troubleshooting
+
+**Issue**: Cannot inject latency into MCP server
+**Solution**:
+
+. Verify you have permissions: `oc auth can-i create deployments`
+. Check if the slow image exists
+. Try using an environment variable to control delay instead
+
+**Issue**: Traces not showing failures
+**Solution**:
+
+. Verify tracing is still enabled after deployment changes
+. Check that error handling doesn't swallow exceptions
+. Ensure trace context is propagated in error paths
+
+**Issue**: Alerts not firing during failures
+**Solution**:
+
+. Verify PrometheusRule is still applied
+. Check that metrics are being scraped
+. Review alert thresholds -- may need adjustment
+. Check Alertmanager configuration
+
+**Issue**: Fix doesn't seem to take effect
+**Solution**:
+
+. Verify the deployment rolled out: `oc rollout status deployment/<name>`
+. Check for multiple replicas with different versions
+. Clear any caching that might retain old behavior
+. Force a new deployment: `oc rollout restart deployment/<name>`
+
+== Learning outcomes checkpoint
+
+Before proceeding to the Conclusion, confirm you can:
+
+* [ ] Simulate realistic failures in a multi-agent system
+* [ ] Use Grafana metrics to detect anomalies
+* [ ] Analyze MLflow traces to identify bottlenecks
+* [ ] Correlate logs with traces for root cause analysis
+* [ ] Apply fixes and verify resolution through observability
+
+== Module summary
+
+You've successfully troubleshot distributed failures in the Acme FinTech multi-agent system.
+
+**What you accomplished:**
+
+* Simulated MCP server latency issues
+* Used traces to pinpoint the bottleneck
+* Examined logs for additional context
+* Applied fixes and verified resolution
+* Simulated and resolved agent communication failures
+
+**Key takeaways:**
+
+* The three pillars work together: metrics detect, traces locate, logs explain
+* MLflow tracing is essential for multi-agent debugging
+* Proper observability reduces MTTR from hours to minutes
+* Practice with simulated failures builds real incident response skills
+
+**What's next:**
+
+The Conclusion will recap everything you've learned and provide resources for continuing your AgentOps journey.
