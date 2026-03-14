@@ -46,8 +46,9 @@ Metrics tell you the agent responded. Traces tell you how it responded. **Evalua
 |Detect quality regressions over time
 |===
 
-// TODO: Diagram showing evaluation lifecycle
-image::module-05-eval-lifecycle.png[LLM evaluation lifecycle,link=self,window=blank,width=700]
+// TODO: Create diagram showing evaluation lifecycle
+// Replace placeholder.svg with module-05-eval-lifecycle.png when available
+image::placeholder.svg[LLM evaluation lifecycle,link=self,window=blank,width=700]
 
 == Exercise 1: Access MLflow evaluations
 
@@ -347,8 +348,9 @@ curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/experiments/get-by-name?experime
 ✓ Metrics are logged to MLflow +
 ✓ Run appears in MLflow experiments
 
-// TODO: Screenshot of evaluation metrics in MLflow
-image::module-05-eval-metrics.png[Evaluation metrics in MLflow,link=self,window=blank,width=700]
+// TODO: Capture screenshot of evaluation metrics in MLflow
+// Replace placeholder.svg with module-05-eval-metrics.png when available
+image::placeholder.svg[Evaluation metrics in MLflow,link=self,window=blank,width=700]
 
 == Exercise 4: Establish a quality baseline
 

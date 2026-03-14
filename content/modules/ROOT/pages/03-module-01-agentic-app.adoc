@@ -76,8 +76,9 @@ oc get deployments -o custom-columns=NAME:.metadata.name,READY:.status.readyRepl
 ✓ All deployments show READY and AVAILABLE as 1 +
 ✓ No pods in CrashLoopBackOff or Error state
 
-// TODO: Screenshot showing the deployed agents in OpenShift console
-image::module-01-agents-deployed.png[Deployed agent services in OpenShift,link=self,window=blank,width=700]
+// TODO: Capture screenshot showing the deployed agents in OpenShift console
+// Replace placeholder.svg with module-01-agents-deployed.png when available
+image::placeholder.svg[Deployed agent services in OpenShift,link=self,window=blank,width=700]
 
 == Exercise 2: Understand the agent personas
 
@@ -209,8 +210,9 @@ Without proper instrumentation, you face these challenges:
 * **Silent failures**: MCP tool failures may not surface in agent logs
 * **No decision visibility**: You can't see why an agent made a particular decision
 
-// TODO: Screenshot showing fragmented logs across multiple agents
-image::module-01-fragmented-logs.png[Fragmented logs across agents,link=self,window=blank,width=700]
+// TODO: Capture screenshot showing fragmented logs across multiple agents
+// Replace placeholder.svg with module-01-fragmented-logs.png when available
+image::placeholder.svg[Fragmented logs across agents,link=self,window=blank,width=700]
 
 === Verify
 

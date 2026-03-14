@@ -28,8 +28,9 @@ When debugging multi-agent systems, follow this diagnostic flow:
 . **Fix**: Apply the correction
 . **Verify**: Confirm the fix resolved the issue
 
-// TODO: Diagram showing diagnostic flow
-image::module-06-diagnostic-flow.png[Diagnostic flow for multi-agent systems,link=self,window=blank,width=700]
+// TODO: Create diagram showing diagnostic flow
+// Replace placeholder.svg with module-06-diagnostic-flow.png when available
+image::placeholder.svg[Diagnostic flow for multi-agent systems,link=self,window=blank,width=700]
 
 == Exercise 1: Simulate MCP server latency
 
@@ -143,8 +144,9 @@ Expected: Response time > 3 seconds
 ✓ Grafana shows latency spike +
 ✓ Alerts are firing (or pending)
 
-// TODO: Screenshot of Grafana showing latency spike
-image::module-06-latency-spike.png[Grafana showing latency spike,link=self,window=blank,width=700]
+// TODO: Capture screenshot of Grafana showing latency spike
+// Replace placeholder.svg with module-06-latency-spike.png when available
+image::placeholder.svg[Grafana showing latency spike,link=self,window=blank,width=700]
 
 == Exercise 2: Diagnose using traces
 
@@ -206,8 +208,9 @@ You've identified the root cause:
 ✓ Identified mcp-compliance-server as the bottleneck +
 ✓ Confirmed other spans are unaffected
 
-// TODO: Screenshot of MLflow trace showing slow MCP span
-image::module-06-trace-bottleneck.png[MLflow trace showing MCP bottleneck,link=self,window=blank,width=700]
+// TODO: Capture screenshot of MLflow trace showing slow MCP span
+// Replace placeholder.svg with module-06-trace-bottleneck.png when available
+image::placeholder.svg[MLflow trace showing MCP bottleneck,link=self,window=blank,width=700]
 
 == Exercise 3: Examine logs for context
 
@@ -318,8 +321,9 @@ Confirm the fix is successful:
 ✓ New traces show healthy spans +
 ✓ Alerts have cleared
 
-// TODO: Screenshot of recovered Grafana dashboard
-image::module-06-latency-recovered.png[Grafana showing recovered latency,link=self,window=blank,width=700]
+// TODO: Capture screenshot of recovered Grafana dashboard
+// Replace placeholder.svg with module-06-latency-recovered.png when available
+image::placeholder.svg[Grafana showing recovered latency,link=self,window=blank,width=700]
 
 == Exercise 5: Simulate agent communication failure
 

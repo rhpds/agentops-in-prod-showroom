@@ -33,8 +33,9 @@ MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that ca
 * **Parent-child relationships**: Spans form a tree showing the call hierarchy
 * **Attributes**: Metadata attached to spans (tokens used, model name, etc.)
 
-// TODO: Diagram showing trace structure with spans
-image::module-04-trace-structure.png[MLflow trace structure with spans,link=self,window=blank,width=700]
+// TODO: Create diagram showing trace structure with spans
+// Replace placeholder.svg with module-04-trace-structure.png when available
+image::placeholder.svg[MLflow trace structure with spans,link=self,window=blank,width=700]
 
 == Exercise 1: Access the MLflow tracking server
 
@@ -87,8 +88,9 @@ Expected output: `200`
 ✓ Can authenticate with OpenShift credentials +
 ✓ MLflow version is confirmed
 
-// TODO: Screenshot of MLflow UI main page
-image::module-04-mlflow-ui.png[MLflow UI main page,link=self,window=blank,width=700]
+// TODO: Capture screenshot of MLflow UI main page
+// Replace placeholder.svg with module-04-mlflow-ui.png when available
+image::placeholder.svg[MLflow UI main page,link=self,window=blank,width=700]
 
 == Exercise 2: Enable tracing for LangGraph agents
 
@@ -231,8 +233,9 @@ Expected: A number greater than 0
 ✓ Trace hierarchy shows agent interactions +
 ✓ Span details include LLM prompts and responses
 
-// TODO: Screenshot of MLflow trace view with span hierarchy
-image::module-04-trace-view.png[MLflow trace view showing span hierarchy,link=self,window=blank,width=700]
+// TODO: Capture screenshot of MLflow trace view with span hierarchy
+// Replace placeholder.svg with module-04-trace-view.png when available
+image::placeholder.svg[MLflow trace view showing span hierarchy,link=self,window=blank,width=700]
 
 == Exercise 4: Analyze a multi-agent trace
 
@@ -295,8 +298,9 @@ You can effectively analyze traces:
 ✓ Can measure latency at each step +
 ✓ Can see MCP tool call results
 
-// TODO: Screenshot of detailed span view with attributes
-image::module-04-span-details.png[Detailed span view showing attributes and inputs/outputs,link=self,window=blank,width=700]
+// TODO: Capture screenshot of detailed span view with attributes
+// Replace placeholder.svg with module-04-span-details.png when available
+image::placeholder.svg[Detailed span view showing attributes and inputs/outputs,link=self,window=blank,width=700]
 
 == Exercise 5: Trace MCP tool calls
 

@@ -76,8 +76,9 @@ Before diving into tools and implementation, let's establish a shared vocabulary
 * Agent-to-agent handoff sequences
 * Complete decision paths from input to output
 
-// TODO: Diagram showing three pillars with AI-specific examples
-image::module-02-three-pillars.png[Three pillars of observability for AI systems,link=self,window=blank,width=700]
+// TODO: Create diagram showing three pillars with AI-specific examples
+// Replace placeholder.svg with module-02-three-pillars.png when available
+image::placeholder.svg[Three pillars of observability for AI systems,link=self,window=blank,width=700]
 
 == Exercise 1: Map pillars to Acme FinTech needs
 
@@ -174,8 +175,9 @@ At Acme FinTech, two primary teams need observability, but their focus areas dif
 * Prompt debugging tools
 * Agent workflow visualization
 
-// TODO: Diagram showing persona responsibilities overlap
-image::module-02-personas.png[SRE vs AI Developer observability focus,link=self,window=blank,width=700]
+// TODO: Create diagram showing persona responsibilities overlap
+// Replace placeholder.svg with module-02-personas.png when available
+image::placeholder.svg[SRE vs AI Developer observability focus,link=self,window=blank,width=700]
 
 == Exercise 2: Assign responsibilities at Acme FinTech
 
@@ -253,8 +255,9 @@ For Acme FinTech, we'll implement an integrated observability stack that serves 
 |SRE/Platform Engineering
 |===
 
-// TODO: Architecture diagram of the complete observability stack
-image::module-02-stack-architecture.png[AgentOps observability stack architecture,link=self,window=blank,width=700]
+// TODO: Create architecture diagram of the complete observability stack
+// Replace placeholder.svg with module-02-stack-architecture.png when available
+image::placeholder.svg[AgentOps observability stack architecture,link=self,window=blank,width=700]
 
 == Exercise 3: Review the RHOAI observability stack
 

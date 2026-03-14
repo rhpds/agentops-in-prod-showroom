@@ -135,8 +135,9 @@ oc get pods -n redhat-ods-monitoring
 ✓ Monitoring components are running +
 ✓ Metrics are being collected
 
-// TODO: Screenshot of RHOAI dashboard with monitoring section
-image::module-03-rhoai-dashboard.png[RHOAI observability dashboard,link=self,window=blank,width=700]
+// TODO: Capture screenshot of RHOAI dashboard with monitoring section
+// Replace placeholder.svg with module-03-rhoai-dashboard.png when available
+image::placeholder.svg[RHOAI observability dashboard,link=self,window=blank,width=700]
 
 == Exercise 2: Access and configure Grafana
 
@@ -364,8 +365,9 @@ oc get grafanadashboard -n grafana-dashboards
 ✓ Panels show data (or "No data" if no traffic yet) +
 ✓ Prometheus data source is connected
 
-// TODO: Screenshot of the AgentOps overview dashboard
-image::module-03-agentops-dashboard.png[AgentOps overview dashboard in Grafana,link=self,window=blank,width=700]
+// TODO: Capture screenshot of the AgentOps overview dashboard
+// Replace placeholder.svg with module-03-agentops-dashboard.png when available
+image::placeholder.svg[AgentOps overview dashboard in Grafana,link=self,window=blank,width=700]
 
 == Exercise 4: Create alerts for agent health
 
