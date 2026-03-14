@@ -11,3 +11,14 @@ asciidoc:
     ocp_version: "4.20"
     rhoai_version: "3.4"
     mlflow_version: "3.9.1"
+    # Environment placeholders - replaced by Showroom at runtime
+    openshift_console_url: "https://console-openshift-console.apps.cluster.example.com"
+    openshift_api_url: "https://api.cluster.example.com:6443"
+    user: "user1"
+    password: "openshift"
+    # Bastion access
+    bastion_user: "lab-user"
+    bastion_host: "bastion.example.com"
+    # Tool URLs
+    oc_client_download_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz"
+    mlflow_route: "mlflow-redhat-ods-applications.apps.cluster.example.com"
