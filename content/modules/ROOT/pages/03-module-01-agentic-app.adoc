@@ -4,9 +4,9 @@
 :toc: macro
 :toclevels: 1
 
-Agentic AI apps don't fail silently -- they fail distributedly. In this module, you'll explore the Acme FinTech multi-agent mortgage lending application and understand why traditional monitoring approaches fall short for these complex systems.
+Agentic AI apps don't fail silently -- they fail distributedly. In this module, you'll deploy and explore the mortgage-ai multi-agent application and understand why traditional monitoring approaches fall short for these complex systems.
 
-Acme FinTech needs end-to-end visibility into their multi-agent workflows, and you've been tasked with evaluating how observability can help. Before implementing solutions, you need to understand what you're working with.
+Fed-Aura needs end-to-end visibility into their multi-agent workflows, and you've been tasked with evaluating how observability can help. Before implementing solutions, you need to understand what you're working with.
 
 In this module, you'll experience firsthand why multi-agent systems require a different approach to observability.
 
@@ -14,165 +14,262 @@ In this module, you'll experience firsthand why multi-agent systems require a di
 
 By the end of this module, you'll be able to:
 
-* Describe the architecture of the Acme FinTech multi-agent mortgage lending system
+* Deploy the mortgage-ai multi-agent system using Helm
+* Describe the architecture of the multi-agent mortgage lending system
 * Identify the five distinct agent personas and their responsibilities
 * Explain why distributed AI systems require specialized observability approaches
 * Recognize the key failure modes in multi-agent architectures
 
-== Exercise 1: Explore the multi-agent architecture
+== Exercise 1: Deploy the mortgage-ai application
 
-Acme FinTech's mortgage lending system is built on LangGraph with five specialized agents, each serving a distinct persona in the lending workflow. Let's explore the deployed application.
+The mortgage-ai multi-agent system is packaged as a Helm chart. Let's deploy it to your namespace.
 
-. First, verify your environment is ready and log in to OpenShift:
+. First, log in to OpenShift:
 +
 [source,bash]
 ----
 oc login {openshift_api_url} -u {user} -p {password}
 ----
 
-. Switch to the project containing the multi-agent application:
+. Create and switch to your workspace namespace:
 +
 [source,bash]
 ----
-oc project acme-fintech-agents
+oc new-project wksp-{user} || oc project wksp-{user}
 ----
 
-. List the deployed agent services:
+. Clone the multi-agent loan origination repository:
 +
 [source,bash]
 ----
-oc get deployments
-----
-+
-Expected output:
-+
-----
-NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
-prospect-agent          1/1     1            1           2d
-borrower-agent          1/1     1            1           2d
-loan-officer-agent      1/1     1            1           2d
-underwriter-agent       1/1     1            1           2d
-executive-agent         1/1     1            1           2d
-mcp-compliance-server   1/1     1            1           2d
-mcp-credit-server       1/1     1            1           2d
+git clone https://github.com/rh-ai-quickstart/multi-agent-loan-origination.git
+cd multi-agent-loan-origination
 ----
 
-. View the agent pods and their status:
+. Create your environment configuration from the example:
 +
 [source,bash]
 ----
-oc get pods -l app.kubernetes.io/part-of=acme-fintech
+cp .env.example .env
+----
+
+. Edit `.env` to configure your LLM endpoint:
++
+[source,env]
+----
+LLM_BASE_URL=http://localhost:1234/v1
+LLM_API_KEY=not-needed
+LLM_MODEL_FAST=qwen3-30b-a3b
+LLM_MODEL_CAPABLE=qwen3-30b-a3b
+----
+
+. Source the environment and deploy using Helm:
++
+[source,bash]
+----
+set -a && source .env && set +a
+
+helm install mortgage-ai ./deploy/helm/mortgage-ai \
+  -n wksp-{user} --create-namespace \
+  --set secrets.AUTH_DISABLED="${AUTH_DISABLED:-true}" \
+  --set secrets.LLM_BASE_URL="${LLM_BASE_URL}" \
+  --set secrets.LLM_API_KEY="${LLM_API_KEY}" \
+  --set secrets.LLM_MODEL_FAST="${LLM_MODEL_FAST}" \
+  --set secrets.LLM_MODEL_CAPABLE="${LLM_MODEL_CAPABLE}"
+----
+
+. Wait for all deployments to become ready:
++
+[source,bash]
+----
+oc rollout status deployment/mortgage-ai-api -n wksp-{user}
+oc rollout status deployment/mortgage-ai-ui -n wksp-{user}
 ----
 
 === Verify
 
-Confirm all agent deployments are running:
+Confirm all components are running:
 
 [source,bash]
 ----
-oc get deployments -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,AVAILABLE:.status.availableReplicas
+oc get deployments -n wksp-{user}
+----
+
+Expected output:
+----
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+keycloak           1/1     1            1           2m
+minio              1/1     1            1           2m
+mortgage-ai-api    1/1     1            1           2m
+mortgage-ai-ui     1/1     1            1           2m
 ----
 
 ✓ All deployments show READY and AVAILABLE as 1 +
 ✓ No pods in CrashLoopBackOff or Error state
 
-// TODO: Capture screenshot showing the deployed agents in OpenShift console
-// Replace placeholder.svg with module-01-agents-deployed.png when available
-image::placeholder.svg[Deployed agent services in OpenShift,link=self,window=blank,width=700]
+image::agentic-app0.png[Deployed mortgage-ai pods in OpenShift,link=self,window=blank,width=700]
 
-== Exercise 2: Understand the agent personas
+== Exercise 2: Explore the multi-agent architecture
 
-Each agent in the Acme FinTech system serves a specific role in the mortgage lending lifecycle. Understanding these roles is crucial for effective observability.
+The mortgage-ai system serves five distinct agent personas through a single API deployment. Each persona handles different aspects of the mortgage lending workflow.
+
+=== The deployed components
+
+[cols="1,2",options="header"]
+|===
+|Component |Purpose
+
+|mortgage-ai-api
+|FastAPI backend serving all five agent personas via WebSocket endpoints
+
+|mortgage-ai-ui
+|React frontend for interacting with agents
+
+|mortgage-ai-db
+|PostgreSQL with pgvector for document storage and vector embeddings
+
+|keycloak
+|Identity provider (disabled for this workshop)
+
+|minio
+|S3-compatible object storage for documents
+|===
+
+. View the pods and their status:
++
+[source,bash]
+----
+oc get pods -n wksp-{user}
+----
+
+. Check the API service health:
++
+[source,bash]
+----
+MORTGAGE_API=$(oc get route mortgage-ai-api-route -o jsonpath='{.spec.host}')
+curl -s https://${MORTGAGE_API}/health/
+----
++
+Expected output:
++
+----
+{"status":"healthy"}
+----
+
+. Each persona has its own chat endpoint:
++
+----
+/api/prospect/chat    - Prospect Agent (initial inquiries)
+/api/borrower/chat    - Borrower Agent (application intake)
+/api/loanofficer/chat - Loan Officer Agent (pipeline management)
+/api/underwriter/chat - Underwriter Agent (risk assessment)
+/api/ceo/chat         - Executive Agent (analytics)
+----
 
 === The five agent personas
 
-[cols="1,2,2",options="header"]
+[cols="1,1,2,2",options="header"]
 |===
-|Agent |Persona |Responsibility
+|Persona |Role |Agent |Key Capabilities
 
-|Prospect Agent
-|Potential customer
-|Handle initial inquiries, provide rate estimates, qualify leads
+|Prospect
+|Unauthenticated
+|Public Assistant
+|Product info, affordability estimates
 
-|Borrower Agent
-|Loan applicant
-|Manage application intake, collect documentation, validate submissions
+|Borrower
+|`borrower`
+|Borrower Assistant
+|Application intake, document upload, status tracking, condition response
 
-|Loan Officer Agent
-|Internal staff
-|Pipeline management, application review, customer communication
+|Loan Officer
+|`loan_officer`
+|LO Assistant
+|Pipeline management, application review, communication drafting, knowledge base search
 
-|Underwriter Agent
-|Risk assessor
-|Compliance checks, risk assessment, approval decisions
+|Underwriter
+|`underwriter`
+|Underwriter Assistant
+|Risk assessment, compliance checks, condition management, decisions
 
-|Executive Agent
-|Management
-|Analytics, reporting, portfolio oversight
+|CEO
+|`ceo`
+|CEO Assistant
+|Pipeline analytics, audit trail, decision trace, model monitoring
 |===
 
-. Query the prospect agent to see its capabilities:
-+
-[source,bash]
-----
-PROSPECT_URL=$(oc get route prospect-agent -o jsonpath='{.spec.host}')
-curl -s https://${PROSPECT_URL}/api/capabilities | jq .
-----
+=== Key AI patterns
 
-. Review the agent's MCP tool integrations:
-+
-[source,bash]
-----
-curl -s https://${PROSPECT_URL}/api/tools | jq '.tools[] | {name, description}'
-----
+This application demonstrates production-ready AI patterns for regulated industries:
 
-=== MCP tool integrations
-
-The agents communicate with external services through Model Context Protocol (MCP) servers:
-
-* **MCP Compliance Server**: Handles HMDA, ECOA, TRID, ATR/QM, and FCRA compliance checks
-* **MCP Credit Server**: Retrieves credit scores and financial data
-
-. Check the MCP server status:
-+
-[source,bash]
-----
-oc get pods -l app=mcp-server
-----
+* **Multi-agent orchestration** - Five LangGraph agents with role-scoped tools and RBAC enforcement
+* **Compliance knowledge base** - pgvector RAG with tiered boosting (federal regulations > agency guidelines > internal policies)
+* **Model routing** - Complexity-based routing between fast and capable LLM tiers
+* **Comprehensive audit trail** - Hash-chained, append-only audit events with MLflow trace correlation
+* **PII masking** - Middleware-based masking for executive roles (SSN, DOB, account numbers)
+* **Safety shields** - Input and output content filters with escalation pattern detection
 
 === Verify
 
-Confirm you can access the agent capabilities:
+Confirm the API is healthy and accessible:
 
 [source,bash]
 ----
-curl -s https://${PROSPECT_URL}/health
+curl -s https://${MORTGAGE_API}/health/ | jq .
 ----
 
-Expected output:
-----
-{"status": "healthy", "agent": "prospect", "version": "1.0.0"}
-----
+✓ API responds with healthy status +
+✓ All five agent endpoints are available
 
-✓ Agent responds with healthy status +
-✓ Agent version is displayed
+== Exercise 3: Access the application UI
 
-== Exercise 3: Experience distributed failures
-
-Now let's understand why observability is critical by observing what happens when things go wrong in a multi-agent system.
-
-. Submit a test loan inquiry through the prospect agent:
+. Get the UI route:
 +
 [source,bash]
 ----
-curl -X POST https://${PROSPECT_URL}/api/inquiry \
+MORTGAGE_UI=$(oc get route mortgage-ai-ui-route -o jsonpath='{.spec.host}')
+echo "Mortgage AI UI: https://${MORTGAGE_UI}"
+----
+
+. Open the URL in your browser
+
+. Select an agent persona to interact with:
++
+--
+* **Prospect Agent**: Handle initial inquiries, provide rate estimates, qualify leads
+* **Borrower Agent**: Manage application intake, collect documentation
+* **Loan Officer Agent**: Pipeline management, application review
+* **Underwriter Agent**: Compliance checks, risk assessment
+* **Executive Agent**: Analytics, reporting, portfolio oversight
+--
+
+. Try a sample conversation with the Prospect Agent:
++
+----
+User: "I'm interested in getting a mortgage for a $400,000 home"
+----
+
+// TODO: Capture screenshot showing Mortgage-AI UI chat with Prospect Agent
+// Replace placeholder.svg with module-01-ui-chat.png when available
+image::placeholder.svg[Mortgage-AI chat interface,link=self,window=blank,width=700]
+
+=== Verify
+
+✓ UI loads without authentication prompt (AUTH_DISABLED=true) +
+✓ Agent personas are selectable +
+✓ Chat interface responds to messages
+
+== Exercise 4: Experience distributed failures
+
+Now let's understand why observability is critical by observing what happens when things go wrong in a multi-agent system.
+
+. Submit a test loan inquiry through the API:
++
+[source,bash]
+----
+curl -X POST https://${MORTGAGE_API}/api/prospect/chat \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "Jane Doe",
-    "email": "jane.doe@example.com",
-    "loan_amount": 350000,
-    "property_type": "single_family"
-  }'
+  -d '{"message": "I want to apply for a mortgage"}'
 ----
 
 . Check the application status -- notice the lack of visibility:
@@ -189,30 +286,23 @@ curl -X POST https://${PROSPECT_URL}/api/inquiry \
 +
 [source,bash]
 ----
-# Check prospect agent logs
-oc logs -l app=prospect-agent --tail=50
+# Check API logs
+oc logs -l app.kubernetes.io/name=mortgage-ai-api --tail=50 -n wksp-{user}
 
-# Check borrower agent logs
-oc logs -l app=borrower-agent --tail=50
-
-# Check underwriter agent logs
-oc logs -l app=underwriter-agent --tail=50
+# Check database logs
+oc logs -l app.kubernetes.io/name=mortgage-ai-db --tail=50 -n wksp-{user}
 ----
 +
-IMPORTANT: Notice how difficult it is to correlate events across multiple agents using logs alone. Each agent has its own log stream with no common correlation ID.
+IMPORTANT: Notice how difficult it is to correlate events across services using logs alone. Each component has its own log stream with no common correlation ID.
 
 === The observability challenge
 
 Without proper instrumentation, you face these challenges:
 
-* **No request correlation**: Logs from different agents cannot be connected
-* **Hidden latency**: You can't identify which agent or tool is causing delays
-* **Silent failures**: MCP tool failures may not surface in agent logs
+* **No request correlation**: Logs from different services cannot be connected
+* **Hidden latency**: You can't identify which component is causing delays
+* **Silent failures**: Tool calls may fail without surfacing in logs
 * **No decision visibility**: You can't see why an agent made a particular decision
-
-// TODO: Capture screenshot showing fragmented logs across multiple agents
-// Replace placeholder.svg with module-01-fragmented-logs.png when available
-image::placeholder.svg[Fragmented logs across agents,link=self,window=blank,width=700]
 
 === Verify
 
@@ -221,9 +311,9 @@ You've experienced the observability challenge:
 [source,bash]
 ----
 # Try to answer these questions using only logs:
-# 1. How many agents processed the inquiry?
+# 1. How many components processed the inquiry?
 # 2. What was the total end-to-end latency?
-# 3. Did any MCP tool calls fail?
+# 3. Did any tool calls fail?
 # 4. What was the final decision path?
 
 # (Hint: You can't easily answer these without proper tracing!)
@@ -235,53 +325,65 @@ You've experienced the observability challenge:
 
 == Troubleshooting
 
+**Issue**: Helm install fails with namespace error
+
+→ **Solution**:
+
+. Ensure the namespace exists: `oc new-project wksp-{user}`
+. Verify you have permissions: `oc auth can-i create deployments`
+
+**Issue**: mortgage-ai-api pod not starting
+
+→ **Solution**:
+
+. Check pod events: `oc describe pod -l app.kubernetes.io/name=mortgage-ai-api`
+. View init container logs: `oc logs <pod-name> -c wait-for-database`
+. Verify database is running: `oc get pods -l app.kubernetes.io/name=mortgage-ai-db`
+
+**Issue**: Cannot access UI route
+
+→ **Solution**:
+
+. Verify route exists: `oc get routes`
+. Check route TLS: `oc describe route mortgage-ai-ui-route`
+. Test service directly: `oc port-forward svc/mortgage-ai-ui 8080:8080`
+
 **Issue**: Cannot connect to OpenShift cluster
-**Solution**:
+
+→ **Solution**:
 
 . Verify your credentials are correct
 . Check network connectivity: `ping api.cluster.example.com`
 . If using VPN, ensure it's connected
 . Try accessing via bastion: `ssh {bastion_user}@{bastion_host}`
 
-**Issue**: Agent pods not running
-**Solution**:
-
-. Check pod status: `oc get pods`
-. View pod events: `oc describe pod <pod-name>`
-. Check for resource constraints: `oc get events --sort-by='.lastTimestamp'`
-
-**Issue**: Cannot access agent routes
-**Solution**:
-
-. Verify route exists: `oc get routes`
-. Check route TLS configuration: `oc describe route <route-name>`
-. Test from within cluster: `oc debug deployment/prospect-agent -- curl localhost:8080/health`
-
 == Learning outcomes checkpoint
 
 Before proceeding to Module 2, confirm you can:
 
-* [ ] Describe the five agent personas in the Acme FinTech system
-* [ ] Explain the role of MCP servers in the architecture
+* [ ] Deploy the mortgage-ai application using Helm
+* [ ] Describe the five agent personas in the system
+* [ ] Explain the role of each component (API, UI, database, storage)
 * [ ] Articulate why distributed AI systems require specialized observability
 * [ ] Identify at least three limitations of log-only monitoring for multi-agent systems
 
 == Module summary
 
-You've successfully explored the Acme FinTech multi-agent architecture.
+You've successfully deployed and explored the mortgage-ai multi-agent architecture.
 
 **What you accomplished:**
 
-* Explored the deployed multi-agent mortgage lending system
-* Understood the five agent personas and their responsibilities
+* Deployed the mortgage-ai multi-agent system using Helm
+* Explored the five agent personas and their responsibilities
+* Accessed the application UI and interacted with agents
 * Experienced the challenge of debugging distributed AI systems
 * Recognized why traditional monitoring falls short for agentic apps
 
 **Key takeaways:**
 
-* Multi-agent systems distribute decision-making across multiple services
-* MCP tools add external dependencies that need monitoring
-* Logs alone cannot provide end-to-end visibility
+* Multi-agent systems distribute decision-making across multiple components
+* A single API can serve multiple agent personas with different capabilities
+* Logs alone cannot provide end-to-end visibility across services
 * Specialized observability approaches are required for AgentOps
 
 **Next steps:**
