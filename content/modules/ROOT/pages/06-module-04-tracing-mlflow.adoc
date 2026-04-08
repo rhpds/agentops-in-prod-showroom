@@ -4,7 +4,7 @@
 :toc: macro
 :toclevels: 1
 
-Metrics tell you *what* is happening, but traces tell you *why*. In this module, you'll configure MLflow tracing to gain end-to-end visibility into the Acme FinTech multi-agent mortgage system. You'll learn how to trace requests across LangGraph agents and MCP tool calls, enabling rapid root cause analysis.
+Metrics tell you *what* is happening, but traces tell you *why*. In this module, you'll configure MLflow tracing to gain end-to-end visibility into the Fed Aura Capital multi-agent mortgage system. You'll learn how to trace requests across LangGraph agents and MCP tool calls, enabling rapid root cause analysis.
 
 This module represents the largest portion of the lab, as tracing is the cornerstone of AgentOps observability.
 
@@ -19,7 +19,7 @@ By the end of this module, you'll be able to:
 
 == Introduction to MLflow tracing
 
-MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that captures inputs, outputs, and metadata for each step of a request. For Acme FinTech, this means visibility into:
+MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that captures inputs, outputs, and metadata for each step of a request. For Fed Aura Capital, this means visibility into:
 
 * The complete path of a loan application across all five agents
 * Every LLM inference call with prompt and response
@@ -94,14 +94,14 @@ image::placeholder.svg[MLflow UI main page,link=self,window=blank,width=700]
 
 == Exercise 2: Enable tracing for LangGraph agents
 
-Now let's configure the Acme FinTech agents to send traces to MLflow. MLflow provides automatic instrumentation for LangChain and LangGraph.
+Now let's configure the Fed Aura Capital agents to send traces to MLflow. MLflow provides automatic instrumentation for LangChain and LangGraph.
 
 . First, review how the agents are currently configured:
 +
 [source,bash]
 ----
 # Check the prospect agent configuration
-oc get deployment prospect-agent -n acme-fintech-agents -o yaml | grep -A 20 "env:"
+oc get deployment prospect-agent -n mortgage-ai -o yaml | grep -A 20 "env:"
 ----
 
 . Update the agent deployment to enable MLflow tracing:
@@ -109,9 +109,9 @@ oc get deployment prospect-agent -n acme-fintech-agents -o yaml | grep -A 20 "en
 [source,bash]
 ----
 # Set MLflow tracking URI for the prospect agent
-oc set env deployment/prospect-agent -n acme-fintech-agents \
+oc set env deployment/prospect-agent -n mortgage-ai \
   MLFLOW_TRACKING_URI="https://${MLFLOW_ROUTE}" \
-  MLFLOW_EXPERIMENT_NAME="acme-fintech-agents" \
+  MLFLOW_EXPERIMENT_NAME="mortgage-ai" \
   MLFLOW_ENABLE_TRACING="true"
 ----
 
@@ -120,9 +120,9 @@ oc set env deployment/prospect-agent -n acme-fintech-agents \
 [source,bash]
 ----
 for agent in borrower-agent loan-officer-agent underwriter-agent executive-agent; do
-  oc set env deployment/${agent} -n acme-fintech-agents \
+  oc set env deployment/${agent} -n mortgage-ai \
     MLFLOW_TRACKING_URI="https://${MLFLOW_ROUTE}" \
-    MLFLOW_EXPERIMENT_NAME="acme-fintech-agents" \
+    MLFLOW_EXPERIMENT_NAME="mortgage-ai" \
     MLFLOW_ENABLE_TRACING="true"
 done
 ----
@@ -131,14 +131,14 @@ done
 +
 [source,bash]
 ----
-oc rollout status deployment/prospect-agent -n acme-fintech-agents
+oc rollout status deployment/prospect-agent -n mortgage-ai
 ----
 
 . Verify the environment variables are set:
 +
 [source,bash]
 ----
-oc get deployment prospect-agent -n acme-fintech-agents -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="MLFLOW_ENABLE_TRACING")].value}'
+oc get deployment prospect-agent -n mortgage-ai -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="MLFLOW_ENABLE_TRACING")].value}'
 ----
 
 === Verify
@@ -150,7 +150,7 @@ Confirm tracing is enabled:
 # Check all agents have tracing enabled
 for agent in prospect-agent borrower-agent loan-officer-agent underwriter-agent executive-agent; do
   echo -n "$agent: "
-  oc get deployment ${agent} -n acme-fintech-agents -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="MLFLOW_ENABLE_TRACING")].value}'
+  oc get deployment ${agent} -n mortgage-ai -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="MLFLOW_ENABLE_TRACING")].value}'
   echo ""
 done
 ----
@@ -169,7 +169,7 @@ Let's generate some loan application traffic and view the resulting traces in ML
 +
 [source,bash]
 ----
-PROSPECT_URL=$(oc get route prospect-agent -n acme-fintech-agents -o jsonpath='{.spec.host}')
+PROSPECT_URL=$(oc get route prospect-agent -n mortgage-ai -o jsonpath='{.spec.host}')
 
 curl -X POST https://${PROSPECT_URL}/api/inquiry \
   -H "Content-Type: application/json" \
@@ -186,7 +186,7 @@ curl -X POST https://${PROSPECT_URL}/api/inquiry \
 
 . Wait a few seconds for the trace to be recorded, then navigate to the MLflow UI.
 
-. In MLflow, go to **Experiments** → **acme-fintech-agents** → **Traces** tab.
+. In MLflow, go to **Experiments** → **mortgage-ai** → **Traces** tab.
 
 . Click on the most recent trace to view its details:
 +
@@ -224,7 +224,7 @@ Confirm traces are being captured:
 [source,bash]
 ----
 # Query MLflow API for recent traces
-curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/traces?experiment_ids=acme-fintech-agents&max_results=5" | jq '.traces | length'
+curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/traces?experiment_ids=mortgage-ai&max_results=5" | jq '.traces | length'
 ----
 
 Expected: A number greater than 0
@@ -415,7 +415,7 @@ Before proceeding to Module 5, confirm you can:
 
 == Module summary
 
-You've successfully implemented MLflow tracing for the Acme FinTech multi-agent system.
+You've successfully implemented MLflow tracing for the Fed Aura Capital multi-agent system.
 
 **What you accomplished:**
 

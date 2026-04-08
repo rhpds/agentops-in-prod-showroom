@@ -4,7 +4,7 @@
 :toc: macro
 :toclevels: 1
 
-Observability tells you if your system is working, but evaluations tell you if your agents are working *well*. In this module, you'll go beyond basic observability by combining tracing with LLM evaluations in MLflow, ensuring Acme FinTech's agents maintain high-quality outputs alongside system reliability.
+Observability tells you if your system is working, but evaluations tell you if your agents are working *well*. In this module, you'll go beyond basic observability by combining tracing with LLM evaluations in MLflow, ensuring Fed Aura Capital's agents maintain high-quality outputs alongside system reliability.
 
 This is the AI Developer's quality assurance layer -- ensuring that agents don't just respond, but respond correctly.
 
@@ -19,7 +19,7 @@ By the end of this module, you'll be able to:
 
 == Why evaluations matter for AgentOps
 
-In the Acme FinTech mortgage system, agents make consequential decisions:
+In the Fed Aura Capital mortgage system, agents make consequential decisions:
 
 * The prospect agent qualifies leads -- wrong qualification costs sales
 * The underwriter agent assesses risk -- incorrect assessment creates liability
@@ -62,7 +62,7 @@ MLFLOW_ROUTE=$(oc get route -n redhat-ods-applications mlflow -o jsonpath='{.spe
 echo "MLflow UI: https://${MLFLOW_ROUTE}"
 ----
 
-. In MLflow, go to **Experiments** → **acme-fintech-agents**.
+. In MLflow, go to **Experiments** → **mortgage-ai**.
 
 . Note the evaluation-related features:
 +
@@ -97,10 +97,10 @@ The foundation of good evaluations is a high-quality dataset. Let's create one f
 [source,bash]
 ----
 # Create a directory for evaluation data
-mkdir -p /tmp/acme-fintech-evals
+mkdir -p /tmp/fed-aura-evals
 
 # Query recent traces
-curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/traces?experiment_ids=acme-fintech-agents&max_results=20" > /tmp/acme-fintech-evals/traces.json
+curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/traces?experiment_ids=mortgage-ai&max_results=20" > /tmp/fed-aura-evals/traces.json
 ----
 
 . Create an evaluation dataset with expected outputs:
@@ -157,7 +157,7 @@ evaluation_data = [
 ]
 
 # Save dataset
-with open('/tmp/acme-fintech-evals/prospect_dataset.json', 'w') as f:
+with open('/tmp/fed-aura-evals/prospect_dataset.json', 'w') as f:
     json.dump(evaluation_data, f, indent=2)
 
 print(f"Created dataset with {len(evaluation_data)} examples")
@@ -215,7 +215,7 @@ evaluation_data = [
     }
 ]
 
-with open('/tmp/acme-fintech-evals/prospect_dataset.json', 'w') as f:
+with open('/tmp/fed-aura-evals/prospect_dataset.json', 'w') as f:
     json.dump(evaluation_data, f, indent=2)
 
 print(f"Created dataset with {len(evaluation_data)} examples")
@@ -228,7 +228,7 @@ Confirm the dataset is created:
 
 [source,bash]
 ----
-cat /tmp/acme-fintech-evals/prospect_dataset.json | jq 'length'
+cat /tmp/fed-aura-evals/prospect_dataset.json | jq 'length'
 ----
 
 Expected output: `3`
@@ -239,7 +239,7 @@ Expected output: `3`
 
 == Exercise 3: Define evaluation scorers
 
-Scorers determine how agent outputs are evaluated. Let's create scorers for the Acme FinTech prospect agent.
+Scorers determine how agent outputs are evaluated. Let's create scorers for the Fed Aura Capital prospect agent.
 
 . Create a Python script with custom scorers:
 +
@@ -285,7 +285,7 @@ def rejection_reason_accuracy(predictions, targets):
 +
 [source,bash]
 ----
-cat << 'EOF' > /tmp/acme-fintech-evals/run_eval.py
+cat << 'EOF' > /tmp/fed-aura-evals/run_eval.py
 import json
 import mlflow
 from mlflow.metrics import make_metric
@@ -293,10 +293,10 @@ import os
 
 # Set MLflow tracking
 mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI"))
-mlflow.set_experiment("acme-fintech-evals")
+mlflow.set_experiment("fed-aura-evals")
 
 # Load dataset
-with open('/tmp/acme-fintech-evals/prospect_dataset.json') as f:
+with open('/tmp/fed-aura-evals/prospect_dataset.json') as f:
     dataset = json.load(f)
 
 # Define scorers
@@ -331,7 +331,7 @@ EOF
 [source,bash]
 ----
 export MLFLOW_TRACKING_URI="https://${MLFLOW_ROUTE}"
-python3 /tmp/acme-fintech-evals/run_eval.py
+python3 /tmp/fed-aura-evals/run_eval.py
 ----
 
 === Verify
@@ -341,7 +341,7 @@ Confirm the evaluation ran successfully:
 [source,bash]
 ----
 # Check MLflow for the evaluation run
-curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/experiments/get-by-name?experiment_name=acme-fintech-evals" | jq '.experiment.experiment_id'
+curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/experiments/get-by-name?experiment_name=fed-aura-evals" | jq '.experiment.experiment_id'
 ----
 
 ✓ Evaluation script executed without errors +
@@ -360,14 +360,14 @@ With evaluations running, let's establish a baseline that future evaluations wil
 +
 [source,bash]
 ----
-cat << 'EOF' > /tmp/acme-fintech-evals/baseline_eval.py
+cat << 'EOF' > /tmp/fed-aura-evals/baseline_eval.py
 import json
 import mlflow
 import os
 from datetime import datetime
 
 mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI"))
-mlflow.set_experiment("acme-fintech-evals")
+mlflow.set_experiment("fed-aura-evals")
 
 # Extended dataset for baseline
 baseline_data = [
@@ -409,13 +409,13 @@ with mlflow.start_run(run_name=f"baseline-{datetime.now().strftime('%Y%m%d')}"):
     print("  - Rejection Precision: 0.92")
 EOF
 
-python3 /tmp/acme-fintech-evals/baseline_eval.py
+python3 /tmp/fed-aura-evals/baseline_eval.py
 ----
 
 . View the baseline in MLflow:
 +
 --
-Navigate to **Experiments** → **acme-fintech-evals** and find the baseline run.
+Navigate to **Experiments** → **fed-aura-evals** and find the baseline run.
 
 The baseline metrics become the standard for detecting regressions.
 --
@@ -452,7 +452,7 @@ Confirm baseline is established:
 # Find baseline run
 curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/runs/search" \
   -H "Content-Type: application/json" \
-  -d '{"experiment_ids": ["acme-fintech-evals"], "filter_string": "tags.baseline = \"true\""}' | jq '.runs[0].info.run_name'
+  -d '{"experiment_ids": ["fed-aura-evals"], "filter_string": "tags.baseline = \"true\""}' | jq '.runs[0].info.run_name'
 ----
 
 ✓ Baseline run is tagged in MLflow +
@@ -467,13 +467,13 @@ Now let's set up a process to detect when agent quality degrades.
 +
 [source,bash]
 ----
-cat << 'EOF' > /tmp/acme-fintech-evals/regression_check.py
+cat << 'EOF' > /tmp/fed-aura-evals/regression_check.py
 import json
 import mlflow
 import os
 
 mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI"))
-mlflow.set_experiment("acme-fintech-evals")
+mlflow.set_experiment("fed-aura-evals")
 
 # Define thresholds
 THRESHOLDS = {
@@ -523,7 +523,7 @@ with mlflow.start_run(run_name="regression-check"):
     mlflow.log_param("thresholds", json.dumps(THRESHOLDS))
 EOF
 
-python3 /tmp/acme-fintech-evals/regression_check.py
+python3 /tmp/fed-aura-evals/regression_check.py
 ----
 
 . Set up automated regression checks (conceptual):
@@ -536,7 +536,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: eval-regression-check
-  namespace: acme-fintech-agents
+  namespace: mortgage-ai
 spec:
   schedule: "0 */6 * * *"  # Every 6 hours
   jobTemplate:
@@ -605,7 +605,7 @@ Before proceeding to Module 6, confirm you can:
 
 == Module summary
 
-You've successfully implemented LLM evaluations for the Acme FinTech agents.
+You've successfully implemented LLM evaluations for the Fed Aura Capital agents.
 
 **What you accomplished:**
 

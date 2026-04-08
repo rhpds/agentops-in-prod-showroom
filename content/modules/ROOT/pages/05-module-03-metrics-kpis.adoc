@@ -1,514 +1,355 @@
-= Module 3: Metrics and KPIs for agentic applications
-:navtitle: Module 3: Metrics & KPIs
+= Module 3: Metrics and logs for agentic applications
+:navtitle: Module 3: Metrics & Logs
 :source-highlighter: rouge
 :toc: macro
 :toclevels: 1
 
-With the observability fundamentals in place, it's time to build practical dashboards that give Acme FinTech's SRE and Platform Engineering teams real-time visibility into the multi-agent mortgage system. You'll use the Red Hat OpenShift AI (RHOAI) Observability stack integrated with Grafana to create actionable dashboards.
-
-In this module, you'll define key metrics for agentic applications and build dashboards that answer critical operational questions.
+Metrics tell you *what* is happening in your system. Logs tell you *what exactly happened and when*. In this module, you'll explore a pre-deployed Grafana dashboard that monitors the mortgage-ai multi-agent system, then investigate application logs using LokiStack in the OpenShift Console.
 
 == Learning objectives
 
 By the end of this module, you'll be able to:
 
-* Identify the key metrics and KPIs specific to multi-agent AI systems
-* Configure the RHOAI Observability stack for agent monitoring
-* Build Grafana dashboards for agentic application metrics
-* Create alerts for critical agent health indicators
+* Identify the key metrics that matter for multi-agent AI systems
+* Navigate the pre-deployed Mortgage-AI Grafana dashboard
+* Explore and filter application logs using LokiStack and LogQL
+* Explain how metrics and logs work together for agentic observability
 
-== Key metrics for agentic applications
+== What makes agentic metrics different?
 
-Before building dashboards, let's define what we need to measure. Agentic AI systems require metrics beyond traditional application monitoring.
+Traditional applications need request rate, error rate, and latency. Agentic applications need all of that *plus* metrics that capture LLM behavior, agent routing, and tool execution. Here are the six metrics that matter most:
 
-=== Infrastructure metrics (SRE focus)
-
-[cols="2,3,2",options="header"]
+[cols="2,2,3",options="header"]
 |===
-|Metric |Description |Why It Matters
+|Metric |Prometheus Name |What It Tells You
 
-|Pod CPU/Memory
-|Resource utilization per agent pod
-|Capacity planning, cost optimization
+|Request Rate & Errors
+|`http_requests_total`
+|How much traffic are we getting? How many requests are failing?
 
-|Request Rate
-|Requests per second to each agent
-|Load understanding, scaling decisions
+|Latency Percentiles
+|`http_request_duration_seconds`
+|How fast are we responding? Are there outliers?
 
-|Error Rate
-|Percentage of failed requests
-|System health, SLO tracking
+|LLM Token Usage
+|`llm_tokens_total`
+|How many tokens are we burning? What's the cost per conversation?
 
-|Latency (P50, P95, P99)
-|Response time distribution
-|Performance monitoring, SLO compliance
-|===
+|LLM Inference Latency
+|`llm_inference_duration_seconds`
+|How long does the model take to respond? Is it the bottleneck?
 
-=== AI-specific metrics (AI Developer focus)
+|Tool Call Success Rate
+|`tool_calls_total`
+|Are agent tools working? Which ones are failing?
 
-[cols="2,3,2",options="header"]
-|===
-|Metric |Description |Why It Matters
-
-|Token Usage
-|Input/output tokens per request
-|Cost management, model efficiency
-
-|Inference Latency
-|Time spent in LLM inference
-|User experience, bottleneck identification
-
-|Agent Handoff Rate
-|Frequency of agent-to-agent transfers
-|Workflow efficiency, routing optimization
-
-|MCP Tool Success Rate
-|Success/failure rate of external tool calls
-|Integration health, reliability
-
-|Confidence Scores
-|Agent decision confidence distribution
-|Quality assurance, model performance
+|Agent Routing
+|`agent_routing_total`
+|Are queries routing to the fast or capable model? Is the classifier working?
 |===
 
-=== Business KPIs (Executive focus)
+The mortgage-ai API exposes all these at `GET /metrics` in Prometheus format. OpenShift User Workload Monitoring scrapes them automatically.
 
-[cols="2,3,2",options="header"]
+[%collapsible]
+.Complete metrics reference (click to expand)
+====
+The mortgage-ai backend exposes 10 custom metrics defined in `packages/api/src/core/metrics.py`:
+
+[cols="2,1,2",options="header"]
 |===
-|Metric |Description |Why It Matters
+|Prometheus Name |Type |Labels
 
-|Loan Processing Time
-|End-to-end time from inquiry to decision
-|Customer experience, operational efficiency
+|`llm_tokens_total`
+|Counter
+|`model`, `direction` (input/output), `persona`
 
-|Compliance Check Pass Rate
-|Percentage of applications passing compliance
-|Risk management, regulatory adherence
+|`llm_inference_duration_seconds`
+|Histogram
+|`model`, `persona`
 
-|Agent Automation Rate
-|Requests handled without human intervention
-|ROI, automation effectiveness
+|`agent_routing_total`
+|Counter
+|`persona`, `complexity` (simple/complex)
+
+|`agent_escalation_total`
+|Counter
+|`persona`, `reason`
+
+|`tool_calls_total`
+|Counter
+|`tool_name`, `persona`, `status` (success/error)
+
+|`tool_call_duration_seconds`
+|Histogram
+|`tool_name`, `persona`
+
+|`active_chat_sessions`
+|Gauge
+|`persona`
+
+|`chat_messages_total`
+|Counter
+|`persona`, `direction` (inbound/outbound)
+
+|`loan_applications_total`
+|Counter
+|`status`, `loan_type` (not yet instrumented)
+
+|`compliance_checks_total`
+|Counter
+|`check_type`, `result` (not yet instrumented)
 |===
 
-== Exercise 1: Explore RHOAI observability stack
+Additionally, `prometheus-fastapi-instrumentator` provides automatic HTTP metrics (`http_requests_total`, `http_request_duration_seconds_bucket`).
+====
 
-Let's start by exploring the observability capabilities already available in Red Hat OpenShift AI.
+== Exercise 1: Explore the Mortgage-AI Grafana dashboard
 
-. Access the OpenShift AI dashboard:
+A Grafana instance is pre-deployed in your workspace namespace with a **Mortgage-AI Backend Metrics** dashboard already configured. It connects to two Prometheus datasources:
+
+* **User Workload Monitoring** -- scrapes the mortgage-ai application metrics (default)
+* **RHOAI Prometheus** -- provides model serving metrics from OpenShift AI
+
+Let's open it and see what's there.
+
+. Find the Grafana route and open it in your browser:
 +
 [source,bash]
 ----
-RHOAI_ROUTE=$(oc get route -n redhat-ods-applications rhods-dashboard -o jsonpath='{.spec.host}')
-echo "RHOAI Dashboard: https://${RHOAI_ROUTE}"
+GRAFANA_ROUTE=$(oc get route -n wksp-{user} grafana-route -o jsonpath='{.spec.host}')
+echo "Grafana: https://${GRAFANA_ROUTE}"
 ----
-
-. Navigate to the Data Science Projects section and select the Acme FinTech project.
-
-. Review the built-in monitoring available for model serving endpoints:
 +
---
-* Request count and rate
-* Inference latency
-* Error rates
-* Resource utilization
---
+Authentication is handled via OpenShift OAuth -- log in with your OpenShift credentials if prompted.
 
-. Check the Prometheus metrics exposed by RHOAI:
+. Navigate to the **Mortgage-AI Backend Metrics** dashboard, or open it directly:
 +
 [source,bash]
 ----
-# List available RHOAI metrics
-oc exec -n openshift-monitoring prometheus-k8s-0 -- curl -s "http://localhost:9090/api/v1/label/__name__/values" | jq '.data[]' | grep -E "odh_|rhoai_|model_" | head -20
+echo "Dashboard: https://${GRAFANA_ROUTE}/d/mortgage-ai-backend"
 ----
+
+=== Overview and HTTP panels
+
+The top of the dashboard gives you an at-a-glance view of system health:
+
+image::grafana2.png[Grafana Overview and HTTP panels showing request rate and latency,link=self,window=blank,width=700]
+
+What you're seeing:
+
+* **Total Requests (Last Hour)** -- how many requests hit the API. In the screenshot, ~983 requests.
+* **Request Rate** -- current throughput in requests per second.
+* **Error Rate (%)** -- percentage of 5xx responses. Green means healthy.
+* **P95 Latency** -- 95% of requests complete faster than this value. Under 100ms is excellent.
+
+Below the overview, the HTTP panels break down traffic by endpoint and status code. Look for:
+
+* Which endpoint gets the most traffic (likely `/api/prospect/chat`)
+* Any yellow (4xx) or red (5xx) bars in the HTTP Status Distribution
+* Which endpoints have the highest P95 latency
+
+[%collapsible]
+.PromQL details for Overview panels (click to expand)
+====
+* **Request Rate**: `sum(rate(http_requests_total{namespace=~"$namespace"}[5m]))`
+* **Error Rate**: `(sum(rate(http_requests_total{namespace=~"$namespace", status=~"5.."}[5m])) / sum(rate(http_requests_total{namespace=~"$namespace"}[5m])) * 100) or vector(0)`
+* **P95 Latency**: `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=~"$namespace"}[5m])) by (le))`
+
+`rate()` calculates per-second averages over a time window. `histogram_quantile()` computes percentiles from histogram buckets.
+====
+
+=== AI Agent Metrics
+
+Scroll down to the **AI Agent Metrics** row -- this is where it gets interesting. These metrics are unique to agentic applications:
+
+image::grafana1.png[Grafana AI Agent Metrics showing token usage and tool call success rate,link=self,window=blank,width=700]
+
+The four stat panels at the top show:
+
+* **Active Chat Sessions** -- live WebSocket connections. How many users are chatting right now?
+* **Total LLM Tokens (1h)** -- tokens consumed in the last hour. This is your cost proxy -- in the screenshot, 18.5K tokens.
+* **Tool Call Success Rate** -- are agent tools working? 100% means everything is healthy.
+* **Avg LLM Latency** -- median time for an LLM inference call. 1.75s in the screenshot.
+
+Below the stats, the detail panels show:
+
+* **LLM Token Usage by Model** -- which model burns the most tokens? Is input or output dominant?
+* **LLM Inference Latency by Persona** -- which agent persona is slowest? A slow underwriter agent might indicate complex compliance tool calls.
+* **Agent Routing Distribution** -- pie chart of simple vs complex routing. A high ratio of complex queries means the capable model is doing most of the work.
+* **Tool Calls by Status** -- green for success, red for failures. A spike in red means tool integrations are breaking.
+
+[%collapsible]
+.PromQL details for AI Agent Metrics (click to expand)
+====
+* **LLM Tokens**: `sum(increase(llm_tokens_total{namespace=~"$namespace"}[1h]))`
+* **Tool Success Rate**: `(sum(tool_calls_total{namespace=~"$namespace", status="success"}) / sum(tool_calls_total{namespace=~"$namespace"}) * 100) or vector(100)`
+* **LLM Latency**: `histogram_quantile(0.50, sum(rate(llm_inference_duration_seconds_bucket{namespace=~"$namespace"}[5m])) by (le))`
+* **Routing Distribution**: `sum(agent_routing_total{namespace=~"$namespace"}) by (complexity)`
+====
+
+=== Generate traffic and observe
+
+Now let's see the dashboard in action. Open the mortgage-ai UI and chat with the agents:
+
+. Open the mortgage-ai UI:
++
+[source,bash]
+----
+UI_ROUTE=$(oc get route -n mortgage-ai mortgage-ai-ui -o jsonpath='{.spec.host}')
+echo "Mortgage-AI UI: https://${UI_ROUTE}"
+----
+
+. Send several chat messages to different agent personas.
+
+. Return to the Grafana dashboard, set the time range to **Last 15 minutes**, and watch:
++
+--
+* `active_chat_sessions` increments when you open a chat
+* `llm_tokens_total` increases with each LLM call
+* `tool_calls_total` appears when agents invoke tools
+* `agent_routing_total` shows whether your query was classified as simple or complex
+--
+
+TIP: The dashboard is managed as a `GrafanaDashboard` custom resource and version-controlled via GitOps. Run `oc get grafanadashboard -n wksp-{user}` to see it.
 
 === Verify
 
-Confirm you can access RHOAI observability features:
-
 [source,bash]
 ----
-# Check RHOAI monitoring components
-oc get pods -n redhat-ods-monitoring
+# Confirm Grafana is running
+oc get pods -n wksp-{user} -l app=grafana
+
+# Confirm dashboard exists
+oc get grafanadashboard -n wksp-{user}
 ----
 
-✓ RHOAI dashboard is accessible +
-✓ Monitoring components are running +
-✓ Metrics are being collected
+✓ Dashboard loads in Grafana +
+✓ Overview stats show real data after generating traffic +
+✓ AI Agent Metrics panels display token usage and tool call data
 
-// TODO: Capture screenshot of RHOAI dashboard with monitoring section
-// Replace placeholder.svg with module-03-rhoai-dashboard.png when available
-image::placeholder.svg[RHOAI observability dashboard,link=self,window=blank,width=700]
+== Exercise 2: Explore application logs with LokiStack
 
-== Exercise 2: Access and configure Grafana
+Metrics show aggregated health, but when something goes wrong you need the actual log events. OpenShift's LokiStack automatically collects everything your application writes to STDOUT or STDERR -- no code changes needed. Let's explore the mortgage-ai logs.
 
-Now let's set up Grafana for custom dashboards that go beyond the built-in RHOAI monitoring.
+=== Navigate to the log viewer
 
-. Check if Grafana is already deployed:
+. In the OpenShift Console, navigate to **Observe** -> **Logs**.
++
+image::logging1.png[OpenShift Console Observe Logs showing mortgage-ai application logs,link=self,window=blank,width=700]
++
+By default, you see logs from all applications across all namespaces. This is useful for cluster operators, but too noisy when you're debugging a specific agent.
+
+=== Filter to mortgage-ai
+
+[start=2]
+. Click **Show Query** and enter this LogQL query to filter to only mortgage-ai application logs:
++
+[source,logql]
+----
+{ log_type="application", kubernetes_namespace_name="mortgage-ai" }
+----
++
+Click **Run Query**. You should now see only logs from the mortgage-ai pods.
++
+TIP: `log_type="application"` filters out infrastructure logs (kubelet, CRI-O). The `kubernetes_namespace_name` label is injected automatically by the log collector.
+
+=== Explore the UI logs
+
+[start=3]
+. Narrow the view to the UI container and filter for `/api/` calls -- this strips out health probes and static assets, showing only real user interactions:
++
+[source,logql]
+----
+{ log_type="application", kubernetes_namespace_name="mortgage-ai", kubernetes_container_name="ui" } |= "/api/"
+----
++
+You'll see nginx access logs like:
++
+----
+10.131.0.19 - - [08/Apr/2026:00:26:48 +0000] "GET /api/chat HTTP/1.1" 101 2342
+10.128.2.19 - - [08/Apr/2026:00:26:48 +0000] "GET /api/applications/2590/conditions HTTP/1.1" 200 1097
+10.131.0.2  - - [08/Apr/2026:00:26:50 +0000] "GET / HTTP/1.1" 200 771 "-" "kube-probe/1.33"
+----
++
+Notice the mix of real user traffic (`/api/chat`, `/api/applications/...`) and Kubernetes health probes (`kube-probe`). The UI proxies API calls, so you see the complete request flow from the user's browser.
+
+=== Filter for specific traffic
+
+[start=4]
+. Add a pipeline filter to find only chat-related entries:
++
+[source,logql]
+----
+{ log_type="application", kubernetes_namespace_name="mortgage-ai", kubernetes_container_name="ui" } |= "/api/chat"
+----
++
+image::logging2.png[LogQL query filtering mortgage-ai UI logs for chat activity,link=self,window=blank,width=700]
++
+The `|=` operator is a case-sensitive substring filter. Try also `|= "404"` to find failed requests, or `|= "500"` to find server errors.
++
+After running the query, you'll see the matching log entries with full metadata:
++
+image::logging3.png[OpenShift Console Logs showing filtered chat activity results,link=self,window=blank,width=700]
+
+=== Generate traffic and find it
+
+[start=5]
+. Open the mortgage-ai UI and start a chat conversation with one of the agents:
 +
 [source,bash]
 ----
-oc get pods -n grafana-operator
-oc get route -n grafana-operator
+UI_ROUTE=$(oc get route -n mortgage-ai mortgage-ai-ui -o jsonpath='{.spec.host}')
+echo "Mortgage-AI UI: https://${UI_ROUTE}"
 ----
 
-. If Grafana is not deployed, deploy it:
-+
-[source,bash]
-----
-# Create namespace for Grafana
-oc new-project grafana-dashboards
+. Return to the log viewer and watch for your chat session appearing in real-time. WebSocket connections show as HTTP 101 upgrades.
 
-# Deploy Grafana operator
-cat << 'EOF' | oc apply -f -
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: grafana-operator
-  namespace: openshift-operators
-spec:
-  channel: v5
-  name: grafana-operator
-  source: community-operators
-  sourceNamespace: openshift-marketplace
-EOF
+[%collapsible]
+.Compare with API container logs (click to expand)
+====
+The API container (`api`) shows the server-side processing -- FastAPI access logs, MLflow warnings, and agent responses:
+
+[source,logql]
+----
+{ log_type="application", kubernetes_namespace_name="mortgage-ai", kubernetes_container_name="api" }
 ----
 
-. Wait for the operator to be ready:
-+
-[source,bash]
+Sample output:
+
 ----
-oc wait --for=condition=Ready pod -l control-plane=controller-manager -n openshift-operators --timeout=120s
+INFO:  10.131.1.212:45042 - "GET /api/applications/2590/risk-assessment HTTP/1.1" 200 OK
+WARNING mlflow.utils.autologging_utils: Encountered unexpected error during autologging...
 ----
 
-. Deploy a Grafana instance:
-+
-[source,bash]
-----
-cat << 'EOF' | oc apply -f -
-apiVersion: grafana.integreatly.org/v1beta1
-kind: Grafana
-metadata:
-  name: acme-fintech-grafana
-  namespace: grafana-dashboards
-spec:
-  config:
-    auth:
-      disable_login_form: false
-    security:
-      admin_user: admin
-      admin_password: admin123
-EOF
-----
+You can see the same `/api/` requests in both the UI and API logs -- the UI shows the incoming request, the API shows how it was processed.
+====
 
-. Get the Grafana route:
-+
-[source,bash]
-----
-oc get route -n grafana-dashboards acme-fintech-grafana-route -o jsonpath='{.spec.host}'
-----
+IMPORTANT: In production, containers are ephemeral. When a pod restarts or gets redeployed, its local logs vanish. LokiStack persists logs beyond pod lifetime, making post-incident investigation possible. For multi-agent systems, correlating logs across API, UI, and database containers is essential for understanding end-to-end request flow.
 
 === Verify
 
-Confirm Grafana is accessible:
-
-[source,bash]
-----
-GRAFANA_ROUTE=$(oc get route -n grafana-dashboards acme-fintech-grafana-route -o jsonpath='{.spec.host}')
-curl -s -o /dev/null -w "%{http_code}" https://${GRAFANA_ROUTE}/login
-----
-
-Expected output: `200`
-
-✓ Grafana is deployed and accessible +
-✓ Can log in with admin credentials
-
-== Exercise 3: Build an agent metrics dashboard
-
-Now let's create a custom dashboard for monitoring the Acme FinTech multi-agent system.
-
-. First, configure Prometheus as a data source in Grafana:
-+
-[source,bash]
-----
-cat << 'EOF' | oc apply -f -
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaDatasource
-metadata:
-  name: prometheus-datasource
-  namespace: grafana-dashboards
-spec:
-  instanceSelector:
-    matchLabels:
-      dashboards: acme-fintech
-  datasource:
-    name: Prometheus
-    type: prometheus
-    access: proxy
-    url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
-    isDefault: true
-    jsonData:
-      httpHeaderName1: Authorization
-      tlsSkipVerify: true
-    secureJsonData:
-      httpHeaderValue1: "Bearer ${PROMETHEUS_TOKEN}"
-EOF
-----
-
-. Create the AgentOps dashboard:
-+
-[source,bash]
-----
-cat << 'EOF' | oc apply -f -
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaDashboard
-metadata:
-  name: agentops-overview
-  namespace: grafana-dashboards
-spec:
-  instanceSelector:
-    matchLabels:
-      dashboards: acme-fintech
-  json: |
-    {
-      "title": "AgentOps Overview - Acme FinTech",
-      "description": "Multi-agent mortgage system observability",
-      "panels": [
-        {
-          "title": "Agent Request Rate",
-          "type": "timeseries",
-          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
-          "targets": [
-            {
-              "expr": "sum(rate(http_requests_total{namespace=\"acme-fintech-agents\"}[5m])) by (service)",
-              "legendFormat": "{{service}}"
-            }
-          ]
-        },
-        {
-          "title": "Agent Latency (P95)",
-          "type": "timeseries",
-          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
-          "targets": [
-            {
-              "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=\"acme-fintech-agents\"}[5m])) by (service, le))",
-              "legendFormat": "{{service}}"
-            }
-          ]
-        },
-        {
-          "title": "Error Rate by Agent",
-          "type": "stat",
-          "gridPos": {"h": 4, "w": 6, "x": 0, "y": 8},
-          "targets": [
-            {
-              "expr": "sum(rate(http_requests_total{namespace=\"acme-fintech-agents\", status=~\"5..\"}[5m])) / sum(rate(http_requests_total{namespace=\"acme-fintech-agents\"}[5m])) * 100",
-              "legendFormat": "Error %"
-            }
-          ]
-        },
-        {
-          "title": "MCP Tool Call Success Rate",
-          "type": "gauge",
-          "gridPos": {"h": 4, "w": 6, "x": 6, "y": 8},
-          "targets": [
-            {
-              "expr": "sum(rate(mcp_tool_calls_total{status=\"success\"}[5m])) / sum(rate(mcp_tool_calls_total[5m])) * 100",
-              "legendFormat": "Success %"
-            }
-          ]
-        },
-        {
-          "title": "Token Usage (Last Hour)",
-          "type": "stat",
-          "gridPos": {"h": 4, "w": 6, "x": 12, "y": 8},
-          "targets": [
-            {
-              "expr": "sum(increase(llm_tokens_total[1h]))",
-              "legendFormat": "Total Tokens"
-            }
-          ]
-        },
-        {
-          "title": "Active Agent Pods",
-          "type": "stat",
-          "gridPos": {"h": 4, "w": 6, "x": 18, "y": 8},
-          "targets": [
-            {
-              "expr": "count(kube_pod_status_phase{namespace=\"acme-fintech-agents\", phase=\"Running\"})",
-              "legendFormat": "Running Pods"
-            }
-          ]
-        }
-      ]
-    }
-EOF
-----
-
-. Access the dashboard in Grafana and verify it loads:
-+
-[source,bash]
-----
-echo "Grafana Dashboard: https://${GRAFANA_ROUTE}/d/agentops-overview"
-----
-
-=== Verify
-
-Confirm the dashboard is created and displays data:
-
-[source,bash]
-----
-# Check dashboard exists
-oc get grafanadashboard -n grafana-dashboards
-----
-
-✓ Dashboard is deployed +
-✓ Panels show data (or "No data" if no traffic yet) +
-✓ Prometheus data source is connected
-
-// TODO: Capture screenshot of the AgentOps overview dashboard
-// Replace placeholder.svg with module-03-agentops-dashboard.png when available
-image::placeholder.svg[AgentOps overview dashboard in Grafana,link=self,window=blank,width=700]
-
-== Exercise 4: Create alerts for agent health
-
-Now let's configure alerts that notify the SRE team when agent health degrades.
-
-. Create a PrometheusRule for agent alerts:
-+
-[source,bash]
-----
-cat << 'EOF' | oc apply -f -
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  name: agentops-alerts
-  namespace: acme-fintech-agents
-spec:
-  groups:
-  - name: agent-health
-    rules:
-    - alert: AgentHighErrorRate
-      expr: |
-        sum(rate(http_requests_total{namespace="acme-fintech-agents", status=~"5.."}[5m]))
-        / sum(rate(http_requests_total{namespace="acme-fintech-agents"}[5m])) > 0.05
-      for: 2m
-      labels:
-        severity: warning
-      annotations:
-        summary: "High error rate detected in agent services"
-        description: "Error rate is above 5% for more than 2 minutes"
-
-    - alert: AgentHighLatency
-      expr: |
-        histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace="acme-fintech-agents"}[5m])) by (le)) > 5
-      for: 5m
-      labels:
-        severity: warning
-      annotations:
-        summary: "High latency detected in agent services"
-        description: "P95 latency is above 5 seconds for more than 5 minutes"
-
-    - alert: MCPToolFailures
-      expr: |
-        sum(rate(mcp_tool_calls_total{status="error"}[5m])) > 0.1
-      for: 3m
-      labels:
-        severity: critical
-      annotations:
-        summary: "MCP tool calls are failing"
-        description: "MCP tool error rate is elevated for more than 3 minutes"
-EOF
-----
-
-. Verify the alerts are registered:
-+
-[source,bash]
-----
-oc get prometheusrule -n acme-fintech-agents
-----
-
-. Check the alert status in the OpenShift console:
-+
---
-Navigate to **Observe** → **Alerting** → **Alerting rules** and filter by `acme-fintech-agents`.
---
-
-=== Verify
-
-Confirm alerts are configured:
-
-[source,bash]
-----
-# List the alert rules
-oc get prometheusrule agentops-alerts -n acme-fintech-agents -o jsonpath='{.spec.groups[0].rules[*].alert}'
-----
-
-Expected output: `AgentHighErrorRate AgentHighLatency MCPToolFailures`
-
-✓ Alert rules are created +
-✓ Alerts appear in OpenShift alerting UI +
-✓ Alert conditions are defined with appropriate thresholds
-
-== Troubleshooting
-
-**Issue**: Grafana dashboard shows "No data"
-**Solution**:
-
-. Verify Prometheus data source is configured correctly
-. Check if metrics are being scraped: query `up{namespace="acme-fintech-agents"}` in Prometheus
-. Ensure ServiceMonitor is deployed for agent services
-. Check time range in Grafana (try "Last 1 hour")
-
-**Issue**: Cannot connect Grafana to Prometheus
-**Solution**:
-
-. Verify the Prometheus URL is correct
-. Check network policies allow traffic from Grafana namespace
-. Ensure bearer token has correct permissions
-. Try using the internal service URL instead of route
-
-**Issue**: Alerts not firing when expected
-**Solution**:
-
-. Verify PrometheusRule is in the correct namespace
-. Check if the metrics referenced in alert expressions exist
-. Review alert thresholds -- they may be too high
-. Check Prometheus UI for alert rule evaluation status
-
-**Issue**: GrafanaDashboard not appearing
-**Solution**:
-
-. Verify instanceSelector matches the Grafana instance labels
-. Check GrafanaDashboard status: `oc describe grafanadashboard <name>`
-. Review Grafana operator logs for errors
-
-== Learning outcomes checkpoint
-
-Before proceeding to Module 4, confirm you can:
-
-* [ ] List at least 5 key metrics for monitoring multi-agent AI systems
-* [ ] Access and navigate the RHOAI observability stack
-* [ ] Create a Grafana dashboard with agent-specific panels
-* [ ] Configure Prometheus alerts for agent health indicators
+✓ OpenShift Console Observe -> Logs loads successfully +
+✓ LogQL queries filter to mortgage-ai namespace +
+✓ You can find log entries corresponding to your chat traffic +
+✓ You can distinguish API vs UI log formats
 
 == Module summary
 
-You've successfully implemented metrics monitoring for the Acme FinTech multi-agent system.
-
 **What you accomplished:**
 
-* Defined key metrics and KPIs for agentic applications
-* Explored the RHOAI observability stack
-* Built a custom Grafana dashboard for agent monitoring
-* Created alerts for critical agent health conditions
+* Explored a pre-deployed Grafana dashboard with real-time agent metrics
+* Understood how traditional HTTP metrics and AI-specific metrics work together
+* Generated traffic and observed metrics update in real-time
+* Investigated application logs with LokiStack and LogQL queries
+* Correlated log entries with user actions across API and UI containers
 
 **Key takeaways:**
 
-* Agentic applications require AI-specific metrics beyond traditional monitoring
-* RHOAI provides foundational observability that can be extended
-* Grafana dashboards provide flexible visualization for different personas
-* Proactive alerting enables faster incident response
+* Agentic apps need metrics beyond HTTP: token usage, inference latency, routing decisions, and tool success rates
+* Logs provide the detail that metrics aggregate away -- essential for debugging ephemeral containers and multi-agent correlation
+* Grafana dashboards and LokiStack are both managed as platform resources, pre-deployed via GitOps
+* Metrics answer "how much?" and "how fast?" -- logs answer "what exactly happened?"
 
 **Next steps:**
 
-Module 4 will introduce MLflow tracing, enabling end-to-end visibility into multi-agent request flows -- the key to understanding *why* things happen, not just *what* is happening.
+Module 4 will introduce MLflow tracing -- the key to understanding *why* things happen, not just *what* is happening.

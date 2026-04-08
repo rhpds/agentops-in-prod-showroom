@@ -7,7 +7,7 @@ Welcome to the AgentOps in Production workshop!
 In this workshop, you will:
 
 * Monitor the Stack: Utilize Red Hat AI's out-of-the-box observability stack to track key metrics and logs of your Agentic App
-* Trace Multi-Agent Executions: Track requests across multi-agent frameworks (LangGraph/LangChain) and MCP tools to understand the complete decision-making path
+* Trace Multi-Agent Executions: Track requests across multi-agent frameworks and MCP tools to understand the complete decision-making path
 * Diagnose and Fix Distributed Failures: Simulate real-world rollout issues and use tracing to pinpoint root causes and deploy fixes
 * LLM Evaluations: Combine tracing with LLM evaluations (Evals) in MLflow to ensure your agents maintain high-quality outputs
 
@@ -28,7 +28,7 @@ Before starting this workshop, you should have:
 
 == Workshop environment
 
-You will work with a pre-deployed multi-agent mortgage lending application built with LangGraph and integrated with Model Context Protocol (MCP) tools.
+You will work with a multi-agent mortgage lending application built with LangGraph and integrated with Model Context Protocol (MCP) tools.
 
 You will have access to:
 

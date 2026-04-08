@@ -4,7 +4,7 @@
 :toc: macro
 :toclevels: 1
 
-This is where everything comes together. In this module, you'll simulate real-world failures in the Acme FinTech multi-agent system and use the observability stack you've built to diagnose and fix them. This is the AgentOps discipline in action -- turning cascading errors and hidden latency into solvable problems.
+This is where everything comes together. In this module, you'll simulate real-world failures in the Fed Aura Capital multi-agent system and use the observability stack you've built to diagnose and fix them. This is the AgentOps discipline in action -- turning cascading errors and hidden latency into solvable problems.
 
 You'll experience what it feels like to be on-call for a multi-agent AI system with proper observability versus without it.
 
@@ -49,7 +49,7 @@ curl -s "http://localhost:9090/api/v1/query?query=histogram_quantile(0.95,sum(ra
 [source,bash]
 ----
 # Scale down the healthy deployment
-oc scale deployment mcp-compliance-server -n acme-fintech-agents --replicas=0
+oc scale deployment mcp-compliance-server -n mortgage-ai --replicas=0
 
 # Deploy a version with artificial delay
 cat << 'EOF' | oc apply -f -
@@ -57,7 +57,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mcp-compliance-server-slow
-  namespace: acme-fintech-agents
+  namespace: mortgage-ai
 spec:
   replicas: 1
   selector:
@@ -71,7 +71,7 @@ spec:
     spec:
       containers:
       - name: compliance-server
-        image: quay.io/acme-fintech/mcp-compliance-server:slow
+        image: quay.io/fed-aura/mcp-compliance-server:slow
         env:
         - name: ARTIFICIAL_DELAY_MS
           value: "3000"
@@ -84,14 +84,14 @@ EOF
 +
 [source,bash]
 ----
-oc rollout status deployment/mcp-compliance-server-slow -n acme-fintech-agents
+oc rollout status deployment/mcp-compliance-server-slow -n mortgage-ai
 ----
 
 . Generate traffic to trigger the issue:
 +
 [source,bash]
 ----
-PROSPECT_URL=$(oc get route prospect-agent -n acme-fintech-agents -o jsonpath='{.spec.host}')
+PROSPECT_URL=$(oc get route prospect-agent -n mortgage-ai -o jsonpath='{.spec.host}')
 
 for i in {1..10}; do
   curl -X POST https://${PROSPECT_URL}/api/inquiry \
@@ -123,7 +123,7 @@ Navigate to your AgentOps dashboard. You should see:
 [source,bash]
 ----
 # View firing alerts
-oc get alerts -n acme-fintech-agents
+oc get alerts -n mortgage-ai
 ----
 
 === Verify
@@ -220,7 +220,7 @@ Traces show where the problem is. Logs can reveal why.
 +
 [source,bash]
 ----
-oc logs -l app=mcp-compliance-server -n acme-fintech-agents --tail=50
+oc logs -l app=mcp-compliance-server -n mortgage-ai --tail=50
 ----
 
 . Look for relevant log entries:
@@ -228,14 +228,14 @@ oc logs -l app=mcp-compliance-server -n acme-fintech-agents --tail=50
 [source,bash]
 ----
 # Filter for slow requests
-oc logs -l app=mcp-compliance-server -n acme-fintech-agents | grep -i "delay\|slow\|timeout"
+oc logs -l app=mcp-compliance-server -n mortgage-ai | grep -i "delay\|slow\|timeout"
 ----
 
 . Check the agent logs for timeout warnings:
 +
 [source,bash]
 ----
-oc logs -l app=prospect-agent -n acme-fintech-agents | grep -i "timeout\|slow\|retry"
+oc logs -l app=prospect-agent -n mortgage-ai | grep -i "timeout\|slow\|retry"
 ----
 
 . Correlate logs with trace IDs:
@@ -244,7 +244,7 @@ oc logs -l app=prospect-agent -n acme-fintech-agents | grep -i "timeout\|slow\|r
 ----
 # If your logging includes trace IDs
 TRACE_ID="<trace-id-from-mlflow>"
-oc logs -l app=mcp-compliance-server -n acme-fintech-agents | grep ${TRACE_ID}
+oc logs -l app=mcp-compliance-server -n mortgage-ai | grep ${TRACE_ID}
 ----
 
 === Verify
@@ -263,21 +263,21 @@ Now that you've diagnosed the issue, let's fix it by restoring the healthy MCP s
 +
 [source,bash]
 ----
-oc delete deployment mcp-compliance-server-slow -n acme-fintech-agents
+oc delete deployment mcp-compliance-server-slow -n mortgage-ai
 ----
 
 . Restore the healthy deployment:
 +
 [source,bash]
 ----
-oc scale deployment mcp-compliance-server -n acme-fintech-agents --replicas=1
+oc scale deployment mcp-compliance-server -n mortgage-ai --replicas=1
 ----
 
 . Wait for the healthy version to be ready:
 +
 [source,bash]
 ----
-oc rollout status deployment/mcp-compliance-server -n acme-fintech-agents
+oc rollout status deployment/mcp-compliance-server -n mortgage-ai
 ----
 
 . Verify the fix with test traffic:
@@ -309,7 +309,7 @@ New traces should show mcp-compliance-server spans completing quickly.
 [source,bash]
 ----
 # Check alert status
-oc get alerts -n acme-fintech-agents
+oc get alerts -n mortgage-ai
 ----
 
 === Verify
@@ -334,10 +334,10 @@ Let's simulate a different failure mode -- an agent that starts returning errors
 [source,bash]
 ----
 # Set an environment variable to trigger error mode
-oc set env deployment/underwriter-agent -n acme-fintech-agents ERROR_RATE="0.5"
+oc set env deployment/underwriter-agent -n mortgage-ai ERROR_RATE="0.5"
 
 # Wait for rollout
-oc rollout status deployment/underwriter-agent -n acme-fintech-agents
+oc rollout status deployment/underwriter-agent -n mortgage-ai
 ----
 
 . Generate traffic that triggers the underwriter:
@@ -382,10 +382,10 @@ In MLflow:
 [source,bash]
 ----
 # Remove the error injection
-oc set env deployment/underwriter-agent -n acme-fintech-agents ERROR_RATE-
+oc set env deployment/underwriter-agent -n mortgage-ai ERROR_RATE-
 
 # Wait for rollout
-oc rollout status deployment/underwriter-agent -n acme-fintech-agents
+oc rollout status deployment/underwriter-agent -n mortgage-ai
 ----
 
 . Verify resolution:
@@ -479,7 +479,7 @@ Before proceeding to the Conclusion, confirm you can:
 
 == Module summary
 
-You've successfully troubleshot distributed failures in the Acme FinTech multi-agent system.
+You've successfully troubleshot distributed failures in the Fed Aura Capital multi-agent system.
 
 **What you accomplished:**
 

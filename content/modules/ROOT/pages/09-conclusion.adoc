@@ -33,9 +33,9 @@ The most important concepts to remember:
 
 . **Evaluations ensure quality**: Observability tells you if systems work; evaluations tell you if they work *well*. Continuous evaluation prevents quality regression.
 
-== Acme FinTech's transformation
+== Fed Aura Capital's transformation
 
-Remember where we started? Acme FinTech was facing:
+Remember where we started? Fed Aura Capital was facing:
 
 * Blind spots in agent interactions
 * Hidden latency bottlenecks
