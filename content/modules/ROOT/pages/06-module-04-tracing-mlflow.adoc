@@ -4,18 +4,16 @@
 :toc: macro
 :toclevels: 1
 
-Metrics tell you *what* is happening, but traces tell you *why*. In this module, you'll configure MLflow tracing to gain end-to-end visibility into the Fed Aura Capital multi-agent mortgage system. You'll learn how to trace requests across LangGraph agents and MCP tool calls, enabling rapid root cause analysis.
-
-This module represents the largest portion of the lab, as tracing is the cornerstone of AgentOps observability.
+Metrics tell you *what* is happening, but traces tell you *why*. In this module, you'll explore MLflow tracing to gain end-to-end visibility into the Fed Aura Capital multi-agent mortgage system. You'll trace the requests you made in Module 1 across LangGraph agents and tool calls, closing the observability gap you experienced firsthand.
 
 == Learning objectives
 
 By the end of this module, you'll be able to:
 
-* Configure MLflow tracing for multi-agent LangGraph workflows
-* Instrument agent code for automatic trace capture
-* Navigate the MLflow UI to analyze request traces
-* Correlate traces across multiple agents and MCP tool calls
+* Navigate the MLflow UI to find and analyze request traces
+* Correlate traces back to user interactions from Module 1
+* Analyze multi-agent execution timelines, tool calls, and LLM invocations
+* Understand how MLflow captures user identity, inputs, outputs, and latency
 
 == Introduction to MLflow tracing
 
@@ -33,403 +31,224 @@ MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that ca
 * **Parent-child relationships**: Spans form a tree showing the call hierarchy
 * **Attributes**: Metadata attached to spans (tokens used, model name, etc.)
 
-// TODO: Create diagram showing trace structure with spans
-// Replace placeholder.svg with module-04-trace-structure.png when available
-image::placeholder.svg[MLflow trace structure with spans,link=self,window=blank,width=700]
-
 == Exercise 1: Access the MLflow tracking server
 
 Red Hat OpenShift AI includes MLflow as part of the platform. Let's access the MLflow UI.
 
-. Get the MLflow route:
+. In the OpenShift Console, click the **application launcher** (waffle icon) in the top-right corner. Under **OpenShift Self Managed Services**, click **MLflow**:
 +
-[source,bash]
-----
-MLFLOW_ROUTE=$(oc get route -n redhat-ods-applications mlflow -o jsonpath='{.spec.host}' 2>/dev/null || echo "mlflow-redhat-ods-applications.apps.cluster.example.com")
-echo "MLflow UI: https://${MLFLOW_ROUTE}"
-----
-
-. Open the MLflow UI in your browser and authenticate with your OpenShift credentials.
-
-. Explore the MLflow interface:
+image::mlflow0.png[OpenShift Console application launcher showing MLflow under OpenShift Self Managed Services,link=self,window=blank,width=400]
 +
---
-* **Experiments**: Organized collections of runs and traces
-* **Models**: Registered model versions
-* **Traces**: End-to-end request traces (our focus)
---
+Authentication is handled via OpenShift OAuth -- log in with your OpenShift credentials if prompted.
 
-. Check the MLflow version:
+. Select your workspace from the **Select workspace** dropdown in the top-left corner. Choose `wksp-{user}`:
 +
-[source,bash]
-----
-# Query MLflow API
-curl -s https://${MLFLOW_ROUTE}/api/2.0/mlflow/version | jq .
-----
-
-NOTE: RHOAI 3.4 ships with MLflow 3.9.1. If you're on RHOAI 3.3, you may have MLflow 3.6.0 with some feature differences.
-
-=== Multi-tenancy note
-
-IMPORTANT: The current version of MLflow in RHOAI does not fully support multi-tenancy. For this workshop, each user works in a separate namespace. In production environments, this limitation should be considered when planning your MLflow deployment strategy.
-
-=== Verify
-
-Confirm MLflow is accessible:
-
-[source,bash]
-----
-curl -s -o /dev/null -w "%{http_code}" https://${MLFLOW_ROUTE}/health
-----
-
-Expected output: `200`
-
-✓ MLflow UI is accessible +
-✓ Can authenticate with OpenShift credentials +
-✓ MLflow version is confirmed
-
-// TODO: Capture screenshot of MLflow UI main page
-// Replace placeholder.svg with module-04-mlflow-ui.png when available
-image::placeholder.svg[MLflow UI main page,link=self,window=blank,width=700]
-
-== Exercise 2: Enable tracing for LangGraph agents
-
-Now let's configure the Fed Aura Capital agents to send traces to MLflow. MLflow provides automatic instrumentation for LangChain and LangGraph.
-
-. First, review how the agents are currently configured:
+RHOAI deploys a single shared MLflow instance that provides namespace-based isolation through **workspaces**. Each data science project (OpenShift namespace) maps to its own MLflow workspace, giving teams logically separated experiments, traces, registered models, and prompts -- all while sharing a single tracking server. Your workspace `wksp-{user}` contains the traces and experiments for your mortgage-ai agents.
 +
-[source,bash]
-----
-# Check the prospect agent configuration
-oc get deployment prospect-agent -n mortgage-ai -o yaml | grep -A 20 "env:"
-----
+image::mlflow1.png[MLflow UI welcome page showing workspace selection and core features,link=self,window=blank,width=700]
 
-. Update the agent deployment to enable MLflow tracing:
-+
-[source,bash]
-----
-# Set MLflow tracking URI for the prospect agent
-oc set env deployment/prospect-agent -n mortgage-ai \
-  MLFLOW_TRACKING_URI="https://${MLFLOW_ROUTE}" \
-  MLFLOW_EXPERIMENT_NAME="mortgage-ai" \
-  MLFLOW_ENABLE_TRACING="true"
-----
-
-. Apply the same configuration to all agents:
-+
-[source,bash]
-----
-for agent in borrower-agent loan-officer-agent underwriter-agent executive-agent; do
-  oc set env deployment/${agent} -n mortgage-ai \
-    MLFLOW_TRACKING_URI="https://${MLFLOW_ROUTE}" \
-    MLFLOW_EXPERIMENT_NAME="mortgage-ai" \
-    MLFLOW_ENABLE_TRACING="true"
-done
-----
-
-. Wait for the agents to restart:
-+
-[source,bash]
-----
-oc rollout status deployment/prospect-agent -n mortgage-ai
-----
-
-. Verify the environment variables are set:
-+
-[source,bash]
-----
-oc get deployment prospect-agent -n mortgage-ai -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="MLFLOW_ENABLE_TRACING")].value}'
-----
-
-=== Verify
-
-Confirm tracing is enabled:
-
-[source,bash]
-----
-# Check all agents have tracing enabled
-for agent in prospect-agent borrower-agent loan-officer-agent underwriter-agent executive-agent; do
-  echo -n "$agent: "
-  oc get deployment ${agent} -n mortgage-ai -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="MLFLOW_ENABLE_TRACING")].value}'
-  echo ""
-done
-----
-
-Expected output: All agents show `true`
-
-✓ MLflow tracking URI is configured +
-✓ Tracing is enabled for all agents +
-✓ Agents have restarted with new configuration
-
-== Exercise 3: Generate and view traces
-
-Let's generate some loan application traffic and view the resulting traces in MLflow.
-
-. Submit a loan inquiry to generate a trace:
-+
-[source,bash]
-----
-PROSPECT_URL=$(oc get route prospect-agent -n mortgage-ai -o jsonpath='{.spec.host}')
-
-curl -X POST https://${PROSPECT_URL}/api/inquiry \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Smith",
-    "email": "john.smith@example.com",
-    "loan_amount": 450000,
-    "property_type": "single_family",
-    "property_state": "CA",
-    "annual_income": 150000,
-    "credit_score_range": "740-799"
-  }'
-----
-
-. Wait a few seconds for the trace to be recorded, then navigate to the MLflow UI.
-
-. In MLflow, go to **Experiments** → **mortgage-ai** → **Traces** tab.
-
-. Click on the most recent trace to view its details:
+. Once in your workspace, explore the MLflow interface:
 +
 --
-You should see:
-
-* **Root span**: The initial inquiry request
-* **Child spans**: Each agent invocation, LLM call, and MCP tool call
-* **Attributes**: Token counts, model names, latencies
-* **Inputs/Outputs**: The actual prompts and completions
+* **Tracing**: Capture and debug LLM interactions and agent workflows (our focus)
+* **Evaluation**: Measure and compare LLM quality with built-in and custom scorers
+* **Prompts**: Version control and manage prompts with aliases across teams
+* **Model Training**: Track experiments with parameters, metrics, and artifacts
 --
 
-. Explore the trace hierarchy:
+NOTE: RHOAI 3.4 ships with MLflow 3.10.1, but may be updated in future releases.
+
+== How does tracing work?
+
+When you deployed the mortgage-ai application in Module 1, tracing was already enabled -- you never had to configure it manually. Every LLM call, tool invocation, and agent decision was recorded automatically. Here's how.
+
+=== MLflow autolog: one-line tracing
+
+MLflow Tracing integrates with https://mlflow.org/docs/latest/genai/tracing/integrations/#agent-frameworks-python[40+ popular LLM and AI agent frameworks], offering a **one-line automatic tracing** experience. No manual span creation, no decorator boilerplate, no SDK wiring.
+
+The mortgage-ai application uses https://mlflow.org/docs/latest/genai/tracing/integrations/listing/langchain/[LangChain autologging]. In https://github.com/rh-ai-quickstart/multi-agent-loan-origination/blob/main/packages/api/src/observability.py#L105[observability.py^], the entire tracing setup is:
+
+[source,python]
+----
+import mlflow
+import mlflow.langchain
+
+mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
+mlflow.set_experiment(settings.MLFLOW_EXPERIMENT_NAME)
+mlflow.langchain.autolog()  # <1>
+----
+<1> This single line enables automatic tracing for all LangChain and LangGraph operations -- every LLM call, tool invocation, and agent decision is captured as spans without any code changes to the agents themselves.
+
+MLflow's automatic tracing provides:
+
+* **Zero code changes** for basic observability -- autolog hooks into the framework at the library level
+* **Unified traces across multi-framework apps** -- LangChain, LangGraph, and custom tools all appear in a single trace
+* **Rich metadata** including inputs, outputs, token counts, model names, and latency
+* **Production-ready scaling** -- traces are sent asynchronously to avoid blocking the application
+
+=== OpenTelemetry compatibility
+
+MLflow Tracing is built on https://opentelemetry.io/[OpenTelemetry], the industry standard for distributed tracing. This means you can also export traces to other backends (Jaeger, Zipkin, Grafana Tempo) alongside MLflow.
+
+== Exercise 2: Find your first trace
+
+In Module 1, you clicked **Explore Products** and chatted with the Prospect Agent. That conversation looked like a simple exchange -- but MLflow captured every step. Let's find that trace.
+
+. In MLflow, click **Traces** in the left sidebar. You'll see a list of all traced requests, sorted by most recent:
 +
-[source,bash]
-----
-# Generate more traffic for richer traces
-for i in {1..5}; do
-  curl -X POST https://${PROSPECT_URL}/api/inquiry \
-    -H "Content-Type: application/json" \
-    -d "{
-      \"name\": \"Test User ${i}\",
-      \"email\": \"test${i}@example.com\",
-      \"loan_amount\": $((300000 + i * 50000)),
-      \"property_type\": \"single_family\"
-    }"
-  sleep 2
-done
-----
-
-=== Verify
-
-Confirm traces are being captured:
-
-[source,bash]
-----
-# Query MLflow API for recent traces
-curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/traces?experiment_ids=mortgage-ai&max_results=5" | jq '.traces | length'
-----
-
-Expected: A number greater than 0
-
-✓ Traces appear in MLflow UI +
-✓ Trace hierarchy shows agent interactions +
-✓ Span details include LLM prompts and responses
-
-// TODO: Capture screenshot of MLflow trace view with span hierarchy
-// Replace placeholder.svg with module-04-trace-view.png when available
-image::placeholder.svg[MLflow trace view showing span hierarchy,link=self,window=blank,width=700]
-
-== Exercise 4: Analyze a multi-agent trace
-
-Let's deep-dive into a trace that shows a complete loan application flow across multiple agents.
-
-. In MLflow, select a trace that has multiple spans (indicating multi-agent involvement).
-
-. Identify the key components in the trace:
+image::mlflow2.png[MLflow Traces list showing captured requests including Explore Products and portfolio health queries,link=self,window=blank,width=700]
 +
---
-* **prospect-agent**: Initial inquiry handling
-* **LLM inference**: The actual model call with prompt/completion
-* **mcp-compliance-server**: External compliance check
-* **borrower-agent**: Application processing (if the inquiry qualified)
---
+Each row shows the **Trace ID**, the **Request** (what the user asked), the **Response** (what the agent returned), **Execution time**, and **State**. Notice the trace at the bottom -- _"What mortgage products do you offer? I'd like..."_ -- this is the Explore Products conversation from Module 1.
 
-. For each span, examine:
+. Click on that trace to open its **Summary** view:
++
+image::mlflow3.png[MLflow trace summary showing inputs with user identity and the span sequence of ChatOpenAI and tool calls,link=self,window=blank,width=700]
++
+The Summary tab reveals what was invisible in Module 1:
 +
 --
-* **Duration**: How long did this operation take?
-* **Inputs**: What data was passed to this component?
-* **Outputs**: What was the result?
-* **Attributes**: Model name, token count, status
+* **Inputs**: The user context passed to the agent -- `user_id`, `user_email`, `user_name`, and the actual message
+* **Span sequence**: The operations that executed -- `ChatOpenAI was called`, tool invocations, and follow-up LLM calls
+* **Outputs**: The complete response returned to the user, including metadata
 --
 
-. Use the trace to answer these questions:
+== Exercise 3: Close the observability gap
+
+Remember Module 1, Exercise 4? You signed in as CEO David Park, asked _"What is my portfolio health?"_, and got a detailed response. We pointed out the observability gap -- you had no way of knowing which agents processed your question, which tools were invoked, or how long each step took.
+
+Now let's close that gap.
+
+image::mlflow4.png[CEO Executive Dashboard showing the portfolio health question and agent response from Module 1,link=self,window=blank,width=700]
+
+=== Find the CEO trace
+
+. Return to the MLflow **Traces** list and locate the trace for _"what is my portfolio health"_:
 +
-[cols="2,3",options="header"]
+image::mlflow4.1.png[MLflow Traces list with the portfolio health trace highlighted,link=self,window=blank,width=700]
++
+Notice the execution time -- 8.07s. That's the total end-to-end latency for a question that seemed to be answered instantly in the chat UI.
+
+=== Examine user identity tracking
+
+[start=2]
+. Click on the trace to open the **Summary** tab:
++
+image::mlflow5.png[MLflow trace summary showing David Park user identity and the span sequence with ChatOpenAI and ceo_pipeline_summary calls,link=self,window=blank,width=700]
++
+MLflow captures the full user context with every trace:
++
+--
+* **user_id**: `d1a2b3c4-e5f6-7890-abcd-ef1234567804` -- the authenticated user's UUID
+* **user_email**: `david.park@example.com` -- traceable identity
+* **user_name**: `David Park` -- the CEO persona
+--
++
+Below the inputs, the span sequence shows the agent's execution plan: `ChatOpenAI` was called (the LLM decides what to do), then `ceo_pipeline_summary` was called (the tool fetches data), then `ChatOpenAI` was called again (the LLM formulates the response).
+
+=== Explore the execution timeline
+
+[start=3]
+. Click the **Details & Timeline** tab, then click **Show execution timeline** to see the full trace breakdown:
++
+image::mlflow6.png[MLflow Details and Timeline view showing the full execution tree from LangGraph through input shield agent ChatOpenAI tool calls and output shield,link=self,window=blank,width=700]
++
+The trace tree shows the complete execution path: `LangGraph` → `input_shield` → `agent` → `ChatOpenAI` (1.26s, decides to call a tool) → `tool_auth` → `ceo_pipeline_summary` (17ms, fetches pipeline data) → `agent` → `ChatOpenAI` (6.44s, composes the response) → `output_shield`. Now you can answer every question from Module 1's observability challenge.
++
+[%collapsible]
+.Full span breakdown (click to expand)
+====
+[cols="2,1,3",options="header"]
 |===
-|Question |Where to Find Answer
+|Span |Duration |What It Does
 
-|Which agent took the longest?
-|Compare span durations in the timeline view
+|`LangGraph`
+|8.08s
+|Root orchestrator -- manages the full agent workflow
 
-|What prompt was sent to the LLM?
-|Check the `input` attribute of the LLM span
+|`input_shield`
+|26.45ms
+|Safety filter -- checks the input for harmful content
 
-|Did the compliance check pass?
-|Look at the MCP tool span's output
+|`agent` (first)
+|1.33s
+|LangGraph agent node -- routes to the LLM
 
-|How many tokens were used?
-|Sum the `tokens_used` attributes
+|`ChatOpenAI` (first)
+|1.26s
+|LLM call -- decides to call the `ceo_pipeline_summary` tool
+
+|`should_continue`
+|0.75ms
+|Decision point -- should the agent keep processing?
+
+|`tool_auth`
+|21.50ms
+|Authorization check -- does the CEO role have access to this tool?
+
+|`tools` → `ceo_pipeline_summary`
+|17.11ms
+|Tool execution -- queries the database for pipeline data
+
+|`agent` (second)
+|6.52s
+|LangGraph agent node -- routes the tool result back to the LLM
+
+|`ChatOpenAI` (second)
+|6.44s
+|LLM call -- formulates a natural-language response from the raw pipeline data
+
+|`output_shield`
+|—
+|Safety filter -- checks the output before returning to the user
 |===
+====
 
-. Export trace data for analysis:
+=== Inspect the tool call
+
+[start=4]
+. In the trace tree, click on the **ceo_pipeline_summary** span to see the tool's inputs and outputs:
 +
-[source,bash]
-----
-# Get trace details via API
-TRACE_ID="<your-trace-id>"  # Copy from MLflow UI
-curl -s "https://${MLFLOW_ROUTE}/api/2.0/mlflow/traces/${TRACE_ID}" | jq .
-----
-
-=== Verify
-
-You can effectively analyze traces:
-
-✓ Can identify which agents participated in a request +
-✓ Can view LLM prompts and completions +
-✓ Can measure latency at each step +
-✓ Can see MCP tool call results
-
-// TODO: Capture screenshot of detailed span view with attributes
-// Replace placeholder.svg with module-04-span-details.png when available
-image::placeholder.svg[Detailed span view showing attributes and inputs/outputs,link=self,window=blank,width=700]
-
-== Exercise 5: Trace MCP tool calls
-
-MCP (Model Context Protocol) tools are critical external integrations. Let's examine how they appear in traces.
-
-. Generate a request that will trigger MCP tool calls:
-+
-[source,bash]
-----
-# This inquiry should trigger compliance and credit checks
-curl -X POST https://${PROSPECT_URL}/api/inquiry \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Maria Garcia",
-    "email": "maria.garcia@example.com",
-    "loan_amount": 500000,
-    "property_type": "multi_family",
-    "property_state": "TX",
-    "annual_income": 200000,
-    "credit_score_range": "800+"
-  }'
-----
-
-. In MLflow, find the resulting trace and expand the MCP tool spans:
+image::mlflow7.png[MLflow span detail for ceo_pipeline_summary showing input days=90 and output with pipeline summary data,link=self,window=blank,width=700]
 +
 --
-* **mcp-compliance-server**: HMDA, ECOA, TRID compliance checks
-* **mcp-credit-server**: Credit score retrieval
+* **Inputs**: `days: 90` -- the tool queries a 90-day window of pipeline data
+* **Outputs**: `"Pipeline Summary (90-day window): Total active applications: 38..."` -- the raw data the LLM used to compose its response
 --
-
-. Examine the MCP span attributes:
 +
-[cols="1,2",options="header"]
-|===
-|Attribute |Description
+This is where the agent got its numbers. If the CEO's response ever contains incorrect data, you can trace it directly to this tool's output and verify whether the issue is in the tool logic or the LLM's interpretation.
 
-|tool_name
-|Name of the MCP tool invoked
+=== Inspect the LLM call
 
-|tool_input
-|Parameters passed to the tool
-
-|tool_output
-|Result returned by the tool
-
-|duration_ms
-|Time taken for the tool call
-
-|status
-|Success or failure
-|===
-
-. Identify potential issues in MCP calls:
+[start=5]
+. Click on the final **ChatOpenAI** span to see the actual LLM invocation:
++
+image::mlflow8.png[MLflow span detail for ChatOpenAI showing model gpt-oss-120b with system prompt and completion,link=self,window=blank,width=700]
 +
 --
-* Long duration: Tool is slow
-* Error status: Tool failed
-* Empty output: Tool returned no data
+* **Model**: `gpt-oss-120b` -- the exact model serving this request
+* **Inputs → messages**: The system prompt (_"You are the Fed Aura Capital executive assistant"_) and the conversation context including the tool result
+* **Outputs → choices**: The complete LLM response before any post-processing
 --
++
+This level of detail is essential for debugging: you can see the exact prompt the model received, which model version handled it, and the raw completion before safety filters and formatting.
 
-=== Verify
+=== Keep exploring
 
-You understand MCP tool tracing:
-
-✓ Can locate MCP tool spans in traces +
-✓ Can view tool inputs and outputs +
-✓ Can identify slow or failing tool calls
-
-== Troubleshooting
-
-**Issue**: Traces not appearing in MLflow
-**Solution**:
-
-. Verify MLFLOW_TRACKING_URI is set correctly: `oc get deployment prospect-agent -o yaml | grep MLFLOW`
-. Check agent logs for MLflow errors: `oc logs -l app=prospect-agent | grep -i mlflow`
-. Ensure network connectivity to MLflow: `oc exec deployment/prospect-agent -- curl -s ${MLFLOW_ROUTE}/health`
-. Verify experiment exists: Create it manually if needed
-
-**Issue**: Traces show but spans are missing
-**Solution**:
-
-. Ensure LangChain autolog is enabled in agent code
-. Check that all agents have tracing configured
-. Verify the agent code is using instrumented LangChain/LangGraph calls
-. Review the autolog configuration for completeness
-
-**Issue**: MLflow UI is slow or unresponsive
-**Solution**:
-
-. Check MLflow pod resources: `oc describe pod -l app=mlflow`
-. Review storage usage: Large trace volumes may need cleanup
-. Consider filtering traces by time range
-. Check database connectivity (if using external DB)
-
-**Issue**: Cannot authenticate to MLflow
-**Solution**:
-
-. Verify OAuth is properly configured
-. Check your OpenShift session is valid: `oc whoami`
-. Clear browser cookies and re-authenticate
-. Ensure RBAC allows access to MLflow
-
-== Learning outcomes checkpoint
-
-Before proceeding to Module 5, confirm you can:
-
-* [ ] Access the MLflow UI and navigate to traces
-* [ ] Configure agents to send traces to MLflow
-* [ ] Generate test traffic and view resulting traces
-* [ ] Analyze multi-agent traces to understand request flow
-* [ ] Identify MCP tool calls within traces
+Try signing in as other personas (Borrower, Loan Officer, Underwriter) and chatting with them. Then return to MLflow -- every conversation appears automatically as a new trace. Compare how different personas use different tools and models.
 
 == Module summary
 
-You've successfully implemented MLflow tracing for the Fed Aura Capital multi-agent system.
-
 **What you accomplished:**
 
-* Configured MLflow tracing for all five agents
-* Generated test traffic to create traces
-* Analyzed multi-agent request flows in the MLflow UI
-* Examined MCP tool call traces
+* Accessed MLflow and found traces from your Module 1 interactions
+* Analyzed the CEO trace end-to-end: input shields, LLM calls, tool authorization, tool execution, and output shields
+* Inspected individual spans to see tool inputs/outputs and LLM prompts/completions
 
 **Key takeaways:**
 
-* MLflow tracing provides end-to-end visibility into multi-agent workflows
-* Traces show the complete decision path, not just the final result
-* MCP tool calls are captured as spans, enabling integration monitoring
-* Trace analysis enables rapid root cause identification
+* MLflow autolog provides end-to-end tracing with zero code changes -- one line enables it
+* Traces capture user identity, execution timelines, and tool/LLM details -- closing the observability gap for multi-agent systems
+* Individual span inspection lets you pinpoint issues to specific components: tool logic, LLM prompts, or safety filters
 
 **Next steps:**
 
