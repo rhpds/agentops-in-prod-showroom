@@ -236,6 +236,24 @@ This level of detail is essential for debugging: you can see the exact prompt th
 
 Try signing in as other personas (Borrower, Loan Officer, Underwriter) and chatting with them. Then return to MLflow -- every conversation appears automatically as a new trace. Compare how different personas use different tools and models.
 
+== Exercise 4: Explore user sessions
+
+Many real-world AI applications use sessions to maintain multi-turn user interactions. https://mlflow.org/docs/latest/genai/tracing/track-users-sessions/[MLflow Tracing provides built-in support^] for associating traces with users and grouping them into sessions. Tracking users and sessions in your LLM application or AI agent provides essential context for understanding user behavior, analyzing conversation flows, and improving personalization.
+
+. In MLflow, click **Sessions** in the left sidebar under **Observability**:
++
+image::sessions0.png[MLflow left sidebar showing Sessions under Observability,link=self,window=blank,width=700]
+
+. In the mortgage-ai application, each chat conversation is tracked as a session. MLflow groups all turns within a session together, letting you see the full conversation flow:
+
+image::sessions1.png[MLflow Chat Sessions view showing a session with 7 turns grouped by user and agent,link=self,window=blank,width=700]
+
+Clicking into a session reveals each turn with its inputs and outputs. You can click **View full trace** on any turn to jump directly to the detailed trace view:
+
+image::sessions2.png[MLflow session detail showing Turn 1 with inputs outputs and View full trace link,link=self,window=blank,width=700]
+
+This is especially valuable for debugging multi-turn conversations where agent behavior degrades over time -- you can see the full context the agent had at each step.
+
 == Module summary
 
 **What you accomplished:**
