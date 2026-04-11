@@ -39,6 +39,8 @@ The Prospect Agent should respond with mortgage product options:
 
 image::agentic-app2.png[Mortgage-AI chat interface with Prospect Agent responding with loan options,link=self,window=blank,width=700]
 
+NOTE: Because the application uses generative AI, responses are non-deterministic. The exact wording, formatting, and details may differ from the screenshots shown in this workshop.
+
 == Exercise 2: Explore the multi-agent architecture
 
 Now that you've seen the application in action, let's explore what's running under the hood. The mortgage-ai system serves five distinct agent personas through a single API deployment.

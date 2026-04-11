@@ -37,15 +37,15 @@ Red Hat OpenShift AI includes MLflow as part of the platform. Let's access the M
 
 . In the OpenShift Console, click the **application launcher** (waffle icon) in the top-right corner. Under **OpenShift Self Managed Services**, click **MLflow**:
 +
-image::mlflow0.png[OpenShift Console application launcher showing MLflow under OpenShift Self Managed Services,link=self,window=blank,width=400]
+image::mlflow0.png[OpenShift Console application launcher showing MLflow under OpenShift Self Managed Services,link=self,window=blank,width=250]
 +
 Authentication is handled via OpenShift OAuth -- log in with your OpenShift credentials if prompted.
 
-. Select your workspace from the **Select workspace** dropdown in the top-left corner. Choose `wksp-{user}`:
-+
-RHOAI deploys a single shared MLflow instance that provides namespace-based isolation through **workspaces**. Each data science project (OpenShift namespace) maps to its own MLflow workspace, giving teams logically separated experiments, traces, registered models, and prompts -- all while sharing a single tracking server. Your workspace `wksp-{user}` contains the traces and experiments for your mortgage-ai agents.
+. Select your workspace from the **Select workspace** dropdown in the top-left corner. Choose `wksp-{user}`. Your workspace contains the traces and experiments for your mortgage-ai app.
 +
 image::mlflow1.png[MLflow UI welcome page showing workspace selection and core features,link=self,window=blank,width=700]
++
+NOTE: RHOAI deploys a single shared MLflow instance that provides namespace-based isolation through **workspaces**. Each data science project (OpenShift namespace) maps to its own MLflow workspace, giving teams logically separated experiments, traces, registered models, and prompts -- all while sharing a single tracking server.
 
 . Once in your workspace, explore the MLflow interface:
 +
@@ -107,7 +107,7 @@ image::mlflow3.png[MLflow trace summary showing inputs with user identity and th
 The Summary tab reveals what was invisible in Module 1:
 +
 --
-* **Inputs**: The user context passed to the agent -- `user_id`, `user_email`, `user_name`, and the actual message
+* **Inputs**: The user context passed to the agent
 * **Span sequence**: The operations that executed -- `ChatOpenAI was called`, tool invocations, and follow-up LLM calls
 * **Outputs**: The complete response returned to the user, including metadata
 --
