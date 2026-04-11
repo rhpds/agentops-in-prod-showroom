@@ -187,45 +187,9 @@ Below the stats, the detail panels show:
 * **Routing Distribution**: `sum(agent_routing_total{namespace=~"$namespace"}) by (complexity)`
 ====
 
-=== Generate traffic and observe
-
-Now let's see the dashboard in action. Open the mortgage-ai UI and chat with the agents:
-
-. Open the mortgage-ai UI:
-+
-[source,bash]
-----
-UI_ROUTE=$(oc get route -n mortgage-ai mortgage-ai-ui -o jsonpath='{.spec.host}')
-echo "Mortgage-AI UI: https://${UI_ROUTE}"
-----
-
-. Send several chat messages to different agent personas.
-
-. Return to the Grafana dashboard, set the time range to **Last 15 minutes**, and watch:
-+
---
-* `active_chat_sessions` increments when you open a chat
-* `llm_tokens_total` increases with each LLM call
-* `tool_calls_total` appears when agents invoke tools
-* `agent_routing_total` shows whether your query was classified as simple or complex
---
-
 TIP: The dashboard is managed as a `GrafanaDashboard` custom resource and version-controlled via GitOps. Run `oc get grafanadashboard -n wksp-{user}` to see it.
 
-=== Verify
-
-[source,bash]
-----
-# Confirm Grafana is running
-oc get pods -n wksp-{user} -l app=grafana
-
-# Confirm dashboard exists
-oc get grafanadashboard -n wksp-{user}
-----
-
-✓ Dashboard loads in Grafana +
-✓ Overview stats show real data after generating traffic +
-✓ AI Agent Metrics panels display token usage and tool call data
+The traffic you generated in Module 1 (Explore Products, CEO portfolio health) is already reflected in these panels. Set the time range to **Last 1 hour** to see it.
 
 == Exercise 2: Explore application logs with LokiStack
 
@@ -246,7 +210,7 @@ By default, you see logs from all applications across all namespaces. This is us
 +
 [source,logql]
 ----
-{ log_type="application", kubernetes_namespace_name="mortgage-ai" }
+{ log_type="application", kubernetes_namespace_name="wksp-{user}" }
 ----
 +
 Click **Run Query**. You should now see only logs from the mortgage-ai pods.
@@ -260,7 +224,7 @@ TIP: `log_type="application"` filters out infrastructure logs (kubelet, CRI-O). 
 +
 [source,logql]
 ----
-{ log_type="application", kubernetes_namespace_name="mortgage-ai", kubernetes_container_name="ui" } |= "/api/"
+{ log_type="application", kubernetes_namespace_name="wksp-{user}", kubernetes_container_name="ui" } |= "/api/"
 ----
 +
 You'll see nginx access logs like:
@@ -280,7 +244,7 @@ Notice the mix of real user traffic (`/api/chat`, `/api/applications/...`) and K
 +
 [source,logql]
 ----
-{ log_type="application", kubernetes_namespace_name="mortgage-ai", kubernetes_container_name="ui" } |= "/api/chat"
+{ log_type="application", kubernetes_namespace_name="wksp-{user}", kubernetes_container_name="ui" } |= "/api/chat"
 ----
 +
 image::logging2.png[LogQL query filtering mortgage-ai UI logs for chat activity,link=self,window=blank,width=700]
@@ -291,18 +255,7 @@ After running the query, you'll see the matching log entries with full metadata:
 +
 image::logging3.png[OpenShift Console Logs showing filtered chat activity results,link=self,window=blank,width=700]
 
-=== Generate traffic and find it
-
-[start=5]
-. Open the mortgage-ai UI and start a chat conversation with one of the agents:
-+
-[source,bash]
-----
-UI_ROUTE=$(oc get route -n mortgage-ai mortgage-ai-ui -o jsonpath='{.spec.host}')
-echo "Mortgage-AI UI: https://${UI_ROUTE}"
-----
-
-. Return to the log viewer and watch for your chat session appearing in real-time. WebSocket connections show as HTTP 101 upgrades.
+The traffic you generated in Module 1 should already appear in these logs. WebSocket connections (chat sessions) show as HTTP 101 upgrades.
 
 [%collapsible]
 .Compare with API container logs (click to expand)
@@ -311,7 +264,7 @@ The API container (`api`) shows the server-side processing -- FastAPI access log
 
 [source,logql]
 ----
-{ log_type="application", kubernetes_namespace_name="mortgage-ai", kubernetes_container_name="api" }
+{ log_type="application", kubernetes_namespace_name="wksp-{user}", kubernetes_container_name="api" }
 ----
 
 Sample output:
@@ -326,28 +279,18 @@ You can see the same `/api/` requests in both the UI and API logs -- the UI show
 
 IMPORTANT: In production, containers are ephemeral. When a pod restarts or gets redeployed, its local logs vanish. LokiStack persists logs beyond pod lifetime, making post-incident investigation possible. For multi-agent systems, correlating logs across API, UI, and database containers is essential for understanding end-to-end request flow.
 
-=== Verify
-
-✓ OpenShift Console Observe -> Logs loads successfully +
-✓ LogQL queries filter to mortgage-ai namespace +
-✓ You can find log entries corresponding to your chat traffic +
-✓ You can distinguish API vs UI log formats
-
 == Module summary
 
 **What you accomplished:**
 
-* Explored a pre-deployed Grafana dashboard with real-time agent metrics
-* Understood how traditional HTTP metrics and AI-specific metrics work together
-* Generated traffic and observed metrics update in real-time
-* Investigated application logs with LokiStack and LogQL queries
-* Correlated log entries with user actions across API and UI containers
+* Explored the Grafana dashboard with HTTP and AI-specific agent metrics
+* Filtered application logs with LokiStack and LogQL queries
+* Correlated log entries across API and UI containers
 
 **Key takeaways:**
 
 * Agentic apps need metrics beyond HTTP: token usage, inference latency, routing decisions, and tool success rates
-* Logs provide the detail that metrics aggregate away -- essential for debugging ephemeral containers and multi-agent correlation
-* Grafana dashboards and LokiStack are both managed as platform resources, pre-deployed via GitOps
+* Logs provide the detail that metrics aggregate away -- essential for debugging ephemeral containers
 * Metrics answer "how much?" and "how fast?" -- logs answer "what exactly happened?"
 
 **Next steps:**

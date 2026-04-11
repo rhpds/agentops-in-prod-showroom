@@ -138,14 +138,6 @@ Let's apply these concepts to Fed Aura Capital's multi-agent mortgage system.
 *Traces* -- distributed traces reconstruct the full request flow across all agents.
 ====
 
-=== Verify
-
-You understand how each pillar applies to AI observability:
-
-✓ Can identify which pillar answers specific questions +
-✓ Understand the AI-specific additions to each pillar +
-✓ Recognize that all three pillars work together
-
 == Exercise 2: Two personas, one observability stack
 
 At Fed Aura Capital, two primary teams need observability but focus on different things. Let's identify who owns what in the AgentOps observability stack.
@@ -210,89 +202,20 @@ Some issues require collaboration between both personas:
 * **Resource exhaustion**: SRE manages capacity, AI Developer optimizes token usage
 --
 
-=== Verify
-
-✓ Can map observability responsibilities to the right persona +
-✓ Understand where SRE and AI Developer concerns overlap +
-✓ Recognize that Grafana dashboards serve both personas
-
-
-////
-== Exercise 3: Review the RHOAI observability stack
-
-Let's explore what's already available in Red Hat OpenShift AI for observability.
-
-. Access the OpenShift console:
-+
-[source,bash]
-----
-# Get the console URL
-echo "OpenShift Console: {openshift_console_url}"
-----
-
-. Navigate to **Observe** → **Dashboards** in the OpenShift console.
-
-. Review the available RHOAI dashboards:
-+
---
-* **RHOAI Overview**: High-level view of AI workloads
-* **Model Serving**: Inference endpoint metrics
-* **Data Science Projects**: Resource utilization by project
---
-
-. Check the available metrics in Prometheus:
-+
-[source,bash]
-----
-# Port-forward to Prometheus (if needed)
-oc port-forward -n openshift-monitoring svc/prometheus-k8s 9090:9090 &
-
-# Query for AI-related metrics
-curl -s "http://localhost:9090/api/v1/label/__name__/values" | jq '.data[]' | grep -i "model\|inference\|llm"
-----
-
-=== Verify
-
-You've explored the RHOAI observability capabilities:
-
-[source,bash]
-----
-# Verify you can access monitoring
-oc get route -n openshift-monitoring prometheus-k8s
-----
-
-✓ Can access OpenShift monitoring dashboards +
-✓ Understand what metrics are available out of the box +
-✓ Know where to find RHOAI-specific dashboards
-
-== Learning outcomes checkpoint
-
-Before proceeding to Module 3, confirm you can:
-
-* [ ] Define metrics, logs, and traces in the context of AI observability
-* [ ] Explain AI-specific observability needs for each pillar
-* [ ] Distinguish between SRE and AI Developer observability responsibilities
-* [ ] Identify the key components of the AgentOps observability stack
-////
-
 == Module summary
-
-You've successfully learned the foundational concepts of AgentOps observability.
 
 **What you accomplished:**
 
-* Understood the three pillars of observability for AI systems
-* Learned how different personas approach observability differently
-* Explored the RHOAI observability stack capabilities
-* Mapped responsibilities to the right teams
+* Mapped the three pillars of observability (metrics, logs, traces) to agentic AI needs
+* Identified SRE vs AI Developer responsibilities in the observability stack
+* Recognized where both personas must collaborate
 
 **Key takeaways:**
 
-* Metrics, logs, and traces each serve unique purposes in AI observability
+* Metrics, logs, and traces each serve unique purposes -- agentic apps add token usage, agent reasoning, and multi-agent workflow paths
 * SRE/Platform Engineers focus on system health; AI Developers focus on model behavior
 * Effective AgentOps requires collaboration between both personas
-* RHOAI provides foundational observability that we'll extend in subsequent modules
 
 **Next steps:**
 
-Module 3 will dive into metrics and KPIs for agentic applications, where you'll deploy custom Grafana dashboards to monitor the Fed Aura Capital multi-agent system.
+Module 3 will explore metrics and logs hands-on using pre-deployed Grafana dashboards and LokiStack.

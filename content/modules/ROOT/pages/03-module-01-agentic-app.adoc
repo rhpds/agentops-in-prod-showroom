@@ -4,118 +4,26 @@
 :toc: macro
 :toclevels: 1
 
-Agentic AI apps don't fail silently -- they fail distributedly. In this module, you'll deploy and explore the mortgage-ai multi-agent application and understand why traditional monitoring approaches fall short for these complex systems.
+Agentic AI apps don't fail silently -- they fail distributedly. In this module, you'll explore the pre-deployed mortgage-ai multi-agent application and understand why traditional monitoring approaches fall short for these complex systems.
 
 Fed Aura Capital needs end-to-end visibility into their multi-agent workflows, and you've been tasked with evaluating how observability can help. Before implementing solutions, you need to understand what you're working with.
-
-In this module, you'll experience firsthand why multi-agent systems require a different approach to observability.
 
 == Learning objectives
 
 By the end of this module, you'll be able to:
 
-* Deploy the mortgage-ai multi-agent system using Helm
 * Describe the architecture of the multi-agent mortgage lending system
 * Identify the five distinct agent personas and their responsibilities
 * Explain why distributed AI systems require specialized observability approaches
 * Recognize the key failure modes in multi-agent architectures
 
-== Exercise 1: Deploy the mortgage-ai application
-
-The mortgage-ai multi-agent system is packaged as a Helm chart. Let's deploy it to your namespace.
-
-. First, log in to OpenShift:
-+
-[source,bash]
-----
-oc login {openshift_api_url} -u {user} -p {password}
-----
-
-. Create and switch to your workspace namespace:
-+
-[source,bash]
-----
-oc new-project wksp-{user} || oc project wksp-{user}
-----
-
-. Clone the multi-agent loan origination repository:
-+
-[source,bash]
-----
-git clone https://github.com/rh-ai-quickstart/multi-agent-loan-origination.git
-cd multi-agent-loan-origination
-----
-
-. Export the Helm chart variables for your deployment:
-+
-[source,bash]
-----
-export LLM_BASE_URL="https://llm-gateway.apps.<cluster-domain>/v1"
-export LLM_API_KEY="ToBeFilled"
-export LLM_MODEL="qwen3-14b"
-export COMPANY_NAME="Fed Aura Capital"
-export MLFLOW_TRACKING_URI="https://mlflow.apps.<cluster-domain>/mlflow"
-export MLFLOW_WORKSPACE="wksp-{user}"
-export MLFLOW_EXPERIMENT_NAME="wksp-{user}"
-----
-
-. Deploy the application using Helm:
-+
-[source,bash]
-----
-helm install mortgage-ai ./deploy/helm/mortgage-ai \
-  -n mortgage-ai --create-namespace \
-  --set secrets.LLM_BASE_URL="${LLM_BASE_URL}" \
-  --set secrets.LLM_API_KEY="${LLM_API_KEY}" \
-  --set secrets.LLM_MODEL="${LLM_MODEL}" \
-  --set secrets.COMPANY_NAME="${COMPANY_NAME}" \
-  --set secrets.AUTH_DISABLED=true \
-  --set keycloak.enabled=false \
-  --set secrets.MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI}" \
-  --set secrets.MLFLOW_EXPERIMENT_NAME="${MLFLOW_EXPERIMENT_NAME}" \
-  --set secrets.MLFLOW_WORKSPACE="${MLFLOW_WORKSPACE}" \
-  --set secrets.MLFLOW_TRACKING_INSECURE_TLS=true \
-  --set mlflow.rbac.enabled=true \
-  --set seed.enabled=true
-----
-
-. Wait for all deployments to become ready:
-+
-[source,bash]
-----
-oc rollout status deployment/mortgage-ai-api -n wksp-{user}
-oc rollout status deployment/mortgage-ai-ui -n wksp-{user}
-----
-
-=== Verify
-
-Confirm all components are running:
-
-[source,bash]
-----
-oc get deployments -n wksp-{user}
-----
-
-Expected output:
-----
-NAME               READY   UP-TO-DATE   AVAILABLE   AGE
-minio              1/1     1            1           2m
-mortgage-ai-api    1/1     1            1           2m
-mortgage-ai-ui     1/1     1            1           2m
-----
-
-✓ All deployments show READY and AVAILABLE as 1 +
-✓ No pods in CrashLoopBackOff or Error state
-
-image::agentic-app0.png[Deployed mortgage-ai pods in OpenShift,link=self,window=blank,width=700]
-
-== Exercise 2: Access the application UI
+== Exercise 1: Access the application UI
 
 . Get the UI route:
 +
 [source,bash]
 ----
-MORTGAGE_UI=$(oc get route mortgage-ai-ui-route -o jsonpath='{.spec.host}')
+MORTGAGE_UI=$(oc get route mortgage-ai-ui-route -n wksp-{user} -o jsonpath='{.spec.host}')
 echo "Mortgage AI UI: https://${MORTGAGE_UI}"
 ----
 
@@ -123,33 +31,15 @@ echo "Mortgage AI UI: https://${MORTGAGE_UI}"
 +
 image::agentic-app1.png[Fed Aura Capital mortgage-ai application interface,link=self,window=blank,width=700]
 
-////
-. Select an agent persona to interact with:
-+
---
-* **Prospect Agent**: Handle initial inquiries, provide rate estimates, qualify leads
-* **Borrower Agent**: Manage application intake, collect documentation
-* **Loan Officer Agent**: Pipeline management, application review
-* **Underwriter Agent**: Compliance checks, risk assessment
-* **Executive Agent**: Analytics, reporting, portfolio oversight
---
-////
-
 . Try a sample conversation clicking the **Explore Products** button:
 +
 image::agentic-app2.1.png[Explore Products button on the Fed Aura Capital landing page,link=self,window=blank,width=400]
-
-=== Verify
 
 The Prospect Agent should respond with mortgage product options:
 
 image::agentic-app2.png[Mortgage-AI chat interface with Prospect Agent responding with loan options,link=self,window=blank,width=700]
 
-✓ UI loads and displays the Fed Aura Capital landing page +
-✓ Clicking **Explore Products** opens the assistant chat +
-✓ The Prospect Agent responds with mortgage product options (Conventional, FHA, VA loans)
-
-== Exercise 3: Explore the multi-agent architecture
+== Exercise 2: Explore the multi-agent architecture
 
 Now that you've seen the application in action, let's explore what's running under the hood. The mortgage-ai system serves five distinct agent personas through a single API deployment.
 
@@ -186,7 +76,7 @@ oc get pods -n wksp-{user}
 +
 [source,bash]
 ----
-MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n mortgage-ai -o jsonpath='{.spec.host}')
+MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n wksp-{user} -o jsonpath='{.spec.host}')
 curl -sk https://${MORTGAGE_HEALTH}/health/ | jq -r .
 ----
 +
@@ -265,19 +155,7 @@ This application demonstrates production-ready AI patterns for regulated industr
 * **PII masking** - Middleware-based masking for executive roles (SSN, DOB, account numbers)
 * **Safety shields** - Input and output content filters with escalation pattern detection
 
-=== Verify
-
-Confirm the API is healthy and accessible:
-
-[source,bash]
-----
-curl -sk https://${MORTGAGE_HEALTH}/health/ | jq .
-----
-
-✓ API responds with healthy status +
-✓ All five agent endpoints are available
-
-== Exercise 4: Experience the observability gap
+== Exercise 3: Experience the observability gap
 
 Now that you understand the five agent personas and how they collaborate, let's experience firsthand the observability challenge that comes with distributed AI systems.
 
@@ -313,32 +191,18 @@ The response looks great. But stop and think about what just happened behind the
 
 Without proper observability instrumentation, these questions are unanswerable. The application gives you a polished response, but the entire decision-making process -- the agent routing, tool invocations, LLM calls, and data retrieval -- remains a black box.
 
-=== Verify
-
-You've experienced the observability gap:
-
-✓ Signed in as the CEO persona and accessed the Executive Dashboard +
-✓ Asked the assistant a question and received a response +
-✓ Recognized that the response tells you *what* the system decided, but not *how* or *why* +
-✓ Identified the need for distributed tracing to gain visibility into agent behavior
-
 == Module summary
-
-You've successfully deployed and explored the mortgage-ai multi-agent architecture.
 
 **What you accomplished:**
 
-* Deployed the mortgage-ai multi-agent system using Helm
-* Explored the five agent personas and their responsibilities
-* Accessed the application UI and interacted with agents
-* Experienced the challenge of debugging distributed AI systems
-* Recognized why traditional monitoring falls short for agentic apps
+* Explored the five agent personas and the multi-agent architecture
+* Interacted with agents via the application UI
+* Experienced the observability gap in distributed AI systems
 
 **Key takeaways:**
 
 * Multi-agent systems distribute decision-making across multiple components
 * A single API can serve multiple agent personas with different capabilities
-* Logs alone cannot provide end-to-end visibility across services
 * Specialized observability approaches are required for AgentOps
 
 **Next steps:**
