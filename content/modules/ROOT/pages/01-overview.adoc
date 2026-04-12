@@ -70,23 +70,6 @@ You should have:
 
 **Technical perspective**: "MLflow tracing combined with RHOAI's metrics stack can give us the visibility we need, but we need to validate how it integrates with our LangGraph agents and MCP tools."
 
-== Your vision of success
-
-If the AgentOps observability implementation proves effective for Fed Aura Capital, here are the potential improvements:
-
-**Immediate improvements** (Week 1-2):
-
-* **End-to-end visibility**: Full request tracing across all 5 agents to identify exactly where failures occur
-* **Proactive alerting**: Metrics dashboards with threshold alerts to catch issues before customers complain
-
-**Strategic benefits** (Month 1-3):
-
-* **Reduced MTTR**: From hours to minutes for incident diagnosis, freeing engineering time for innovation
-* **Quality assurance**: LLM evaluations ensure consistent agent behavior, reducing compliance risk
-* **Capacity planning**: Historical metrics enable data-driven scaling decisions, optimizing infrastructure costs
-
-**Success metric**: Demonstrate a complete trace from customer inquiry to loan decision, with the ability to pinpoint any failure or bottleneck within 5 minutes.
-
 == Common questions
 
 **"How does tracing work with AI agents?"** +
