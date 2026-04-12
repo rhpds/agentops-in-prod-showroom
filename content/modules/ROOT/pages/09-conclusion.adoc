@@ -16,6 +16,7 @@ Throughout this workshop, you've gained hands-on experience with end-to-end obse
 * Configured MLflow tracing for multi-agent workflows and MCP tool calls
 * Implemented LLM evaluations for quality assurance
 * Automated evaluations with AI Pipelines for continuous quality monitoring
+* Caught a prompt regression before production by comparing evaluation results across prompt versions
 
 You now have the practical skills to implement AgentOps discipline at your organization.
 
