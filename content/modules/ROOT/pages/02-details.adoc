@@ -26,8 +26,8 @@
 === Software versions
 
 * Red Hat OpenShift Container Platform {ocp_version}
-* Red Hat OpenShift AI 3.4
-* MLflow 3.10.1
+* Red Hat OpenShift AI {rhoai_version}
+* MLflow {mlflow_version}
 * LangGraph/LangChain (latest stable)
 * Grafana/Perses for dashboards
 * Web browser (Chrome, Firefox, Safari, Edge)
@@ -74,7 +74,7 @@ oc login {openshift_api_url} -u {user} -p {password}
 oc project
 
 # Test connectivity to MLflow
-curl -s https://mlflow-route.apps.cluster.example.com/health | head -5
+curl -s https://{mlflow_route}/health | head -5
 ----
 
 == Troubleshooting guide
@@ -125,28 +125,28 @@ curl -s https://mlflow-route.apps.cluster.example.com/health | head -5
 |Term |Definition
 
 |AgentOps
-|Agent Operations -- the discipline of monitoring, tracing, evaluating, and maintaining AI agent systems in production
+|Agent Operations, the discipline of monitoring, tracing, evaluating, and maintaining AI agent systems in production
 
 |AI Agent
 |A system that uses an LLM to reason about tasks, decide which tools to call, and take autonomous actions
 
 |LLM
-|Large Language Model -- an AI model trained on large text datasets that can generate and understand natural language
+|Large Language Model, an AI model trained on large text datasets that can generate and understand natural language
 
 |MCP
-|Model Context Protocol -- a standard for connecting AI agents to external tools and data sources
+|Model Context Protocol, a standard for connecting AI agents to external tools and data sources
 
 |LangGraph
 |A framework for building stateful, multi-agent AI workflows, built on top of LangChain
 
 |RAG
-|Retrieval-Augmented Generation -- a pattern that enhances LLM responses by retrieving relevant documents before generating answers
+|Retrieval-Augmented Generation, a pattern that enhances LLM responses by retrieving relevant documents before generating answers
 
 |Trace
 |A complete record of a request's journey through a distributed system, composed of spans
 
 |Span
-|A single operation within a trace (e.g., one LLM call, one tool invocation)
+|A single operation within a trace (e.g., 1 LLM call, 1 tool invocation)
 
 |Scorer
 |A function that evaluates the quality of an agent's response (deterministic or LLM-powered)
@@ -158,16 +158,16 @@ curl -s https://mlflow-route.apps.cluster.example.com/health | head -5
 |Automated, platform-driven evaluation workflow (e.g., scheduled AI Pipelines)
 
 |RBAC
-|Role-Based Access Control -- restricting system access based on user roles
+|Role-Based Access Control, restricting system access based on user roles
 
 |pgvector
 |A PostgreSQL extension that enables vector similarity search for embeddings
 
 |PromQL
-|Prometheus Query Language -- used to query metrics in Grafana dashboards
+|Prometheus Query Language, used to query metrics in Grafana dashboards
 
 |LogQL
-|Log Query Language -- used to query logs in LokiStack/Grafana Loki
+|Log Query Language, used to query logs in LokiStack/Grafana Loki
 |===
 ====
 

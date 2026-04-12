@@ -6,9 +6,9 @@
 
 Observability tells you if your system is working, but evaluations tell you if your agents are working *well*. In this module, you'll go beyond basic observability by running LLM evaluations against the Fed Aura Capital prospect agent using MLflow's evaluation framework, Prompt Registry, and LLM-as-a-Judge scorers.
 
-TIP: In this module, you're wearing your **AI Developer / Engineer hat** -- focusing on model output quality, prompt management, and evaluation design.
+TIP: In this module, you're wearing your **AI Developer / Engineer hat**, focusing on model output quality, prompt management, and evaluation design.
 
-This is the AI Developer's quality assurance layer -- the *inner loop* where you manually evaluate agent outputs during development. In Module 6, you'll automate this into an *outer loop* that detects regressions continuously.
+This is the AI Developer's quality assurance layer, the *inner loop* where you manually evaluate agent outputs during development. In Module 6, you'll automate this into an *outer loop* that detects regressions continuously.
 
 == Learning objectives
 
@@ -24,9 +24,9 @@ By the end of this module, you'll be able to:
 
 In the Fed Aura Capital mortgage system, agents make consequential decisions:
 
-* The prospect agent qualifies leads -- wrong qualification costs sales
-* The underwriter agent assesses risk -- incorrect assessment creates liability
-* The underwriter agent checks compliance -- failures risk legal penalties
+* The prospect agent qualifies leads. Wrong qualification costs sales.
+* The underwriter agent assesses risk. Incorrect assessment creates liability.
+* The underwriter agent checks compliance. Failures risk legal penalties.
 
 Metrics tell you the agent responded. Traces tell you how it responded. **Evaluations tell you if it responded correctly.**
 
@@ -38,7 +38,7 @@ To run evaluations, you need a Jupyter environment. Red Hat OpenShift AI provide
 +
 image::eval0.png[OpenShift Console application launcher showing Red Hat OpenShift AI,link=self,window=blank,width=250]
 
-. In the RHOAI dashboard, navigate to **Projects** and select your workspace (`wksp-{user}`).
+. In the Red Hat OpenShift AI (RHOAI) dashboard, navigate to **Projects** and select your workspace (`wksp-{user}`).
 
 . Click **Create workbench** and configure it:
 +
@@ -59,6 +59,7 @@ The evaluation notebook is part of the mortgage-ai application repository. Let's
 
 . In JupyterLab, click **Git** > **Clone a Repository** (or use the Git icon in the left sidebar). Enter the repository URL:
 +
+[source,text]
 ----
 https://github.com/rh-ai-quickstart/multi-agent-loan-origination.git
 ----
@@ -76,10 +77,10 @@ image::eval3.png[JupyterLab showing evaluate_agent.ipynb open with Setup cell an
 . In the **Setup** cell, verify the environment variables are configured. The key variables are:
 +
 --
-* `MLFLOW_TRACKING_URI` -- your MLflow tracking server URL
-* `MLFLOW_EXPERIMENT_NAME` -- experiment name (e.g., `mortgage-ai`)
-* `LLM_BASE_URL` -- your LLM inference endpoint
-* `LLM_MODEL` -- the model name (e.g., `gpt-oss-120b`)
+* `MLFLOW_TRACKING_URI`: your MLflow tracking server URL
+* `MLFLOW_EXPERIMENT_NAME`: experiment name (e.g., `mortgage-ai`)
+* `LLM_BASE_URL`: your LLM inference endpoint
+* `LLM_MODEL`: the model name (e.g., `gpt-oss-120b`)
 --
 +
 NOTE: In the workshop environment, these variables are pre-configured. If running in your own environment, update them to match your infrastructure.
@@ -88,7 +89,7 @@ NOTE: In the workshop environment, these variables are pre-configured. If runnin
 
 == Exercise 3: Register a prompt in MLflow's Prompt Registry
 
-Before running evaluations, let's register the agent's system prompt in MLflow's https://mlflow.org/docs/latest/genai/prompt-registry/[Prompt Registry^]. The Prompt Registry provides version control for prompts -- think of it as Git for your system prompts, enabling you to track changes, compare versions, and link evaluation traces back to the exact prompt that produced them.
+Before running evaluations, let's register the agent's system prompt in MLflow's https://mlflow.org/docs/latest/genai/prompt-registry/[Prompt Registry^]. The Prompt Registry provides version control for prompts. Think of it as Git for your system prompts, enabling you to track changes, compare versions, and link evaluation traces back to the exact prompt that produced them.
 
 . Run the cells under **1. Register System Prompt in MLflow**. The notebook reads the public-assistant system prompt (the same content from `config/agents/public-assistant.yaml`) and registers it as a versioned artifact:
 +
@@ -111,7 +112,7 @@ The prompt detail shows:
 * **Prompt text**: The full system prompt content
 --
 
-NOTE: When you update the system prompt and register a new version, MLflow keeps the history. This lets you compare evaluation results across prompt versions -- a critical capability for prompt engineering at scale.
+NOTE: When you update the system prompt and register a new version, MLflow keeps the history. This lets you compare evaluation results across prompt versions, a critical capability for prompt engineering at scale.
 
 == Exercise 4: Create an evaluation dataset
 
@@ -134,11 +135,11 @@ NOTE: Datasets are stored on the MLflow server, not as local files. This means t
 
 == Exercise 5: Run a simple evaluation
 
-Let's start with deterministic scorers -- fast checks that don't require LLM calls. These are your first line of defense for catching obvious regressions.
+Let's start with deterministic scorers, which are fast checks that don't require LLM calls. These are your first line of defense for catching obvious regressions.
 
 === Simple scorers
 
-The notebook defines three deterministic scorers:
+The notebook defines 3 deterministic scorers:
 
 * **contains_expected**: Does the response contain the expected keyword? (e.g., does an FHA question response mention "FHA"?)
 * **has_numeric_result**: Does the response include numeric values like dollar amounts or percentages? (important for affordability calculations)
@@ -146,7 +147,7 @@ The notebook defines three deterministic scorers:
 
 === Set up the predictor and run the evaluation
 
-Before running the evaluation, the notebook needs two pieces: a **predictor function** that invokes the prospect agent for each test case, and the **scorer definitions**. The predictor wraps the agent invocation and loads the registered prompt inside the traced context -- this is what creates the automatic prompt-trace linkage you'll explore in Exercise 7.
+Before running the evaluation, the notebook needs 2 pieces: a **predictor function** that invokes the prospect agent for each test case, and the **scorer definitions**. The predictor wraps the agent invocation and loads the registered prompt inside the traced context. This is what creates the automatic prompt-trace linkage you'll explore in Exercise 7.
 
 . Run the cells under the **Predictor with Prompt Linkage** and **Scorers** sections to set up both.
 
@@ -179,11 +180,11 @@ The detail view combines the trace information (inputs, outputs, span timeline) 
 
 == Exercise 6: Run LLM-as-a-Judge evaluation
 
-Deterministic scorers catch surface-level issues, but can't assess whether a response is *actually helpful*. For that, you need https://mlflow.org/docs/latest/genai/eval-monitor/running-evaluation/agents/[LLM-as-a-Judge^] -- using an LLM to evaluate the quality of another LLM's output.
+Deterministic scorers catch surface-level issues, but can't assess whether a response is *actually helpful*. For that, you need https://mlflow.org/docs/latest/genai/eval-monitor/running-evaluation/agents/[LLM-as-a-Judge^], using an LLM to evaluate the quality of another LLM's output.
 
 === LLM judge scorers
 
-The notebook adds five LLM-powered scorers on top of the three simple ones:
+The notebook adds 5 LLM-powered scorers on top of the 3 simple ones:
 
 * **https://mlflow.org/docs/latest/genai/eval-monitor/scorers/llm-judge/tool-call/correctness/[ToolCallCorrectness^]**: Did the agent call the right tools? (e.g., did it use `product_info` for product questions?)
 * **ToolCallEfficiency**: Were tool calls minimal and efficient?
@@ -202,31 +203,31 @@ This evaluation takes longer than the simple one because each test case is score
 === View results in MLflow
 
 [start=2]
-. In the MLflow UI, click **Evaluation runs**. You'll now see two runs -- the simple evaluation and the LLM-as-a-Judge evaluation:
+. In the MLflow UI, click **Evaluation runs**. You'll now see 2 runs: the simple evaluation and the LLM-as-a-Judge evaluation:
 +
-image::eval12.png[MLflow Evaluation Runs showing two runs - simple and LLM-as-a-Judge,link=self,window=blank,width=700]
+image::eval12.png[MLflow Evaluation Runs showing 2 runs - simple and LLM-as-a-Judge,link=self,window=blank,width=700]
 
 . Click **Traces** and enable all assessment columns. You'll see the full picture with both deterministic and LLM judge results:
 +
 image::eval13.png[MLflow Traces view with full assessment columns including tool_call_correctness safety and relevance,link=self,window=blank,width=700]
 +
-The additional columns show Pass/Fail for each LLM judge. Notice how `tool_call_correctness` shows 83% pass rate and `safety` shows 100% -- the agent is safe but occasionally calls the wrong tool.
+The additional columns show Pass/Fail for each LLM judge. Notice how `tool_call_correctness` shows 83% pass rate and `safety` shows 100%. The agent is safe but occasionally calls the wrong tool.
 
 . Click on a trace to see all 8 assessments in the detail view:
 +
 image::eval14.png[MLflow trace detail showing all 8 assessments including safety mortgage_guidelines tool_call_efficiency tool_call_correctness and relevance_to_query,link=self,window=blank,width=500]
 +
-The assessments sidebar now shows the full evaluation picture for this single trace: safety (Yes), mortgage_guidelines (No -- perhaps the response was too informal), tool_call_efficiency (Yes), tool_call_correctness (Yes), relevance_to_query (Yes), and the three deterministic checks.
+The assessments sidebar now shows the full evaluation picture for this single trace: safety (Yes), mortgage_guidelines (No, perhaps the response was too informal), tool_call_efficiency (Yes), tool_call_correctness (Yes), relevance_to_query (Yes), and the 3 deterministic checks.
 
 == Exercise 7: Explore prompt-trace linkage
 
-One of the most powerful features of MLflow's evaluation framework is automatic prompt-trace linkage. Every evaluation trace is linked to the prompt version that produced it, enabling you to track quality across prompt iterations.
+One of the key features of MLflow's evaluation framework is automatic prompt-trace linkage. Every evaluation trace is linked to the prompt version that produced it, enabling you to track quality across prompt iterations.
 
 . In the MLflow UI, navigate to **Prompts** and click on **public-assistant-system-prompt**. Click the **Traces** tab:
 +
 image::eval15.png[MLflow Prompts Traces tab showing evaluation traces linked to prompt version 1,link=self,window=blank,width=700]
 +
-All evaluation traces are automatically linked to the prompt version that produced them. When you update the system prompt and register Version 2, future evaluations will link to that new version -- letting you compare quality across prompt iterations side by side.
+All evaluation traces are automatically linked to the prompt version that produced them. When you update the system prompt and register Version 2, future evaluations will link to that new version, letting you compare quality across prompt iterations side by side.
 
 == Module summary
 
@@ -240,10 +241,10 @@ All evaluation traces are automatically linked to the prompt version that produc
 
 **Key takeaways:**
 
-* MLflow's Prompt Registry provides version control for system prompts -- track changes, compare versions, and link evaluations to specific prompt versions
+* MLflow's Prompt Registry provides version control for system prompts: track changes, compare versions, and link evaluations to specific prompt versions
 * Evaluations combine fast deterministic scorers (keyword checks, length) with LLM judges (tool correctness, safety, relevance) for comprehensive quality assessment
 * Prompt-trace linkage automatically connects evaluation results to the prompt version that produced them, enabling regression detection across prompt iterations
 
 **Next steps:**
 
-Module 6 will move from the inner loop (manual evaluation) to the outer loop -- automating evaluation with AI Pipelines that can be scheduled or triggered to detect regressions continuously.
+Module 6 will move from the inner loop (manual evaluation) to the outer loop, automating evaluation with AI Pipelines that can be scheduled or triggered to detect regressions continuously.

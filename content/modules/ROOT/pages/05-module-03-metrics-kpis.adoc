@@ -6,7 +6,7 @@
 
 Metrics tell you *what* is happening in your system. Logs tell you *what exactly happened and when*. In this module, you'll explore a pre-deployed Grafana dashboard that monitors the mortgage-ai multi-agent system, then investigate application logs using LokiStack in the OpenShift Console.
 
-TIP: In this module, you're wearing your **SRE / Platform Engineering hat** -- focusing on system health, request rates, error rates, and operational logs.
+TIP: In this module, you're wearing your **SRE / Platform Engineering hat**, focusing on system health, request rates, error rates, and operational logs.
 
 == Learning objectives
 
@@ -14,12 +14,12 @@ By the end of this module, you'll be able to:
 
 * Identify the key metrics that matter for multi-agent AI systems
 * Navigate the pre-deployed Mortgage-AI Grafana dashboard
-* Explore and filter application logs using LokiStack and LogQL
+* Explore and filter application logs using LokiStack and Log Query Language (LogQL)
 * Explain how metrics and logs work together for agentic observability
 
 == What makes agentic metrics different?
 
-Traditional applications need request rate, error rate, and latency. Agentic applications need all of that *plus* metrics that capture LLM behavior, agent routing, and tool execution. Here are the six metrics that matter most:
+Traditional applications need request rate, error rate, and latency. Agentic applications need all of that *plus* metrics that capture LLM behavior, agent routing, and tool execution. Here are the 6 metrics that matter most:
 
 [cols="2,2,3",options="header"]
 |===
@@ -107,10 +107,10 @@ Additionally, `prometheus-fastapi-instrumentator` provides automatic HTTP metric
 
 == Exercise 1: Explore the Mortgage-AI Grafana dashboard
 
-A Grafana instance is pre-deployed in your workspace namespace with a **Mortgage-AI Backend Metrics** dashboard already configured. It connects to two Prometheus datasources:
+A Grafana instance is pre-deployed in your workspace namespace with a **Mortgage-AI Backend Metrics** dashboard already configured. It connects to 2 Prometheus datasources:
 
-* **User Workload Monitoring** -- scrapes the mortgage-ai application metrics (default)
-* **RHOAI Prometheus** -- provides model serving metrics from OpenShift AI
+* **User Workload Monitoring**: scrapes the mortgage-ai application metrics (default)
+* **Red Hat OpenShift AI (RHOAI) Prometheus**: provides model serving metrics from OpenShift AI
 
 Let's open it and see what's there.
 
@@ -122,7 +122,7 @@ GRAFANA_ROUTE=$(oc get route -n wksp-{user} grafana-route -o jsonpath='{.spec.ho
 echo "Grafana: https://${GRAFANA_ROUTE}"
 ----
 +
-Authentication is handled via OpenShift OAuth -- log in with your OpenShift credentials if prompted.
+Authentication is handled via OpenShift OAuth. Log in with your OpenShift credentials if prompted.
 
 . Navigate to the **Mortgage-AI Backend Metrics** dashboard, or open it directly:
 +
@@ -139,10 +139,10 @@ image::grafana2.png[Grafana Overview and HTTP panels showing request rate and la
 
 What you're seeing:
 
-* **Total Requests (Last Hour)** -- how many requests hit the API. In the screenshot, ~983 requests.
-* **Request Rate** -- current throughput in requests per second.
-* **Error Rate (%)** -- percentage of 5xx responses. Green means healthy.
-* **P95 Latency** -- 95% of requests complete faster than this value. Under 100ms is excellent.
+* **Total Requests (Last Hour)**: how many requests hit the API. In the screenshot, ~983 requests.
+* **Request Rate**: current throughput in requests per second.
+* **Error Rate (%)**: percentage of 5xx responses. Green means healthy.
+* **P95 Latency**: 95% of requests complete faster than this value. Under 100ms is excellent.
 
 Below the overview, the HTTP panels break down traffic by endpoint and status code. Look for:
 
@@ -151,7 +151,7 @@ Below the overview, the HTTP panels break down traffic by endpoint and status co
 * Which endpoints have the highest P95 latency
 
 [%collapsible]
-.PromQL details for Overview panels (click to expand)
+.Prometheus Query Language (PromQL) details for Overview panels (click to expand)
 ====
 * **Request Rate**: `sum(rate(http_requests_total{namespace=~"$namespace"}[5m]))`
 * **Error Rate**: `(sum(rate(http_requests_total{namespace=~"$namespace", status=~"5.."}[5m])) / sum(rate(http_requests_total{namespace=~"$namespace"}[5m])) * 100) or vector(0)`
@@ -160,25 +160,25 @@ Below the overview, the HTTP panels break down traffic by endpoint and status co
 `rate()` calculates per-second averages over a time window. `histogram_quantile()` computes percentiles from histogram buckets.
 ====
 
-=== AI Agent Metrics
+=== AI agent metrics
 
-Scroll down to the **AI Agent Metrics** row -- this is where it gets interesting. These metrics are unique to agentic applications:
+Scroll down to the **AI Agent Metrics** row. This is where it gets interesting. These metrics are unique to agentic applications:
 
 image::grafana1.png[Grafana AI Agent Metrics showing token usage and tool call success rate,link=self,window=blank,width=700]
 
-The four stat panels at the top show:
+The 4 stat panels at the top show:
 
-* **Active Chat Sessions** -- live WebSocket connections. How many users are chatting right now?
-* **Total LLM Tokens (1h)** -- tokens consumed in the last hour. This is your cost proxy -- in the screenshot, 18.5K tokens.
-* **Tool Call Success Rate** -- are agent tools working? 100% means everything is healthy.
-* **Avg LLM Latency** -- median time for an LLM inference call. 1.75s in the screenshot.
+* **Active Chat Sessions**: live WebSocket connections. How many users are chatting right now?
+* **Total LLM Tokens (1h)**: tokens consumed in the last hour. This is your cost proxy, in the screenshot, 18.5K tokens.
+* **Tool Call Success Rate**: are agent tools working? 100% means everything is healthy.
+* **Avg LLM Latency**: median time for an LLM inference call. 1.75s in the screenshot.
 
 Below the stats, the detail panels show:
 
-* **LLM Token Usage by Model** -- which model burns the most tokens? Is input or output dominant?
-* **LLM Inference Latency by Persona** -- which agent persona is slowest? A slow underwriter agent might indicate complex compliance tool calls.
-* **Agent Routing Distribution** -- pie chart of simple vs complex routing. A high ratio of complex queries means the capable model is doing most of the work.
-* **Tool Calls by Status** -- green for success, red for failures. A spike in red means tool integrations are breaking.
+* **LLM Token Usage by Model**: which model burns the most tokens? Is input or output dominant?
+* **LLM Inference Latency by Persona**: which agent persona is slowest? A slow underwriter agent might indicate complex compliance tool calls.
+* **Agent Routing Distribution**: pie chart of simple vs complex routing. A high ratio of complex queries means the capable model is doing most of the work.
+* **Tool Calls by Status**: green for success, red for failures. A spike in red means tool integrations are breaking.
 
 [%collapsible]
 .PromQL details for AI Agent Metrics (click to expand)
@@ -195,7 +195,7 @@ The traffic you generated in Module 1 (Explore Products, CEO portfolio health) i
 
 == Exercise 2: Explore application logs with LokiStack
 
-Metrics show aggregated health, but when something goes wrong you need the actual log events. OpenShift's LokiStack automatically collects everything your application writes to STDOUT or STDERR -- no code changes needed. Let's explore the mortgage-ai logs.
+Metrics show aggregated health, but when something goes wrong you need the actual log events. OpenShift's LokiStack automatically collects everything your application writes to STDOUT or STDERR, no code changes needed. Let's explore the mortgage-ai logs.
 
 === Navigate to the log viewer
 
@@ -222,7 +222,7 @@ TIP: `log_type="application"` filters out infrastructure logs (kubelet, CRI-O). 
 === Explore the UI logs
 
 [start=3]
-. Narrow the view to the UI container and filter for `/api/` calls -- this strips out health probes and static assets, showing only real user interactions:
+. Narrow the view to the UI container and filter for `/api/` calls. This strips out health probes and static assets, showing only real user interactions:
 +
 [source,logql]
 ----
@@ -231,6 +231,7 @@ TIP: `log_type="application"` filters out infrastructure logs (kubelet, CRI-O). 
 +
 You'll see nginx access logs like:
 +
+[source,text]
 ----
 10.131.0.19 - - [08/Apr/2026:00:26:48 +0000] "GET /api/chat HTTP/1.1" 101 2342
 10.128.2.19 - - [08/Apr/2026:00:26:48 +0000] "GET /api/applications/2590/conditions HTTP/1.1" 200 1097
@@ -262,7 +263,7 @@ The traffic you generated in Module 1 should already appear in these logs. WebSo
 [%collapsible]
 .Compare with API container logs (click to expand)
 ====
-The API container (`api`) shows the server-side processing -- FastAPI access logs, MLflow warnings, and agent responses:
+The API container (`api`) shows the server-side processing: FastAPI access logs, MLflow warnings, and agent responses:
 
 [source,logql]
 ----
@@ -271,12 +272,13 @@ The API container (`api`) shows the server-side processing -- FastAPI access log
 
 Sample output:
 
+[source,text]
 ----
 INFO:  10.131.1.212:45042 - "GET /api/applications/2590/risk-assessment HTTP/1.1" 200 OK
 WARNING mlflow.utils.autologging_utils: Encountered unexpected error during autologging...
 ----
 
-You can see the same `/api/` requests in both the UI and API logs -- the UI shows the incoming request, the API shows how it was processed.
+You can see the same `/api/` requests in both the UI and API logs. The UI shows the incoming request, and the API shows how it was processed.
 ====
 
 IMPORTANT: In production, containers are ephemeral. When a pod restarts or gets redeployed, its local logs vanish. LokiStack persists logs beyond pod lifetime, making post-incident investigation possible. For multi-agent systems, correlating logs across API, UI, and database containers is essential for understanding end-to-end request flow.
@@ -292,9 +294,9 @@ IMPORTANT: In production, containers are ephemeral. When a pod restarts or gets 
 **Key takeaways:**
 
 * Agentic apps need metrics beyond HTTP: token usage, inference latency, routing decisions, and tool success rates
-* Logs provide the detail that metrics aggregate away -- essential for debugging ephemeral containers
-* Metrics answer "how much?" and "how fast?" -- logs answer "what exactly happened?"
+* Logs provide the detail that metrics aggregate away. This detail is essential for debugging ephemeral containers.
+* Metrics answer "how much?" and "how fast?". Logs answer "what exactly happened?"
 
 **Next steps:**
 
-Module 4 will introduce MLflow tracing -- the key to understanding *why* things happen, not just *what* is happening.
+Module 4 will introduce MLflow tracing, the key to understanding *why* things happen, not just *what* is happening.

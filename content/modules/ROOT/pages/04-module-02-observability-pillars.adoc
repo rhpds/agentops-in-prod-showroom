@@ -6,20 +6,20 @@
 
 Now that you've experienced the challenges of monitoring a multi-agent system, it's time to understand the foundational concepts that will guide your observability strategy. Different roles in your organization have different observability needs, and understanding these perspectives is key to building effective monitoring.
 
-In this module, you'll learn the three pillars of observability and how they apply to agentic AI systems, while understanding the distinct needs of SRE/Platform Engineers versus AI Developers/Engineers.
+In this module, you'll learn the 3 pillars of observability and how they apply to agentic AI systems, while understanding the distinct needs of SRE/Platform Engineers versus AI Developers/Engineers.
 
-NOTE: This is a conceptual module -- no terminal or cluster work required. The goal is to build a shared vocabulary before diving into hands-on tooling in Modules 3-6.
+NOTE: This is a conceptual module: no terminal or cluster work required. The goal is to build a shared vocabulary before diving into hands-on tooling in Modules 3-6.
 
 == Learning objectives
 
 By the end of this module, you'll be able to:
 
-* Define the three pillars of observability: metrics, logs, and traces
+* Define the 3 pillars of observability: metrics, logs, and traces
 * Explain how each pillar applies specifically to multi-agent AI systems
 * Distinguish between the observability needs of SRE/Platform Engineers and AI Developers/Engineers
 * Map observability tools to persona-specific use cases in Fed Aura Capital
 
-== The three pillars of observability
+== The 3 pillars of observability
 
 Before diving into tools and implementation, let's establish a shared vocabulary for observability in the context of agentic AI systems.
 
@@ -78,7 +78,7 @@ Before diving into tools and implementation, let's establish a shared vocabulary
 * Agent-to-agent handoff sequences
 * Complete decision paths from input to output
 
-image::arch1.png[Observability for Agentic AI Systems - Three pillars with metrics logs and traces flowing into observability backends,link=self,window=blank,width=700]
+image::arch1.png[Observability for Agentic AI Systems: 3 pillars with metrics logs and traces flowing into observability backends,link=self,window=blank,width=700]
 
 == Exercise 1: Map pillars to Fed Aura Capital needs
 
@@ -109,48 +109,48 @@ Let's apply these concepts to Fed Aura Capital's multi-agent mortgage system.
 +
 [%collapsible]
 ====
-*Metrics* -- token usage counters track consumption over time.
+*Metrics*: token usage counters track consumption over time.
 ====
 
 * "Why is the API failing after we upgraded the model configuration?"
 +
 [%collapsible]
 ====
-*Logs* -- error details and config mismatches are captured in log events.
+*Logs*: error details and config mismatches are captured in log events.
 ====
 
 * "Where is the bottleneck in our loan processing pipeline?"
 +
 [%collapsible]
 ====
-*Traces* -- end-to-end request traces reveal which agent or tool call is slowest.
+*Traces*: end-to-end request traces reveal which agent or tool call is slowest.
 ====
 
 * "Is our compliance check service degrading?"
 +
 [%collapsible]
 ====
-*Metrics* -- latency percentiles and error rate trends show degradation over time.
+*Metrics*: latency percentiles and error rate trends show degradation over time.
 ====
 
 * "What was the complete path of application #12345?"
 +
 [%collapsible]
 ====
-*Traces* -- distributed traces reconstruct the full request flow across all agents.
+*Traces*: distributed traces reconstruct the full request flow across all agents.
 ====
 
-== Exercise 2: Two personas, one observability stack
+== Exercise 2: 2 personas, one observability stack
 
-At Fed Aura Capital, two primary teams need observability but focus on different things. Let's identify who owns what in the AgentOps observability stack.
+At Fed Aura Capital, 2 primary teams need observability but focus on different things. Let's identify who owns what in the AgentOps observability stack.
 
 image::arch2.png[AgentOps Observability Stack showing SRE and AI Developer personas,link=self,window=blank,width=700]
 
 The stack serves both personas:
 
-* **SRE / Platform Engineering** -- system health, SLOs, capacity. Uses RHOAI Observability Stack, OpenShift Logging, and Grafana dashboards.
-* **AI Developer / Engineer** -- model behavior, decision quality, agent performance. Uses MLflow Tracing, MLflow Evaluations, and Grafana dashboards.
-* **Grafana / Perses Dashboards** -- shared by both personas for metrics and KPI visualization.
+* **SRE / Platform Engineering**: system health, SLOs, capacity. Uses Red Hat OpenShift AI (RHOAI) Observability Stack, OpenShift Logging, and Grafana dashboards.
+* **AI Developer / Engineer**: model behavior, decision quality, agent performance. Uses MLflow Tracing, MLflow Evaluations, and Grafana dashboards.
+* **Grafana / Perses Dashboards**: shared by both personas for metrics and KPI visualization.
 
 For each scenario below, decide which persona is responsible. Click to reveal the answer:
 
@@ -158,42 +158,42 @@ For each scenario below, decide which persona is responsible. Click to reveal th
 +
 [%collapsible]
 ====
-*SRE/Platform Engineering* -- infrastructure and storage management.
+*SRE/Platform Engineering*: infrastructure and storage management.
 ====
 
 * "Loan approval rate dropped 15% after a model update"
 +
 [%collapsible]
 ====
-*AI Developer/Engineer* -- model behavior change requires investigation of outputs and traces.
+*AI Developer/Engineer*: model behavior change requires investigation of outputs and traces.
 ====
 
 * "P99 latency for the underwriter agent exceeded SLO"
 +
 [%collapsible]
 ====
-*SRE/Platform Engineering* -- SLO tracking and performance monitoring.
+*SRE/Platform Engineering*: SLO tracking and performance monitoring.
 ====
 
 * "Agent is providing inconsistent advice to similar inquiries"
 +
 [%collapsible]
 ====
-*AI Developer/Engineer* -- output quality and prompt debugging.
+*AI Developer/Engineer*: output quality and prompt debugging.
 ====
 
 * "Kubernetes pods for the MCP server keep restarting"
 +
 [%collapsible]
 ====
-*SRE/Platform Engineering* -- pod health and infrastructure troubleshooting.
+*SRE/Platform Engineering*: pod health and infrastructure troubleshooting.
 ====
 
 * "Compliance check agent is flagging too many false positives"
 +
 [%collapsible]
 ====
-*AI Developer/Engineer* -- agent decision logic and evaluation tuning.
+*AI Developer/Engineer*: agent decision logic and evaluation tuning.
 ====
 
 Some issues require collaboration between both personas:
@@ -208,13 +208,13 @@ Some issues require collaboration between both personas:
 
 **What you accomplished:**
 
-* Mapped the three pillars of observability (metrics, logs, traces) to agentic AI needs
+* Mapped the 3 pillars of observability (metrics, logs, traces) to agentic AI needs
 * Identified SRE vs AI Developer responsibilities in the observability stack
 * Recognized where both personas must collaborate
 
 **Key takeaways:**
 
-* Metrics, logs, and traces each serve unique purposes -- agentic apps add token usage, agent reasoning, and multi-agent workflow paths
+* Metrics, logs, and traces each serve unique purposes. Agentic apps add token usage, agent reasoning, and multi-agent workflow paths.
 * SRE/Platform Engineers focus on system health; AI Developers focus on model behavior
 * Effective AgentOps requires collaboration between both personas
 

@@ -6,7 +6,7 @@
 
 Metrics tell you *what* is happening, but traces tell you *why*. In this module, you'll explore MLflow tracing to gain end-to-end visibility into the Fed Aura Capital multi-agent mortgage system. You'll trace the requests you made in Module 1 across LangGraph agents and tool calls, closing the observability gap you experienced firsthand.
 
-TIP: In this module, you're wearing **both hats** -- SREs use traces to diagnose latency and failures, while AI Developers use them to understand agent reasoning and tool behavior.
+TIP: In this module, you're wearing **both hats**: SREs use traces to diagnose latency and failures, while AI Developers use them to understand agent reasoning and tool behavior.
 
 == Learning objectives
 
@@ -21,9 +21,9 @@ By the end of this module, you'll be able to:
 
 MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that captures inputs, outputs, and metadata for each step of a request. For Fed Aura Capital, this means visibility into:
 
-* The complete path of a loan application across all five agents
+* The complete path of a loan application across all 5 agents
 * Every LLM inference call with prompt and response
-* All MCP tool invocations and their results
+* All Model Context Protocol (MCP) tool invocations and their results
 * Agent decision points and handoffs
 
 === Key concepts
@@ -41,13 +41,13 @@ Red Hat OpenShift AI includes MLflow as part of the platform. Let's access the M
 +
 image::mlflow0.png[OpenShift Console application launcher showing MLflow under OpenShift Self Managed Services,link=self,window=blank,width=250]
 +
-Authentication is handled via OpenShift OAuth -- log in with your OpenShift credentials if prompted.
+Authentication is handled via OpenShift OAuth. Log in with your OpenShift credentials if prompted.
 
 . Select your workspace from the **Select workspace** dropdown in the top-left corner. Choose `wksp-{user}`. Your workspace contains the traces and experiments for your mortgage-ai app.
 +
 image::mlflow1.png[MLflow UI welcome page showing workspace selection and core features,link=self,window=blank,width=700]
 +
-NOTE: RHOAI deploys a single shared MLflow instance that provides namespace-based isolation through **workspaces**. Each data science project (OpenShift namespace) maps to its own MLflow workspace, giving teams logically separated experiments, traces, registered models, and prompts -- all while sharing a single tracking server.
+NOTE: Red Hat OpenShift AI (RHOAI) deploys a single shared MLflow instance that provides namespace-based isolation through **workspaces**. Each data science project (OpenShift namespace) maps to its own MLflow workspace, giving teams logically separated experiments, traces, registered models, and prompts, all while sharing a single tracking server.
 
 . Once in your workspace, explore the MLflow interface:
 +
@@ -58,17 +58,17 @@ NOTE: RHOAI deploys a single shared MLflow instance that provides namespace-base
 * **Model Training**: Track experiments with parameters, metrics, and artifacts
 --
 
-NOTE: RHOAI 3.4 ships with MLflow 3.10.1, but may be updated in future releases.
+NOTE: RHOAI {rhoai_version} ships with MLflow {mlflow_version}, but may be updated in future releases.
 
 == How does tracing work?
 
-When you deployed the mortgage-ai application in Module 1, tracing was already enabled -- you never had to configure it manually. Every LLM call, tool invocation, and agent decision was recorded automatically. Here's how.
+When you deployed the mortgage-ai application in Module 1, tracing was already enabled. You never had to configure it manually. Every LLM call, tool invocation, and agent decision was recorded automatically. Here's how.
 
 === MLflow autolog: one-line tracing
 
-MLflow Tracing integrates with https://mlflow.org/docs/latest/genai/tracing/integrations/#agent-frameworks-python[40+ popular LLM and AI agent frameworks], offering a **one-line automatic tracing** experience. No manual span creation, no decorator boilerplate, no SDK wiring.
+MLflow Tracing integrates with https://mlflow.org/docs/latest/genai/tracing/integrations/#agent-frameworks-python[40+ popular LLM and AI agent frameworks^], offering a **one-line automatic tracing** experience. No manual span creation, no decorator boilerplate, no SDK wiring.
 
-The mortgage-ai application uses https://mlflow.org/docs/latest/genai/tracing/integrations/listing/langchain/[LangChain autologging]. In https://github.com/rh-ai-quickstart/multi-agent-loan-origination/blob/main/packages/api/src/observability.py#L105[observability.py^], the entire tracing setup is:
+The mortgage-ai application uses https://mlflow.org/docs/latest/genai/tracing/integrations/listing/langchain/[LangChain autologging^]. In https://github.com/rh-ai-quickstart/multi-agent-loan-origination/blob/main/packages/api/src/observability.py#L105[observability.py^], the entire tracing setup is:
 
 [source,python]
 ----
@@ -79,28 +79,28 @@ mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
 mlflow.set_experiment(settings.MLFLOW_EXPERIMENT_NAME)
 mlflow.langchain.autolog()  # <1>
 ----
-<1> This single line enables automatic tracing for all LangChain and LangGraph operations -- every LLM call, tool invocation, and agent decision is captured as spans without any code changes to the agents themselves.
+<1> This single line enables automatic tracing for all LangChain and LangGraph operations: every LLM call, tool invocation, and agent decision is captured as spans without any code changes to the agents themselves.
 
 MLflow's automatic tracing provides:
 
-* **Zero code changes** for basic observability -- autolog hooks into the framework at the library level
-* **Unified traces across multi-framework apps** -- LangChain, LangGraph, and custom tools all appear in a single trace
+* **Zero code changes** for basic observability: autolog hooks into the framework at the library level
+* **Unified traces across multi-framework apps**: LangChain, LangGraph, and custom tools all appear in a single trace
 * **Rich metadata** including inputs, outputs, token counts, model names, and latency
-* **Production-ready scaling** -- traces are sent asynchronously to avoid blocking the application
+* **Production-ready scaling**: traces are sent asynchronously to avoid blocking the application
 
 === OpenTelemetry compatibility
 
-MLflow Tracing is built on https://opentelemetry.io/[OpenTelemetry], the industry standard for distributed tracing. This means you can also export traces to other backends (Jaeger, Zipkin, Grafana Tempo) alongside MLflow.
+MLflow Tracing is built on https://opentelemetry.io/[OpenTelemetry^], the industry standard for distributed tracing. This means you can also export traces to other backends (Jaeger, Zipkin, Grafana Tempo) alongside MLflow.
 
 == Exercise 2: Find your first trace
 
-In Module 1, you clicked **Explore Products** and chatted with the Prospect Agent. That conversation looked like a simple exchange -- but MLflow captured every step. Let's find that trace.
+In Module 1, you clicked **Explore Products** and chatted with the Prospect Agent. That conversation looked like a simple exchange, but MLflow captured every step. Let's find that trace.
 
 . In MLflow, click **Traces** in the left sidebar. You'll see a list of all traced requests, sorted by most recent:
 +
 image::mlflow2.png[MLflow Traces list showing captured requests including Explore Products and portfolio health queries,link=self,window=blank,width=700]
 +
-Each row shows the **Trace ID**, the **Request** (what the user asked), the **Response** (what the agent returned), **Execution time**, and **State**. Notice the trace at the bottom -- _"What mortgage products do you offer? I'd like..."_ -- this is the Explore Products conversation from Module 1.
+Each row shows the **Trace ID**, the **Request** (what the user asked), the **Response** (what the agent returned), **Execution time**, and **State**. Notice the trace at the bottom, _"What mortgage products do you offer? I'd like..."_, this is the Explore Products conversation from Module 1.
 
 . Click on that trace to open its **Summary** view:
 +
@@ -110,13 +110,13 @@ The Summary tab reveals what was invisible in Module 1:
 +
 --
 * **Inputs**: The user context passed to the agent
-* **Span sequence**: The operations that executed -- `ChatOpenAI was called`, tool invocations, and follow-up LLM calls
+* **Span sequence**: The operations that executed (`ChatOpenAI was called`, tool invocations, and follow-up LLM calls)
 * **Outputs**: The complete response returned to the user, including metadata
 --
 
 == Exercise 3: Close the observability gap
 
-Remember Module 1, Exercise 3? You signed in as CEO David Park, asked _"What is my portfolio health?"_, and got a detailed response. We pointed out the observability gap -- you had no way of knowing which agents processed your question, which tools were invoked, or how long each step took.
+Remember Module 1, Exercise 3? You signed in as CEO David Park, asked _"What is my portfolio health?"_, and got a detailed response. We pointed out the observability gap: you had no way of knowing which agents processed your question, which tools were invoked, or how long each step took.
 
 Now let's close that gap.
 
@@ -128,7 +128,7 @@ image::mlflow4.png[CEO Executive Dashboard showing the portfolio health question
 +
 image::mlflow4.1.png[MLflow Traces list with the portfolio health trace highlighted,link=self,window=blank,width=700]
 +
-Notice the execution time -- 8.07s. That's the total end-to-end latency for a question that seemed to be answered instantly in the chat UI.
+Notice the execution time: 8.07s. That's the total end-to-end latency for a question that seemed to be answered instantly in the chat UI.
 
 === Examine user identity tracking
 
@@ -140,9 +140,9 @@ image::mlflow5.png[MLflow trace summary showing David Park user identity and the
 MLflow captures the full user context with every trace:
 +
 --
-* **user_id**: `d1a2b3c4-e5f6-7890-abcd-ef1234567804` -- the authenticated user's UUID
-* **user_email**: `david.park@example.com` -- traceable identity
-* **user_name**: `David Park` -- the CEO persona
+* **user_id**: `d1a2b3c4-e5f6-7890-abcd-ef1234567804`, the authenticated user's UUID
+* **user_email**: `david.park@example.com`, traceable identity
+* **user_name**: `David Park`, the CEO persona
 --
 +
 Below the inputs, the span sequence shows the agent's execution plan: `ChatOpenAI` was called (the LLM decides what to do), then `ceo_pipeline_summary` was called (the tool fetches data), then `ChatOpenAI` was called again (the LLM formulates the response).
@@ -165,43 +165,43 @@ The trace tree shows the complete execution path: `LangGraph` → `input_shield`
 
 |`LangGraph`
 |8.08s
-|Root orchestrator -- manages the full agent workflow
+|Root orchestrator: manages the full agent workflow
 
 |`input_shield`
 |26.45ms
-|Safety filter -- checks the input for harmful content
+|Safety filter: checks the input for harmful content
 
 |`agent` (first)
 |1.33s
-|LangGraph agent node -- routes to the LLM
+|LangGraph agent node: routes to the LLM
 
 |`ChatOpenAI` (first)
 |1.26s
-|LLM call -- decides to call the `ceo_pipeline_summary` tool
+|LLM call: decides to call the `ceo_pipeline_summary` tool
 
 |`should_continue`
 |0.75ms
-|Decision point -- should the agent keep processing?
+|Decision point: should the agent keep processing?
 
 |`tool_auth`
 |21.50ms
-|Authorization check -- does the CEO role have access to this tool?
+|Authorization check: does the CEO role have access to this tool?
 
 |`tools` → `ceo_pipeline_summary`
 |17.11ms
-|Tool execution -- queries the database for pipeline data
+|Tool execution: queries the database for pipeline data
 
 |`agent` (second)
 |6.52s
-|LangGraph agent node -- routes the tool result back to the LLM
+|LangGraph agent node: routes the tool result back to the LLM
 
 |`ChatOpenAI` (second)
 |6.44s
-|LLM call -- formulates a natural-language response from the raw pipeline data
+|LLM call: formulates a natural-language response from the raw pipeline data
 
 |`output_shield`
 |—
-|Safety filter -- checks the output before returning to the user
+|Safety filter: checks the output before returning to the user
 |===
 ====
 
@@ -213,8 +213,8 @@ The trace tree shows the complete execution path: `LangGraph` → `input_shield`
 image::mlflow7.png[MLflow span detail for ceo_pipeline_summary showing input days=90 and output with pipeline summary data,link=self,window=blank,width=700]
 +
 --
-* **Inputs**: `days: 90` -- the tool queries a 90-day window of pipeline data
-* **Outputs**: `"Pipeline Summary (90-day window): Total active applications: 38..."` -- the raw data the LLM used to compose its response
+* **Inputs**: `days: 90`, the tool queries a 90-day window of pipeline data
+* **Outputs**: `"Pipeline Summary (90-day window): Total active applications: 38..."`, the raw data the LLM used to compose its response
 --
 +
 This is where the agent got its numbers. If the CEO's response ever contains incorrect data, you can trace it directly to this tool's output and verify whether the issue is in the tool logic or the LLM's interpretation.
@@ -227,7 +227,7 @@ This is where the agent got its numbers. If the CEO's response ever contains inc
 image::mlflow8.png[MLflow span detail for ChatOpenAI showing model gpt-oss-120b with system prompt and completion,link=self,window=blank,width=700]
 +
 --
-* **Model**: `gpt-oss-120b` -- the exact model serving this request
+* **Model**: `gpt-oss-120b`, the exact model serving this request
 * **Inputs → messages**: The system prompt (_"You are the Fed Aura Capital executive assistant"_) and the conversation context including the tool result
 * **Outputs → choices**: The complete LLM response before any post-processing
 --
@@ -236,7 +236,7 @@ This level of detail is essential for debugging: you can see the exact prompt th
 
 === Keep exploring
 
-Try signing in as other personas (Borrower, Loan Officer, Underwriter) and chatting with them. Then return to MLflow -- every conversation appears automatically as a new trace. Compare how different personas use different tools and models.
+Try signing in as other personas (Borrower, Loan Officer, Underwriter) and chatting with them. Then return to MLflow. Every conversation appears automatically as a new trace. Compare how different personas use different tools and models.
 
 == Exercise 4: Explore user sessions
 
@@ -254,7 +254,7 @@ Clicking into a session reveals each turn with its inputs and outputs. You can c
 
 image::sessions2.png[MLflow session detail showing Turn 1 with inputs outputs and View full trace link,link=self,window=blank,width=700]
 
-This is especially valuable for debugging multi-turn conversations where agent behavior degrades over time -- you can see the full context the agent had at each step.
+This is especially valuable for debugging multi-turn conversations where agent behavior degrades over time. You can see the full context the agent had at each step.
 
 == Module summary
 
@@ -266,8 +266,8 @@ This is especially valuable for debugging multi-turn conversations where agent b
 
 **Key takeaways:**
 
-* MLflow autolog provides end-to-end tracing with zero code changes -- one line enables it
-* Traces capture user identity, execution timelines, and tool/LLM details -- closing the observability gap for multi-agent systems
+* MLflow autolog provides end-to-end tracing with zero code changes: one line enables it
+* Traces capture user identity, execution timelines, and tool/LLM details, closing the observability gap for multi-agent systems
 * Individual span inspection lets you pinpoint issues to specific components: tool logic, LLM prompts, or safety filters
 
 **Next steps:**

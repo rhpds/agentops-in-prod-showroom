@@ -4,9 +4,9 @@
 :toc: macro
 :toclevels: 1
 
-Agentic AI apps don't fail silently -- they fail distributedly. In this module, you'll explore the pre-deployed mortgage-ai multi-agent application and understand why traditional monitoring approaches fall short for these complex systems.
+Agentic AI apps don't fail silently; they fail distributedly. In this module, you'll explore the pre-deployed mortgage-ai multi-agent application and understand why traditional monitoring approaches fall short for these complex systems.
 
-But first -- what exactly is an AI agent? An *AI agent* is a system that uses a Large Language Model (LLM) to reason about a task, decide which tools to call, and take autonomous actions -- going beyond simple request/response patterns like traditional APIs or basic chatbots. When multiple agents collaborate, each with its own tools and responsibilities, you get a *multi-agent system* -- powerful, but significantly harder to observe and debug.
+But first, what exactly is an AI agent? An *AI agent* is a system that uses a Large Language Model (LLM) to reason about a task, decide which tools to call, and take autonomous actions, going beyond simple request/response patterns like traditional APIs or basic chatbots. When multiple agents collaborate, each with its own tools and responsibilities, you get a *multi-agent system*, which is capable but significantly harder to observe and debug.
 
 Fed Aura Capital needs end-to-end visibility into their multi-agent workflows, and you've been tasked with evaluating how observability can help. Before implementing solutions, you need to understand what you're working with.
 
@@ -15,7 +15,7 @@ Fed Aura Capital needs end-to-end visibility into their multi-agent workflows, a
 By the end of this module, you'll be able to:
 
 * Describe the architecture of the multi-agent mortgage lending system
-* Identify the five distinct agent personas and their responsibilities
+* Identify the 5 distinct agent personas and their responsibilities
 * Explain why distributed AI systems require specialized observability approaches
 * Recognize the key failure modes in multi-agent architectures
 
@@ -45,7 +45,7 @@ NOTE: Because the application uses generative AI, responses are non-deterministi
 
 == Exercise 2: Explore the multi-agent architecture
 
-Now that you've seen the application in action, let's explore what's running under the hood. The mortgage-ai system serves five distinct agent personas through a single API deployment.
+Now that you've seen the application in action, let's explore what's running under the hood. The mortgage-ai system serves 5 distinct agent personas through a single API deployment.
 
 === The deployed components
 
@@ -54,7 +54,7 @@ Now that you've seen the application in action, let's explore what's running und
 |Component |Purpose
 
 |mortgage-ai-api
-|FastAPI backend serving all five agent personas via WebSocket endpoints
+|FastAPI backend serving all 5 agent personas via WebSocket endpoints
 
 |mortgage-ai-ui
 |React frontend for interacting with agents
@@ -108,6 +108,7 @@ Expected output:
 
 . Each persona has its own chat endpoint:
 +
+[source,text]
 ----
 /api/prospect/chat    - Prospect Agent (initial inquiries)
 /api/borrower/chat    - Borrower Agent (application intake)
@@ -116,7 +117,7 @@ Expected output:
 /api/ceo/chat         - Executive Agent (analytics)
 ----
 
-=== The five agent personas
+=== The 5 agent personas
 
 [cols="1,1,2,2",options="header"]
 |===
@@ -152,7 +153,7 @@ Expected output:
 
 This application demonstrates production-ready AI patterns for regulated industries:
 
-* **Multi-agent orchestration** - Five LangGraph (a framework for building stateful, multi-agent AI workflows) agents with role-scoped tools and RBAC (Role-Based Access Control) enforcement
+* **Multi-agent orchestration** - 5 LangGraph (a framework for building stateful, multi-agent AI workflows) agents with role-scoped tools and RBAC (Role-Based Access Control) enforcement
 * **Compliance knowledge base** - Retrieval-Augmented Generation (RAG) using pgvector (a PostgreSQL extension for vector similarity search), with tiered boosting (federal regulations > agency guidelines > internal policies)
 * **Model routing** - Complexity-based routing between fast and capable LLM tiers
 * **Comprehensive audit trail** - Hash-chained, append-only audit events with MLflow trace correlation
@@ -161,25 +162,26 @@ This application demonstrates production-ready AI patterns for regulated industr
 
 == Exercise 3: Experience the observability gap
 
-Now that you understand the five agent personas and how they collaborate, let's experience firsthand the observability challenge that comes with distributed AI systems.
+Now that you understand the 5 agent personas and how they collaborate, let's experience firsthand the observability challenge that comes with distributed AI systems.
 
-You'll interact with the application as a CEO and ask the assistant a question. The response will look correct -- but you'll have no way of knowing what happened behind the scenes.
+You'll interact with the application as a CEO and ask the assistant a question. The response will look correct, but you'll have no way of knowing what happened behind the scenes.
 
 . From the application landing page, click **Sign In**. In the sign-in dialog, use the **Persona Demo Login** section at the bottom and select the **CEO** persona:
 +
 image::agentic-app4.png[Sign in dialog with Persona Demo Login showing CEO selection,link=self,window=blank,width=700]
 
-. After signing in, you'll land on the **Executive Dashboard** -- the CEO persona's view of portfolio health and operations:
+. After signing in, you'll land on the **Executive Dashboard**, the CEO persona's view of portfolio health and operations:
 +
 image::agentic-app5.png[CEO Executive Dashboard showing Pipeline Overview and Denial Analysis,link=self,window=blank,width=700]
 
 . In the **Your Assistant** chat panel on the right, type the following question:
 +
+[source,text]
 ----
 What's the portfolio health?
 ----
 
-. The assistant responds with a detailed portfolio health overview -- active applications, stage breakdown, pull-through rate, and average days to close:
+. The assistant responds with a detailed portfolio health overview: active applications, stage breakdown, pull-through rate, and average days to close:
 +
 image::agentic-app6.png[CEO Assistant responding with portfolio health overview,link=self,window=blank,width=700]
 
@@ -190,16 +192,16 @@ The response looks great. But stop and think about what just happened behind the
 * Which **agent** processed your question? Was it a single agent, or did multiple agents collaborate?
 * Which **tools** did the agent invoke to gather pipeline data, denial rates, and performance metrics?
 * How **long** did each step take? Was the LLM call fast, or did a tool call add latency?
-* What if the response was **wrong** -- how would you trace back to the root cause?
-* What if a tool call **failed silently** -- would you even know?
+* What if the response was **wrong**? How would you trace back to the root cause?
+* What if a tool call **failed silently**? Would you even know?
 
-Without proper observability instrumentation, these questions are unanswerable. The application gives you a polished response, but the entire decision-making process -- the agent routing, tool invocations, LLM calls, and data retrieval -- remains a black box.
+Without proper observability instrumentation, these questions are unanswerable. The application gives you a polished response, but the entire decision-making process (the agent routing, tool invocations, LLM calls, and data retrieval) remains a black box.
 
 == Module summary
 
 **What you accomplished:**
 
-* Explored the five agent personas and the multi-agent architecture
+* Explored the 5 agent personas and the multi-agent architecture
 * Interacted with agents via the application UI
 * Experienced the observability gap in distributed AI systems
 
@@ -211,4 +213,4 @@ Without proper observability instrumentation, these questions are unanswerable. 
 
 **Next steps:**
 
-Module 2 will introduce the three pillars of observability -- metrics, logs, and traces -- and how different personas (SRE/Platform Engineering vs. AI Developer/Engineer) approach monitoring these systems.
+Module 2 will introduce the 3 pillars of observability (metrics, logs, and traces) and how different personas (SRE/Platform Engineering vs. AI Developer/Engineer) approach monitoring these systems.

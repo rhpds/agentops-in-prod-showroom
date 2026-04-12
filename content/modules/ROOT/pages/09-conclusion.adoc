@@ -11,7 +11,7 @@ Congratulations! You've completed the AgentOps Observability with Red Hat AI wor
 Throughout this workshop, you've gained hands-on experience with end-to-end observability for multi-agent AI systems:
 
 * Explored a production-grade multi-agent mortgage lending system built with LangGraph
-* Understood the three pillars of observability and how they apply to agentic AI
+* Understood the 3 pillars of observability and how they apply to agentic AI
 * Explored Grafana dashboards with agent-specific metrics and KPIs
 * Configured MLflow tracing for multi-agent workflows and MCP tool calls
 * Implemented LLM evaluations for quality assurance
@@ -25,7 +25,7 @@ The most important concepts to remember:
 
 . **Agentic AI apps fail distributedly**: Multi-agent systems require observability that spans the entire workflow, not just individual components. Traditional monitoring approaches fall short.
 
-. **The three pillars work together**: Metrics detect anomalies, traces locate problems, and logs explain root causes. Effective AgentOps requires all three.
+. **The 3 pillars work together**: Metrics detect anomalies, traces locate problems, and logs explain root causes. Effective AgentOps requires all 3.
 
 . **Different personas, different needs**: SRE/Platform Engineers focus on system health and SLOs; AI Developers focus on model behavior and quality. Both perspectives are essential.
 
@@ -81,31 +81,31 @@ Deepen your knowledge with these resources:
 
 ==== MLflow and tracing
 
-* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow Tracing Documentation^] -- Comprehensive guide to MLflow tracing
-* link:https://mlflow.org/docs/latest/llms/index.html[MLflow LLMs^] -- LLM tracking and deployment
+* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow Tracing Documentation^]: Comprehensive guide to MLflow tracing
+* link:https://mlflow.org/docs/latest/llms/index.html[MLflow LLMs^]: LLM tracking and deployment
 
 ==== Red Hat OpenShift AI
 
-* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/[Red Hat OpenShift AI Documentation^] -- Official product documentation
-* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.18/html/managing_openshift_ai/managing-observability_managing-rhoai[RHOAI Observability Guide^] -- Managing observability in RHOAI
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/[Red Hat OpenShift AI Documentation^]: Official product documentation
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.18/html/managing_openshift_ai/managing-observability_managing-rhoai[Red Hat OpenShift AI (RHOAI) Observability Guide^]: Managing observability in RHOAI
 
 ==== Multi-agent frameworks
 
-* link:https://langchain-ai.github.io/langgraph/[LangGraph Documentation^] -- Build stateful multi-agent applications
-* link:https://modelcontextprotocol.io/[Model Context Protocol^] -- MCP specification and tools
+* link:https://langchain-ai.github.io/langgraph/[LangGraph Documentation^]: Build stateful multi-agent applications
+* link:https://modelcontextprotocol.io/[Model Context Protocol^]: MCP specification and tools
 
 ==== Observability
 
-* link:https://opentelemetry.io/docs/[OpenTelemetry Documentation^] -- Industry standard for observability
-* link:https://grafana.com/docs/grafana/latest/[Grafana Documentation^] -- Dashboard and visualization
+* link:https://opentelemetry.io/docs/[OpenTelemetry Documentation^]: Industry standard for observability
+* link:https://grafana.com/docs/grafana/latest/[Grafana Documentation^]: Dashboard and visualization
 
 === Related workshops
 
 Explore these workshops to expand your skills:
 
-* **Introduction to Red Hat OpenShift AI** -- Foundational RHOAI skills
-* **Building Multi-Agent Applications with LangGraph** -- Deep dive into agent development
-* **GitOps for AI/ML Workloads** -- Managing AI infrastructure with GitOps
+* **Introduction to Red Hat OpenShift AI**: Foundational RHOAI skills
+* **Building Multi-Agent Applications with LangGraph**: Deep dive into agent development
+* **GitOps for AI/ML Workloads**: Managing AI infrastructure with GitOps
 
 === Practice projects
 
@@ -140,7 +140,7 @@ Contact us with your feedback!
 
 Thank you for participating in this workshop. You've taken an important step toward making your multi-agent AI systems observable, reliable, and maintainable.
 
-Remember: **Agentic AI apps don't fail silently -- they fail distributedly.** But with proper AgentOps observability, you can see everything, diagnose quickly, and maintain quality.
+Remember: **Agentic AI apps don't fail silently. They fail distributedly.** But with proper AgentOps observability, you can see everything, diagnose quickly, and maintain quality.
 
 Keep building, keep learning, keep observing!
 
@@ -156,12 +156,12 @@ The following resources were used in creating this workshop:
 
 === Documentation
 
-* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow Tracing for GenAI^] -- MLflow tracing concepts and implementation
-* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.3/html/managing_openshift_ai/managing-observability_managing-rhoai[RHOAI Observability Documentation^] -- Red Hat OpenShift AI observability features
+* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow Tracing for GenAI^]: MLflow tracing concepts and implementation
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.3/html/managing_openshift_ai/managing-observability_managing-rhoai[RHOAI Observability Documentation^]: Red Hat OpenShift AI observability features
 
 === Frameworks and tools
 
-* link:https://langchain-ai.github.io/langgraph/[LangGraph^] -- Multi-agent orchestration framework
-* link:https://modelcontextprotocol.io/[Model Context Protocol (MCP)^] -- Tool integration protocol
-* link:https://grafana.com/[Grafana^] -- Metrics visualization platform
-* link:https://prometheus.io/[Prometheus^] -- Metrics collection and alerting
+* link:https://langchain-ai.github.io/langgraph/[LangGraph^]: Multi-agent orchestration framework
+* link:https://modelcontextprotocol.io/[Model Context Protocol (MCP)^]: Tool integration protocol
+* link:https://grafana.com/[Grafana^]: Metrics visualization platform
+* link:https://prometheus.io/[Prometheus^]: Metrics collection and alerting
