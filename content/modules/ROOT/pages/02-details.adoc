@@ -10,15 +10,15 @@
 
 * **Module 1**: The Agentic App and Why Observability Matters (15 minutes)
 * **Module 2**: Observability Pillars, Concepts, and Personas (10 minutes)
-* **Module 3**: Metrics and KPIs for Agentic Applications (15 minutes)
+* **Module 3**: Metrics and Logs for Agentic Applications (15 minutes)
 * **Module 4**: Tracing and MLflow (20 minutes)
 * **Module 5**: LLM Evaluations (15 minutes)
-* **Module 6**: Troubleshooting Distributed Failures (15 minutes)
+* **Module 6**: From Development to Production (15 minutes)
 
 === Abbreviated workshop (45 minutes)
 
 * **Module 1**: The Agentic App and Why Observability Matters (10 minutes)
-* **Module 3**: Metrics and KPIs for Agentic Applications (15 minutes)
+* **Module 3**: Metrics and Logs for Agentic Applications (15 minutes)
 * **Module 4**: Tracing and MLflow (20 minutes)
 
 == Technical requirements
@@ -27,7 +27,7 @@
 
 * Red Hat OpenShift Container Platform {ocp_version}
 * Red Hat OpenShift AI 3.4
-* MLflow 3.9.1
+* MLflow 3.10.1
 * LangGraph/LangChain (latest stable)
 * Grafana/Perses for dashboards
 * Web browser (Chrome, Firefox, Safari, Edge)
@@ -115,10 +115,66 @@ curl -s https://mlflow-route.apps.cluster.example.com/health | head -5
 * **Advanced**: Building custom observability pipelines, OpenTelemetry integration
 * **Certification**: Red Hat Certified Specialist in AI/ML
 
+== Glossary
+
+[%collapsible]
+.Key terms used in this workshop (click to expand)
+====
+[cols="1,3",options="header"]
+|===
+|Term |Definition
+
+|AgentOps
+|Agent Operations -- the discipline of monitoring, tracing, evaluating, and maintaining AI agent systems in production
+
+|AI Agent
+|A system that uses an LLM to reason about tasks, decide which tools to call, and take autonomous actions
+
+|LLM
+|Large Language Model -- an AI model trained on large text datasets that can generate and understand natural language
+
+|MCP
+|Model Context Protocol -- a standard for connecting AI agents to external tools and data sources
+
+|LangGraph
+|A framework for building stateful, multi-agent AI workflows, built on top of LangChain
+
+|RAG
+|Retrieval-Augmented Generation -- a pattern that enhances LLM responses by retrieving relevant documents before generating answers
+
+|Trace
+|A complete record of a request's journey through a distributed system, composed of spans
+
+|Span
+|A single operation within a trace (e.g., one LLM call, one tool invocation)
+
+|Scorer
+|A function that evaluates the quality of an agent's response (deterministic or LLM-powered)
+
+|Inner Loop
+|Manual, developer-driven evaluation workflow (e.g., running evaluations from a Jupyter notebook)
+
+|Outer Loop
+|Automated, platform-driven evaluation workflow (e.g., scheduled AI Pipelines)
+
+|RBAC
+|Role-Based Access Control -- restricting system access based on user roles
+
+|pgvector
+|A PostgreSQL extension that enables vector similarity search for embeddings
+
+|PromQL
+|Prometheus Query Language -- used to query metrics in Grafana dashboards
+
+|LogQL
+|Log Query Language -- used to query logs in LokiStack/Grafana Loki
+|===
+====
+
 == Authors and contributors
 
 **Primary Author**: Red Hat AI Business Unit +
-**Last Updated**: March 2026 +
+**Last Updated**: April 2026 +
 **Workshop Version**: 1.0
 
 **Contact Information**:

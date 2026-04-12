@@ -6,6 +6,8 @@
 
 Agentic AI apps don't fail silently -- they fail distributedly. In this module, you'll explore the pre-deployed mortgage-ai multi-agent application and understand why traditional monitoring approaches fall short for these complex systems.
 
+But first -- what exactly is an AI agent? An *AI agent* is a system that uses a Large Language Model (LLM) to reason about a task, decide which tools to call, and take autonomous actions -- going beyond simple request/response patterns like traditional APIs or basic chatbots. When multiple agents collaborate, each with its own tools and responsibilities, you get a *multi-agent system* -- powerful, but significantly harder to observe and debug.
+
 Fed Aura Capital needs end-to-end visibility into their multi-agent workflows, and you've been tasked with evaluating how observability can help. Before implementing solutions, you need to understand what you're working with.
 
 == Learning objectives
@@ -150,8 +152,8 @@ Expected output:
 
 This application demonstrates production-ready AI patterns for regulated industries:
 
-* **Multi-agent orchestration** - Five LangGraph agents with role-scoped tools and RBAC enforcement
-* **Compliance knowledge base** - pgvector RAG with tiered boosting (federal regulations > agency guidelines > internal policies)
+* **Multi-agent orchestration** - Five LangGraph (a framework for building stateful, multi-agent AI workflows) agents with role-scoped tools and RBAC (Role-Based Access Control) enforcement
+* **Compliance knowledge base** - Retrieval-Augmented Generation (RAG) using pgvector (a PostgreSQL extension for vector similarity search), with tiered boosting (federal regulations > agency guidelines > internal policies)
 * **Model routing** - Complexity-based routing between fast and capable LLM tiers
 * **Comprehensive audit trail** - Hash-chained, append-only audit events with MLflow trace correlation
 * **PII masking** - Middleware-based masking for executive roles (SSN, DOB, account numbers)

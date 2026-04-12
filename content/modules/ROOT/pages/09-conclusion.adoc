@@ -4,18 +4,18 @@
 :toc-placement: preamble
 :icons: font
 
-Congratulations! You've completed the AgentOps in Production workshop.
+Congratulations! You've completed the AgentOps Observability with Red Hat AI workshop.
 
 == What you've learned
 
 Throughout this workshop, you've gained hands-on experience with end-to-end observability for multi-agent AI systems:
 
-* ✅ Explored a production-grade multi-agent mortgage lending system built with LangGraph
-* ✅ Understood the three pillars of observability and how they apply to agentic AI
-* ✅ Built Grafana dashboards with agent-specific metrics and KPIs
-* ✅ Configured MLflow tracing for multi-agent workflows and MCP tool calls
-* ✅ Implemented LLM evaluations for quality assurance
-* ✅ Diagnosed and fixed distributed failures using the complete observability stack
+* Explored a production-grade multi-agent mortgage lending system built with LangGraph
+* Understood the three pillars of observability and how they apply to agentic AI
+* Explored Grafana dashboards with agent-specific metrics and KPIs
+* Configured MLflow tracing for multi-agent workflows and MCP tool calls
+* Implemented LLM evaluations for quality assurance
+* Automated evaluations with AI Pipelines for continuous quality monitoring
 
 You now have the practical skills to implement AgentOps discipline at your organization.
 
@@ -146,7 +146,7 @@ Keep building, keep learning, keep observing!
 
 ---
 
-**Workshop**: AgentOps in Production: Agentic End-to-End Observability with Red Hat AI +
+**Workshop**: AgentOps Observability with Red Hat AI +
 **Completed**: {localdate} +
 **Platform**: Red Hat Showroom
 

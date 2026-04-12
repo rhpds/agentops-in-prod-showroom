@@ -8,6 +8,8 @@ Now that you've experienced the challenges of monitoring a multi-agent system, i
 
 In this module, you'll learn the three pillars of observability and how they apply to agentic AI systems, while understanding the distinct needs of SRE/Platform Engineers versus AI Developers/Engineers.
 
+NOTE: This is a conceptual module -- no terminal or cluster work required. The goal is to build a shared vocabulary before diving into hands-on tooling in Modules 3-6.
+
 == Learning objectives
 
 By the end of this module, you'll be able to:

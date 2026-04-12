@@ -1,0 +1,149 @@
+= Module 6: From development to production
+:navtitle: Module 6: Dev to Production
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+In Module 5, you ran evaluations manually from a Jupyter notebook -- the *inner loop* of an AI Developer's workflow. But manual evaluations don't scale. In production, you need evaluations that run automatically, on a schedule, or as part of a CI/CD pipeline.
+
+In this module, you'll move from the inner loop to the *outer loop* by importing and running an evaluation pipeline in Red Hat OpenShift AI. The same scorers, datasets, and MLflow integration you used in Module 5 now run as an automated pipeline -- no notebook required.
+
+TIP: In this module, you're wearing **both hats** -- AI Developers define the evaluation logic, while SRE/Platform Engineers manage the pipeline infrastructure and scheduling.
+
+== Learning objectives
+
+By the end of this module, you'll be able to:
+
+* Explain the difference between inner loop (notebook) and outer loop (pipeline) evaluation
+* Import an evaluation pipeline definition into OpenShift AI
+* Run an automated evaluation pipeline and configure its parameters
+* View automated evaluation results in MLflow
+
+== From inner loop to outer loop
+
+In Module 5, you evaluated the prospect agent by running cells in a Jupyter notebook. That approach works well during development, but it has limitations:
+
+* **Manual**: Someone has to open the notebook and click Run
+* **Not reproducible**: Results depend on the notebook environment and who ran it
+* **Not schedulable**: You can't trigger it automatically on a model update or prompt change
+
+The outer loop solves these problems by packaging the same evaluation logic into an **AI Pipeline** -- a series of containerized steps that run on the OpenShift AI platform.
+
+[cols="1,1",options="header"]
+|===
+|Inner Loop (Module 5) |Outer Loop (Module 6)
+
+|Jupyter notebook
+|AI Pipeline (Kubeflow Pipelines)
+
+|Manual execution
+|Automated, scheduled, or triggered
+
+|Developer's workbench
+|Platform-managed containers
+
+|Interactive exploration
+|Reproducible, auditable runs
+|===
+
+Red Hat OpenShift AI includes https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2-latest/html/working_with_data_science_pipelines/index[Data Science Pipelines^] (based on Kubeflow Pipelines) for orchestrating multi-step ML workflows -- including evaluation pipelines.
+
+== Exercise 1: Import an evaluation pipeline
+
+The mortgage-ai project includes a pre-compiled evaluation pipeline that packages the same simple evaluation from Module 5 into four automated steps.
+
+. In Red Hat OpenShift AI, navigate to **Develop & Train** > **Pipelines** > **Pipeline definitions**:
++
+image::eval16.png[OpenShift AI Pipeline definitions page showing no pipelines with Import pipeline button,link=self,window=blank,width=700]
+
+. Click **Import pipeline** and configure it:
++
+--
+* **Pipeline name**: `eval-simple-run`
+* Select **Import by url**
+* Paste the pipeline URL:
++
+----
+https://raw.githubusercontent.com/rh-ai-quickstart/multi-agent-loan-origination/refs/heads/main/evaluations/pipelines_gen/simple_eval_pipeline.yaml
+----
+--
++
+image::eval17.png[Import pipeline dialog with name eval-simple-run and Import by url selected,link=self,window=blank,width=500]
++
+Click **Import pipeline**.
+
+. The pipeline graph shows the four automated steps:
++
+image::eval18.png[Pipeline definition graph showing setup-mlflow-op then create-dataset-op then run-simple-eval-op then report-results-op,link=self,window=blank,width=700]
++
+--
+* **setup-mlflow-op**: Configure MLflow tracking URI, workspace, and experiment
+* **create-dataset-op**: Create the evaluation dataset on the MLflow server (same 6 test cases from Module 5)
+* **run-simple-eval-op**: Run the three deterministic scorers (contains_expected, has_numeric_result, response_length)
+* **report-results-op**: Print the evaluation summary
+--
+
+This is the same evaluation you ran manually in Module 5, Exercise 5 -- but packaged as a pipeline that can run without a notebook.
+
+== Exercise 2: Run the evaluation pipeline
+
+. Click **Actions** > **Create run**:
++
+image::eval19.png[Actions dropdown showing Create run and Create schedule options,link=self,window=blank,width=300]
++
+NOTE: Notice the **Create schedule** option -- in production, you would schedule evaluations to run periodically (e.g., every 6 hours) to continuously monitor agent quality.
+
+. In the **Create run** form, set the run name to `eval-run-1`:
++
+image::eval20.png[Create run form showing run type project experiment and run name fields,link=self,window=blank,width=700]
+
+. Scroll down to **Parameters** and configure the required values:
++
+--
+* `mlflow_tracking_uri`: `https://mlflow.redhat-ods-applications.svc.cluster.local:8443/mlflow`
+* `mlflow_workspace`: `wksp-{user}`
+--
++
+image::eval21.png[Create run Parameters section showing agent_name dataset_name mlflow_experiment_name mlflow_tracking_uri and mlflow_workspace,link=self,window=blank,width=500]
++
+The other parameters (`agent_name`, `dataset_name`, `mlflow_experiment_name`) use sensible defaults. Click **Create run**.
+
+. The pipeline starts executing. You can watch each step complete in the graph view:
++
+image::eval22.png[Pipeline run eval-run-1 executing showing the 4-step graph with Running status,link=self,window=blank,width=700]
++
+Each step runs in its own container on the OpenShift AI platform. The pipeline authenticates to MLflow using the pod's Kubernetes service account token -- no manual token management needed.
+
+== Exercise 3: View automated evaluation results in MLflow
+
+Once the pipeline completes, the evaluation results appear in MLflow just like the notebook-driven evaluations from Module 5.
+
+. In the MLflow UI, navigate to your experiment's **Traces** view. You'll see the 6 new traces from the pipeline run with their assessment results:
++
+image::eval23.png[MLflow Traces showing 6 automated evaluation traces with assessment columns contains_expected has_numeric_result and response_length,link=self,window=blank,width=700]
++
+The results are identical in structure to what you saw in Module 5 -- the same scorers, the same dataset, the same assessment columns. The only difference is that these were produced by an automated pipeline instead of a notebook.
+
+. To see all assessment and expectation columns, click **Columns** and check **All Assessments** and **All Expectations**:
++
+image::eval24.png[MLflow Columns dropdown showing All Assessments and All Expectations checkboxes,link=self,window=blank,width=250]
+
+TIP: If assessment columns are not visible in the Traces view (in this module or in Module 5), use the **Columns** dropdown to enable **All Assessments**. MLflow doesn't always show them by default.
+
+== Module summary
+
+**What you accomplished:**
+
+* Imported a pre-compiled evaluation pipeline into OpenShift AI
+* Configured and ran an automated evaluation pipeline
+* Viewed automated evaluation results in MLflow alongside notebook-driven results
+
+**Key takeaways:**
+
+* The inner loop (notebook) is for exploration and development; the outer loop (pipeline) is for automation and production
+* OpenShift AI Pipelines package the same evaluation logic into reproducible, schedulable, containerized runs
+* MLflow captures results from both notebook and pipeline evaluations in the same interface -- making it easy to compare and track quality over time
+
+**Next steps:**
+
+The Conclusion will recap the full observability journey -- from the black box of Module 1 through metrics, traces, evaluations, and automated pipelines -- and provide resources for continuing your AgentOps practice.

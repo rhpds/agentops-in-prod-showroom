@@ -4,6 +4,12 @@
 :toc-placement: preamble
 :icons: font
 
+== What is AgentOps?
+
+*AgentOps* (Agent Operations) is the discipline of monitoring, tracing, evaluating, and maintaining AI agent systems in production -- analogous to how DevOps applies operational practices to software delivery. It addresses the unique challenges of multi-agent AI systems: non-deterministic behavior, distributed decision-making, tool orchestration, and LLM quality assurance.
+
+While traditional observability focuses on request rates, error rates, and latency, AgentOps extends these practices to cover token consumption, agent reasoning paths, tool call success rates, model routing decisions, and output quality evaluation.
+
 == Your role and mission
 
 You're a senior engineer at Fed Aura Capital, a mortgage lending company that has deployed a sophisticated multi-agent AI system to handle the complete lending lifecycle. The system uses five distinct LangGraph agents -- each serving a different persona: prospect inquiry, borrower application intake, loan officer pipeline management, underwriter compliance checks, and executive analytics.
@@ -20,10 +26,10 @@ By the end of this workshop, you'll have practical AgentOps skills to address Fe
 
 * Understand the multi-agent architecture and why observability matters -- clear mental model of distributed AI system challenges
 * Master the three pillars of observability (metrics, logs, traces) -- foundation for systematic monitoring
-* Implement metrics dashboards with RHOAI and Grafana -- real-time visibility into system health
+* Explore metrics dashboards with RHOAI and Grafana -- real-time visibility into system health
 * Configure MLflow tracing for multi-agent workflows -- end-to-end request tracking across agents
 * Set up LLM evaluations for quality assurance -- continuous validation of agent outputs
-* Diagnose and fix distributed failures -- practical troubleshooting skills for production issues
+* Automate evaluations with AI Pipelines -- move from manual notebooks to production-ready automated quality checks
 
 **Technical outcome**: Hands-on experience with the complete AgentOps observability stack on Red Hat OpenShift AI.
 
@@ -49,7 +55,7 @@ You should have:
 
 == Fed Aura Capital's challenges
 
-**The situation**: Fed Aura Capital has deployed a multi-agent AI system handling mortgage applications, but lacks visibility into the distributed workflows spanning multiple agents and MCP tools.
+**The situation**: Fed Aura Capital has deployed a multi-agent AI system handling mortgage applications, but lacks visibility into the distributed workflows spanning multiple agents and MCP (Model Context Protocol -- a standard for connecting AI agents to external tools and data sources) tools.
 
 **Project timeline**: The board has given the engineering team two weeks to demonstrate improved observability and reduced incident response time.
 
@@ -87,13 +93,13 @@ If the AgentOps observability implementation proves effective for Fed Aura Capit
 Module 4 covers the integration in detail, showing how to instrument AI Agent workflows for automatic trace capture.
 
 **"What metrics should we monitor for AI agents?"** +
-Module 3 introduces the key KPIs for agentic applications and how to build dashboards in Grafana.
+Module 3 introduces the key metrics and logs for agentic applications and how to explore dashboards in Grafana.
 
 **"How do we evaluate if our agents are producing quality responses?"** +
 Module 5 walks through LLM evaluations using MLflow, including building evaluation datasets and running scorers against agent outputs.
 
-**"Can we simulate failures to test our observability setup?"** +
-Module 6 is entirely dedicated to simulating and diagnosing distributed failures in the multi-agent system.
+**"How do we automate evaluations for production?"** +
+Module 6 shows how to move from manual notebook evaluations to automated AI Pipelines that run on the platform -- reproducible, schedulable, and auditable.
 
 **"What's the difference between observing traditional apps and agentic apps?"** +
 Module 2 explains the three pillars of observability and how each pillar applies differently to multi-agent AI systems compared to traditional microservices.

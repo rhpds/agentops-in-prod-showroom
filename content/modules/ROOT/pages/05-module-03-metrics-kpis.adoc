@@ -6,6 +6,8 @@
 
 Metrics tell you *what* is happening in your system. Logs tell you *what exactly happened and when*. In this module, you'll explore a pre-deployed Grafana dashboard that monitors the mortgage-ai multi-agent system, then investigate application logs using LokiStack in the OpenShift Console.
 
+TIP: In this module, you're wearing your **SRE / Platform Engineering hat** -- focusing on system health, request rates, error rates, and operational logs.
+
 == Learning objectives
 
 By the end of this module, you'll be able to:

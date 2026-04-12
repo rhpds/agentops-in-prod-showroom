@@ -1,6 +1,6 @@
-= AgentOps in Production: Agentic End-to-End Observability with Red Hat AI
+= AgentOps Observability with Red Hat AI
 
-Welcome to the AgentOps in Production workshop!
+Welcome to the AgentOps Observability with Red Hat AI workshop!
 
 == What you'll learn
 
@@ -8,23 +8,12 @@ In this workshop, you will:
 
 * Monitor the Stack: Utilize Red Hat AI's out-of-the-box observability stack to track key metrics and logs of your Agentic App
 * Trace Multi-Agent Executions: Track requests across multi-agent frameworks and MCP tools to understand the complete decision-making path
-* Diagnose and Fix Distributed Failures: Simulate real-world rollout issues and use tracing to pinpoint root causes and deploy fixes
 * LLM Evaluations: Combine tracing with LLM evaluations (Evals) in MLflow to ensure your agents maintain high-quality outputs
+* From Development to Production: Move from manual notebook evaluations to automated AI pipelines that run continuously on the platform
 
 == Who this is for
 
-This workshop is designed for SREs, Platform Engineers, and AI Developers/Engineers who want to implement end-to-end observability for multi-agent AI systems.
-
-**Experience level**: Intermediate to Advanced
-
-== Prerequisites
-
-Before starting this workshop, you should have:
-
-* Basic understanding of Kubernetes and OpenShift concepts
-* Familiarity with AI/ML concepts and LLM-based applications
-* Experience with observability tools (metrics, logs, traces)
-* Basic Python knowledge for understanding agent code
+This workshop is designed for SREs, Platform Engineers, and AI Developers/Engineers who want to implement end-to-end observability for multi-agent AI systems. See the xref:01-overview.adoc[Workshop Overview] for detailed prerequisites and target audience.
 
 == Workshop environment
 
@@ -40,7 +29,7 @@ NOTE: All environment details and credentials are available in the lab interface
 
 == Estimated time
 
-This workshop will take approximately **1 hour 30 minutes** to complete.
+This workshop will take approximately **1 hour 30 minutes** to complete. An xref:02-details.adoc#_abbreviated_workshop_45_minutes[abbreviated 45-minute path] is also available, covering Modules 1, 3, and 4.
 
 You can work at your own pace.
 

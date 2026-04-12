@@ -1,10 +1,12 @@
-= Module 5: LLM evaluations (Evals)
-:navtitle: Module 5: LLM Evaluations
+= Module 5: Agent & LLM evaluations (Evals)
+:navtitle: Module 5: Agent & LLM Evaluations
 :source-highlighter: rouge
 :toc: macro
 :toclevels: 1
 
 Observability tells you if your system is working, but evaluations tell you if your agents are working *well*. In this module, you'll go beyond basic observability by running LLM evaluations against the Fed Aura Capital prospect agent using MLflow's evaluation framework, Prompt Registry, and LLM-as-a-Judge scorers.
+
+TIP: In this module, you're wearing your **AI Developer / Engineer hat** -- focusing on model output quality, prompt management, and evaluation design.
 
 This is the AI Developer's quality assurance layer -- the *inner loop* where you manually evaluate agent outputs during development. In Module 6, you'll automate this into an *outer loop* that detects regressions continuously.
 
@@ -163,7 +165,7 @@ image::eval8.png[MLflow Evaluation Runs showing the evaluation run with 6 traces
 +
 Each row shows the Trace ID, the request sent to the agent, the response received, and the token count.
 
-. Click **Traces** in the left sidebar to see the per-trace assessments. Enable the **Assessments** columns to see the scorer results for each trace:
+. Click **Traces** in the left sidebar to see the per-trace assessments. Click **Columns** and enable **All Assessments** to see the scorer results for each trace:
 +
 image::eval9.png[MLflow Traces view with Assessment columns showing contains_expected has_numeric_result and response_length results per trace,link=self,window=blank,width=700]
 +
@@ -244,4 +246,4 @@ All evaluation traces are automatically linked to the prompt version that produc
 
 **Next steps:**
 
-Module 6 will move from the inner loop (manual evaluation) to the outer loop -- automating evaluation, detecting regressions, and integrating quality checks into your CI/CD pipeline.
+Module 6 will move from the inner loop (manual evaluation) to the outer loop -- automating evaluation with AI Pipelines that can be scheduled or triggered to detect regressions continuously.

@@ -6,6 +6,8 @@
 
 Metrics tell you *what* is happening, but traces tell you *why*. In this module, you'll explore MLflow tracing to gain end-to-end visibility into the Fed Aura Capital multi-agent mortgage system. You'll trace the requests you made in Module 1 across LangGraph agents and tool calls, closing the observability gap you experienced firsthand.
 
+TIP: In this module, you're wearing **both hats** -- SREs use traces to diagnose latency and failures, while AI Developers use them to understand agent reasoning and tool behavior.
+
 == Learning objectives
 
 By the end of this module, you'll be able to:
@@ -114,7 +116,7 @@ The Summary tab reveals what was invisible in Module 1:
 
 == Exercise 3: Close the observability gap
 
-Remember Module 1, Exercise 4? You signed in as CEO David Park, asked _"What is my portfolio health?"_, and got a detailed response. We pointed out the observability gap -- you had no way of knowing which agents processed your question, which tools were invoked, or how long each step took.
+Remember Module 1, Exercise 3? You signed in as CEO David Park, asked _"What is my portfolio health?"_, and got a detailed response. We pointed out the observability gap -- you had no way of knowing which agents processed your question, which tools were invoked, or how long each step took.
 
 Now let's close that gap.
 
