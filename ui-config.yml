@@ -15,9 +15,9 @@ tabs:
   - name: OCP Console
     url: 'https://console-openshift-console.%DOMAIN%'
 
-  # Terminal access to bastion host
+  # Terminal access via showroom terminal container
   - name: Terminal
-    path: /wetty
+    path: /terminal
     port: 443
 
   # External documentation
