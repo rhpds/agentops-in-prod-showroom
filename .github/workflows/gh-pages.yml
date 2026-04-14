@@ -5,13 +5,13 @@ on:
     branches: [main]
     paths:
       - 'content/**'
-      - 'site.yml'
+      - 'default-site.yml'
       - '.github/workflows/gh-pages.yml'
   pull_request:
     branches: [main]
     paths:
       - 'content/**'
-      - 'site.yml'
+      - 'default-site.yml'
       - '.github/workflows/gh-pages.yml'
   workflow_dispatch:
 
@@ -37,7 +37,7 @@ jobs:
       - name: install antora
         run: npm i -g @antora/cli@3.1 @antora/site-generator@3.1
       - name: antora generate
-        run: antora --fetch site.yml
+        run: antora --fetch default-site.yml
       - name: upload pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
