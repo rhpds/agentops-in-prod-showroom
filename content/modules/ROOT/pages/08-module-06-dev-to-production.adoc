@@ -66,7 +66,7 @@ image::eval16.png[OpenShift AI Pipeline definitions page showing no pipelines wi
 +
 [source,text]
 ----
-https://raw.githubusercontent.com/rh-ai-quickstart/multi-agent-loan-origination/refs/heads/main/evaluations/pipelines_gen/simple_eval_pipeline.yaml
+https://raw.githubusercontent.com/rh-ai-quickstart/multi-agent-loan-origination/refs/heads/main/evaluations/pipelines_gen/simple-eval-pipeline.yaml
 ----
 --
 +
