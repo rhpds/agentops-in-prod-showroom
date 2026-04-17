@@ -21,6 +21,13 @@ By the end of this module, you'll be able to:
 
 == Exercise 1: Access the application UI
 
+. First, log in to the OpenShift cluster from the terminal:
++
+[source,bash,subs="+attributes"]
+----
+oc login --insecure-skip-tls-verify {openshift_api_url} -u {user} -p {password}
+----
+
 . Get the UI route:
 +
 [source,bash]
