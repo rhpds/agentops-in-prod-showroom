@@ -116,10 +116,10 @@ Let's open it and see what's there.
 
 . Find the Grafana route and open it in your browser:
 +
-[source,bash]
+[source,bash,subs="+attributes"]
 ----
-GRAFANA_ROUTE=$(oc get route -n wksp-{user} grafana-route -o jsonpath='{.spec.host}')
-echo "Grafana: https://${GRAFANA_ROUTE}"
+GRAFANA_ROUTE=$(oc get route -n wksp-{user} grafana-route -o jsonpath='\{.spec.host}')
+echo "Grafana: https://\${GRAFANA_ROUTE}"
 ----
 +
 Authentication is handled via OpenShift OAuth. Log in with your OpenShift credentials if prompted.
@@ -210,7 +210,7 @@ By default, you see logs from all applications across all namespaces. This is us
 [start=2]
 . Click **Show Query** and enter this LogQL query to filter to only mortgage-ai application logs:
 +
-[source,logql]
+[source,logql,subs="+attributes"]
 ----
 { log_type="application", kubernetes_namespace_name="wksp-{user}" }
 ----
@@ -224,7 +224,7 @@ TIP: `log_type="application"` filters out infrastructure logs (kubelet, CRI-O). 
 [start=3]
 . Narrow the view to the UI container and filter for `/api/` calls. This strips out health probes and static assets, showing only real user interactions:
 +
-[source,logql]
+[source,logql,subs="+attributes"]
 ----
 { log_type="application", kubernetes_namespace_name="wksp-{user}", kubernetes_container_name="ui" } |= "/api/"
 ----
@@ -245,7 +245,7 @@ Notice the mix of real user traffic (`/api/chat`, `/api/applications/...`) and K
 [start=4]
 . Add a pipeline filter to find only chat-related entries:
 +
-[source,logql]
+[source,logql,subs="+attributes"]
 ----
 { log_type="application", kubernetes_namespace_name="wksp-{user}", kubernetes_container_name="ui" } |= "/api/chat"
 ----
@@ -265,7 +265,7 @@ The traffic you generated in Module 1 should already appear in these logs. WebSo
 ====
 The API container (`api`) shows the server-side processing: FastAPI access logs, MLflow warnings, and agent responses:
 
-[source,logql]
+[source,logql,subs="+attributes"]
 ----
 { log_type="application", kubernetes_namespace_name="wksp-{user}", kubernetes_container_name="api" }
 ----

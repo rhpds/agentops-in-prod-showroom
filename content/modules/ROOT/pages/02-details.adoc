@@ -62,7 +62,7 @@ Participants need access to:
 
 Participants should run these commands to verify setup:
 
-[source,bash]
+[source,bash,subs="+attributes"]
 ----
 # Verify OpenShift CLI
 oc version

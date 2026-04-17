@@ -120,7 +120,7 @@ Each step runs in its own container on the OpenShift AI platform. The pipeline a
 
 Once the pipeline completes, the evaluation results appear in MLflow just like the notebook-driven evaluations from Module 5.
 
-. In the MLflow UI, navigate to your experiment's **Traces** view. You'll see the 6 new traces from the pipeline run with their assessment results:
+. In the MLflow UI (use the *MLflow Console* tab at the top of this page), navigate to your experiment's **Traces** view. You'll see the 6 new traces from the pipeline run with their assessment results:
 +
 image::eval23.png[MLflow Traces showing 6 automated evaluation traces with assessment columns contains_expected has_numeric_result and response_length,link=self,window=blank,width=700]
 +

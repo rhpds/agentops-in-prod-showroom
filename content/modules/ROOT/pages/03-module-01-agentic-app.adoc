@@ -21,6 +21,8 @@ By the end of this module, you'll be able to:
 
 == Exercise 1: Access the application UI
 
+TIP: You can access the mortgage-ai application directly from the *Mortgage AI App* tab at the top of this page, without opening a separate browser window.
+
 . First, log in to the OpenShift cluster from the terminal:
 +
 [source,bash,subs="+attributes"]
@@ -30,11 +32,15 @@ oc login --insecure-skip-tls-verify {openshift_api_url} -u {user} -p {password}
 
 . Get the UI route:
 +
-[source,bash]
+[source,bash,subs="+attributes"]
 ----
-MORTGAGE_UI=$(oc get route mortgage-ai-ui-route -n wksp-{user} -o jsonpath='{.spec.host}')
-echo "Mortgage AI UI: https://${MORTGAGE_UI}"
+MORTGAGE_UI=$(oc get route mortgage-ai-ui-route -n wksp-{user} -o jsonpath='\{.spec.host}')
+echo "Mortgage AI UI: https://\${MORTGAGE_UI}"
 ----
++
+Alternatively, you can find the route in the OpenShift console. Navigate to **Networking > Routes** in the `wksp-{user}` project and filter by Name `mortgage-ai-ui`:
++
+image::agentic-app-pre0.png[OpenShift console Routes page showing mortgage-ai-ui-route in the wksp-user project,link=self,window=blank,width=700]
 
 . Open the URL in your browser. You'll land on the Fed Aura Capital mortgage-ai interface:
 +
@@ -78,17 +84,17 @@ Now that you've seen the application in action, let's explore what's running und
 
 . View the pods and their status:
 +
-[source,bash]
+[source,bash,subs="+attributes"]
 ----
 oc get pods -n wksp-{user}
 ----
 
 . Check the API service health:
 +
-[source,bash]
+[source,bash,subs="+attributes"]
 ----
-MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n wksp-{user} -o jsonpath='{.spec.host}')
-curl -sk https://${MORTGAGE_HEALTH}/health/ | jq -r .
+MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n wksp-{user} -o jsonpath='\{.spec.host}')
+curl -sk https://\${MORTGAGE_HEALTH}/health/ | jq -r .
 ----
 +
 Expected output:

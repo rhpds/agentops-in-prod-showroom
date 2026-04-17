@@ -20,6 +20,14 @@ tabs:
     path: /terminal
     port: 443
 
+  # MLflow Console - embedded MLflow tracking UI
+  - name: MLflow Console
+    url: 'https://rh-ai.%DOMAIN%/mlflow/'
+
+  # Mortgage AI App - multi-agent loan origination UI
+  - name: Mortgage AI App
+    url: 'https://mortgage-ai-ui-route-wksp-user1.%DOMAIN%'
+
   # External documentation
   - name: MLflow Docs
     url: 'https://mlflow.org/docs/latest/genai/tracing/'
