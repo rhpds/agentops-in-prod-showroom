@@ -41,11 +41,14 @@ Red Hat OpenShift AI includes MLflow as part of the platform. Let's access the M
 +
 image::agentic-app-pre8.png[Showroom tabs showing MLflow Console tab,link=self,window=blank,width=700]
 +
-Alternatively, in the OpenShift Console, click the **application launcher** (waffle icon) in the top-right corner. Under **OpenShift Self Managed Services**, click **MLflow**:
-+
-image::mlflow0.png[OpenShift Console application launcher showing MLflow under OpenShift Self Managed Services,link=self,window=blank,width=250]
-+
 Authentication is handled via OpenShift OAuth. Log in with your OpenShift credentials: username `{user}`, password `{password}`.
++
+[NOTE]
+====
+Alternatively, you can access MLflow from the OpenShift Console. Click the **application launcher** (waffle icon) in the top-right corner. Under **OpenShift Self Managed Services**, click **MLflow**:
+
+image::mlflow0.png[OpenShift Console application launcher showing MLflow under OpenShift Self Managed Services,link=self,window=blank,width=250]
+====
 
 . Select your workspace from the **Select workspace** dropdown in the top-left corner. Choose `{user_project}`. Your workspace contains the traces and experiments for your mortgage-ai app.
 +
