@@ -116,37 +116,24 @@ A Grafana instance is pre-deployed in your workspace namespace with a **Mortgage
 
 Let's open it and see what's there.
 
-. First, log in to the OpenShift cluster from the terminal:
+. Open Grafana using the **application launcher** (waffle icon) in the top-right corner of the OpenShift Console and click **Grafana ({user_project})** under **Third Party Services**:
++
+image::agentic-app-pre6.png[OpenShift Console application launcher showing Grafana under Third Party Services,link=self,window=blank,width=250]
++
+You can also find it in **Networking > Routes** in the `{user_project}` project and click the `grafana-route` Location link:
++
+image::agentic-app-pre5.png[OpenShift Console Routes page showing grafana-route in the wksp-user1 project,link=self,window=blank,width=700]
++
+Alternatively, from the terminal:
 +
 [source,bash,subs="+attributes"]
 ----
 oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password}
-----
-
-. Find the Grafana route and open it in your browser:
-+
-[source,bash,subs="+attributes"]
-----
 GRAFANA_ROUTE=$(oc get route -n {user_project} grafana-route -o jsonpath='\{.spec.host}')
 echo "Grafana: https://$\{GRAFANA_ROUTE}"
 ----
 +
-Alternatively, you can find the Grafana route in the OpenShift Console. Navigate to **Networking > Routes** in the `{user_project}` project and click the `grafana-route` Location link:
-+
-image::agentic-app-pre5.png[OpenShift Console Routes page showing grafana-route in the wksp-user1 project,link=self,window=blank,width=700]
-+
-Or use the **application launcher** (waffle icon) in the top-right corner and click **Grafana ({user_project})** under **Third Party Services**:
-+
-image::agentic-app-pre6.png[OpenShift Console application launcher showing Grafana under Third Party Services,link=self,window=blank,width=250]
-+
 Authentication is handled via OpenShift OAuth. Log in with your OpenShift credentials if prompted.
-
-. Optionally, navigate to the **Mortgage-AI Backend Metrics** dashboard directly:
-+
-[source,bash]
-----
-echo "Dashboard: https://${GRAFANA_ROUTE}/d/mortgage-ai-backend"
-----
 
 === Overview and HTTP panels
 
