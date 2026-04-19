@@ -211,14 +211,20 @@ Metrics show aggregated health, but when something goes wrong you need the actua
 
 . Return to the OpenShift Console (use the *OCP Console* tab at the top of this page). Navigate to **Observe** -> **Logs**.
 +
-image::logging1.png[OpenShift Console Observe Logs showing mortgage-ai application logs,link=self,window=blank,width=700]
+You'll see a **Forbidden — Missing permissions to get logs** error:
 +
-By default, you see logs from all applications across all namespaces. This is useful for cluster operators, but too noisy when you're debugging a specific agent.
+image::logging4.png[OpenShift Console Observe Logs showing Forbidden error for regular user,link=self,window=blank,width=700]
++
+This is expected. Because you're logged in as a regular user (`{user}`), OpenShift restricts log access to only your namespace for security. Cluster-wide log access is reserved for cluster administrators.
 
 === Filter to mortgage-ai
 
 [start=2]
-. Click **Show Query** and enter this LogQL query to filter to only mortgage-ai application logs:
+. Click **Show Query** to open the query editor:
++
+image::logging5.png[OpenShift Console Logs Show Query button,link=self,window=blank,width=700]
++
+Enter this LogQL query to scope the logs to your namespace:
 +
 [source,logql,subs="+attributes"]
 ----
