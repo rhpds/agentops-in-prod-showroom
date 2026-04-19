@@ -38,12 +38,12 @@ To run evaluations, you need a Jupyter environment. Red Hat OpenShift AI provide
 +
 image::eval0.png[OpenShift Console application launcher showing Red Hat OpenShift AI,link=self,window=blank,width=250]
 
-. In the Red Hat OpenShift AI (RHOAI) dashboard, navigate to **Projects** and select your workspace (`wksp-{user}`).
+. In the Red Hat OpenShift AI (RHOAI) dashboard, navigate to **Projects** and select your workspace (`{user_project}`).
 
 . Click **Create workbench** and configure it:
 +
 --
-* **Name**: `wksp-{user}`
+* **Name**: `{user_project}`
 * **Image selection**: `Jupyter | Data Science | CPU | Python 3.12`
 * **Version selection**: `3.4`
 * Leave other settings as defaults

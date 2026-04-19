@@ -17,6 +17,7 @@ asciidoc:
     openshift_api_url: "https://api.cluster.example.com:6443"
     user: "user1"
     password: "openshift"
+    user_project: "wksp-user1"
     # Bastion access
     bastion_user: "lab-user"
     bastion_host: "bastion.example.com"

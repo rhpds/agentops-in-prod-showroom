@@ -103,7 +103,7 @@ image::eval20.png[Create run form showing run type project experiment and run na
 +
 --
 * `mlflow_tracking_uri`: `https://mlflow.redhat-ods-applications.svc.cluster.local:8443/mlflow`
-* `mlflow_workspace`: `wksp-{user}`
+* `mlflow_workspace`: `{user_project}`
 --
 +
 image::eval21.png[Create run Parameters section showing agent_name dataset_name mlflow_experiment_name mlflow_tracking_uri and mlflow_workspace,link=self,window=blank,width=500]

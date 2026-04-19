@@ -45,7 +45,7 @@ image::mlflow0.png[OpenShift Console application launcher showing MLflow under O
 +
 Authentication is handled via OpenShift OAuth. Log in with your OpenShift credentials if prompted.
 
-. Select your workspace from the **Select workspace** dropdown in the top-left corner. Choose `wksp-{user}`. Your workspace contains the traces and experiments for your mortgage-ai app.
+. Select your workspace from the **Select workspace** dropdown in the top-left corner. Choose `{user_project}`. Your workspace contains the traces and experiments for your mortgage-ai app.
 +
 image::mlflow1.png[MLflow UI welcome page showing workspace selection and core features,link=self,window=blank,width=700]
 +

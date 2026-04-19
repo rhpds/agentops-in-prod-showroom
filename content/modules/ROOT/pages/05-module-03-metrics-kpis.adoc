@@ -118,7 +118,7 @@ Let's open it and see what's there.
 +
 [source,bash,subs="+attributes"]
 ----
-GRAFANA_ROUTE=$(oc get route -n wksp-{user} grafana-route -o jsonpath='\{.spec.host}')
+GRAFANA_ROUTE=$(oc get route -n {user_project} grafana-route -o jsonpath='\{.spec.host}')
 echo "Grafana: https://\${GRAFANA_ROUTE}"
 ----
 +
@@ -189,7 +189,7 @@ Below the stats, the detail panels show:
 * **Routing Distribution**: `sum(agent_routing_total{namespace=~"$namespace"}) by (complexity)`
 ====
 
-TIP: The dashboard is managed as a `GrafanaDashboard` custom resource and version-controlled via GitOps. Run `oc get grafanadashboard -n wksp-{user}` to see it.
+TIP: The dashboard is managed as a `GrafanaDashboard` custom resource and version-controlled via GitOps. Run `oc get grafanadashboard -n {user_project}` to see it.
 
 The traffic you generated in Module 1 (Explore Products, CEO portfolio health) is already reflected in these panels. Set the time range to **Last 1 hour** to see it.
 
@@ -212,7 +212,7 @@ By default, you see logs from all applications across all namespaces. This is us
 +
 [source,logql,subs="+attributes"]
 ----
-{ log_type="application", kubernetes_namespace_name="wksp-{user}" }
+{ log_type="application", kubernetes_namespace_name="{user_project}" }
 ----
 +
 Click **Run Query**. You should now see only logs from the mortgage-ai pods.
@@ -226,7 +226,7 @@ TIP: `log_type="application"` filters out infrastructure logs (kubelet, CRI-O). 
 +
 [source,logql,subs="+attributes"]
 ----
-{ log_type="application", kubernetes_namespace_name="wksp-{user}", kubernetes_container_name="ui" } |= "/api/"
+{ log_type="application", kubernetes_namespace_name="{user_project}", kubernetes_container_name="ui" } |= "/api/"
 ----
 +
 You'll see nginx access logs like:
@@ -247,7 +247,7 @@ Notice the mix of real user traffic (`/api/chat`, `/api/applications/...`) and K
 +
 [source,logql,subs="+attributes"]
 ----
-{ log_type="application", kubernetes_namespace_name="wksp-{user}", kubernetes_container_name="ui" } |= "/api/chat"
+{ log_type="application", kubernetes_namespace_name="{user_project}", kubernetes_container_name="ui" } |= "/api/chat"
 ----
 +
 image::logging2.png[LogQL query filtering mortgage-ai UI logs for chat activity,link=self,window=blank,width=700]
@@ -267,7 +267,7 @@ The API container (`api`) shows the server-side processing: FastAPI access logs,
 
 [source,logql,subs="+attributes"]
 ----
-{ log_type="application", kubernetes_namespace_name="wksp-{user}", kubernetes_container_name="api" }
+{ log_type="application", kubernetes_namespace_name="{user_project}", kubernetes_container_name="api" }
 ----
 
 Sample output:

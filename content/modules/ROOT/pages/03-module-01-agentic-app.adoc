@@ -34,7 +34,7 @@ oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {pas
 +
 image::agentic-app-pre1.png[OpenShift SSO login page,link=self,window=blank,width=500]
 
-. Once logged in, verify the project selector (top-left) shows `wksp-{user}`. Navigate to **Workloads > Pods** to see the mortgage-ai components running in your namespace:
+. Once logged in, verify the project selector (top-left) shows `{user_project}`. Navigate to **Workloads > Pods** to see the mortgage-ai components running in your namespace:
 +
 image::agentic-app0.png[OpenShift Console Pods view showing mortgage-ai components running,link=self,window=blank,width=700]
 +
@@ -50,11 +50,11 @@ TIP: Throughout this workshop, you can switch between CLI and Console freely. So
 +
 [source,bash,subs="+attributes"]
 ----
-MORTGAGE_UI=$(oc get route mortgage-ai-ui-route -n wksp-{user} -o jsonpath='\{.spec.host}')
+MORTGAGE_UI=$(oc get route mortgage-ai-ui-route -n {user_project} -o jsonpath='\{.spec.host}')
 echo "Mortgage AI UI: https://\${MORTGAGE_UI}"
 ----
 +
-You can also find this route in the OpenShift Console you explored earlier. Navigate to **Networking > Routes** in the `wksp-{user}` project and filter by Name `mortgage-ai-ui`:
+You can also find this route in the OpenShift Console you explored earlier. Navigate to **Networking > Routes** in the `{user_project}` project and filter by Name `mortgage-ai-ui`:
 +
 image::agentic-app-pre0.png[OpenShift console Routes page showing mortgage-ai-ui-route in the wksp-user project,link=self,window=blank,width=700]
 
@@ -104,14 +104,14 @@ image::agentic-app-pre2.png[Mortgage AI system architecture showing React fronte
 +
 [source,bash,subs="+attributes"]
 ----
-oc get pods -n wksp-{user}
+oc get pods -n {user_project}
 ----
 
 . Check the API service health:
 +
 [source,bash,subs="+attributes"]
 ----
-MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n wksp-{user} -o jsonpath='\{.spec.host}')
+MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n {user_project} -o jsonpath='\{.spec.host}')
 curl -sk https://\${MORTGAGE_HEALTH}/health/ | jq -r .
 ----
 +
