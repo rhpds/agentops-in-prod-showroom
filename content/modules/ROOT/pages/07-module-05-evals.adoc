@@ -34,9 +34,16 @@ Metrics tell you the agent responded. Traces tell you how it responded. **Evalua
 
 To run evaluations, you need a Jupyter environment. Red Hat OpenShift AI provides managed workbenches with pre-installed data science libraries.
 
-. In the OpenShift Console, click the **application launcher** (waffle icon) in the top-right corner. Under **OpenShift Self Managed Services**, click **Red Hat OpenShift AI**:
+. Access the Red Hat OpenShift AI dashboard directly from the *RHOAI Console* tab at the top of this page:
 +
+image::agentic-app-pre8.png[Showroom tabs showing RHOAI Console tab,link=self,window=blank,width=700]
++
+[NOTE]
+====
+Alternatively, you can access it from the OpenShift Console. Click the **application launcher** (waffle icon) in the top-right corner. Under **OpenShift Self Managed Services**, click **Red Hat OpenShift AI**:
+
 image::eval0.png[OpenShift Console application launcher showing Red Hat OpenShift AI,link=self,window=blank,width=250]
+====
 
 . In the Red Hat OpenShift AI (RHOAI) dashboard, navigate to **Projects** and select your workspace (`{user_project}`).
 
