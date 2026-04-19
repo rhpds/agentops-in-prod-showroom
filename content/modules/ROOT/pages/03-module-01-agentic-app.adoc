@@ -27,8 +27,24 @@ TIP: You can access the mortgage-ai application directly from the *Mortgage AI A
 +
 [source,bash,subs="+attributes"]
 ----
-oc login --insecure-skip-tls-verify {openshift_api_url} -u {user} -p {password}
+oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password}
 ----
+
+. Open the OpenShift Console using the *OCP Console* tab at the top of this page, or navigate directly to {openshift_console_url}. Log in with the same credentials you just used: username `{user}`, password `{password}`:
++
+image::agentic-app-pre1.png[OpenShift SSO login page,link=self,window=blank,width=500]
+
+. Once logged in, verify the project selector (top-left) shows `wksp-{user}`. Navigate to **Workloads > Pods** to see the mortgage-ai components running in your namespace:
++
+image::agentic-app0.png[OpenShift Console Pods view showing mortgage-ai components running,link=self,window=blank,width=700]
++
+You will explore these components in Exercise 2.
+
+. Notice the **application launcher** (waffle icon) in the top-right corner. This provides quick access to integrated services like MLflow, Red Hat OpenShift AI, and Grafana. You will use it in Modules 4, 5, and 6.
+
+. The left sidebar also contains an **Observe** section with Logs, Metrics, and Alerts. You will use **Observe > Logs** in Module 3 to investigate application logs.
+
+TIP: Throughout this workshop, you can switch between CLI and Console freely. Some tasks are faster in the terminal; others are easier to understand visually in the Console.
 
 . Get the UI route:
 +
@@ -38,7 +54,7 @@ MORTGAGE_UI=$(oc get route mortgage-ai-ui-route -n wksp-{user} -o jsonpath='\{.s
 echo "Mortgage AI UI: https://\${MORTGAGE_UI}"
 ----
 +
-Alternatively, you can find the route in the OpenShift console. Navigate to **Networking > Routes** in the `wksp-{user}` project and filter by Name `mortgage-ai-ui`:
+You can also find this route in the OpenShift Console you explored earlier. Navigate to **Networking > Routes** in the `wksp-{user}` project and filter by Name `mortgage-ai-ui`:
 +
 image::agentic-app-pre0.png[OpenShift console Routes page showing mortgage-ai-ui-route in the wksp-user project,link=self,window=blank,width=700]
 
@@ -81,6 +97,8 @@ Now that you've seen the application in action, let's explore what's running und
 |minio
 |S3-compatible object storage for documents
 |===
+
+image::agentic-app-pre2.png[Mortgage AI system architecture showing React frontend connecting via WebSocket to FastAPI backend with 5 agent personas and PostgreSQL with pgvector and MinIO object storage,link=self,window=blank,width=700]
 
 . View the pods and their status:
 +
@@ -161,6 +179,8 @@ Expected output:
 |CEO Assistant
 |Pipeline analytics, audit trail, decision trace, model monitoring
 |===
+
+image::agentic-app-pre3.png[The 5 agent personas showing Prospect and Borrower and Loan Officer and Underwriter and CEO with their roles and capabilities routing into a single FastAPI deployment via WebSocket,link=self,window=blank,width=700]
 
 === Key AI patterns
 

@@ -52,7 +52,7 @@ Participants need access to:
 
 === Pre-workshop checklist
 
-□ **OpenShift access confirmed** - Test login credentials at {openshift_console_url} +
+□ **OpenShift access confirmed** - Test login credentials at {openshift_console_url} (Module 1 includes a guided walkthrough) +
 □ **CLI tools installed** - Verify `oc` client installation +
 □ **Python environment ready** - Python 3.11+ with pip +
 □ **Workshop repository cloned** - Clone the multi-agent loan app repository +
@@ -68,7 +68,7 @@ Participants should run these commands to verify setup:
 oc version
 
 # Login to OpenShift cluster
-oc login {openshift_api_url} -u {user} -p {password}
+oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password}
 
 # Verify project access
 oc project
@@ -173,12 +173,7 @@ curl -s https://{mlflow_route}/health | head -5
 
 == Authors and contributors
 
-**Primary Author**: Red Hat AI Business Unit +
+**Primary Author**: Red Hat AI AI Business Unit +
+**Authors**: Roberto Carratalá, Taylor Smith +
 **Last Updated**: April 2026 +
 **Workshop Version**: 1.0
-
-**Contact Information**:
-
-* Workshop feedback: ai-practice@redhat.com
-* Technical questions: Red Hat Support Portal
-* Content updates: GitHub repository issues

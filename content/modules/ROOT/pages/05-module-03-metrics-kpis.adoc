@@ -199,7 +199,7 @@ Metrics show aggregated health, but when something goes wrong you need the actua
 
 === Navigate to the log viewer
 
-. In the OpenShift Console, navigate to **Observe** -> **Logs**.
+. Return to the OpenShift Console (use the *OCP Console* tab at the top of this page). Navigate to **Observe** -> **Logs**.
 +
 image::logging1.png[OpenShift Console Observe Logs showing mortgage-ai application logs,link=self,window=blank,width=700]
 +
