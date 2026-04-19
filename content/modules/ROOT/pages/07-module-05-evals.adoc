@@ -59,8 +59,18 @@ image::eval0.png[OpenShift Console application launcher showing Red Hat OpenShif
 image::eval1.png[Red Hat OpenShift AI Create workbench form showing name and image configuration,link=self,window=blank,width=700]
 
 . Click **Create workbench** and wait for it to start. Once the status shows **Running**, click **Open** to launch JupyterLab.
++
+NOTE: The workbench image download can take a couple of minutes the first time. Please be patient while it pulls the container image and starts.
+
+. Once the status shows **Running**, click **Open** to launch JupyterLab:
++
+image::eval2.1.png[Red Hat OpenShift AI workbench status showing Running with Open button,link=self,window=blank,width=700]
 
 == Exercise 2: Clone the repository and open the evaluation notebook
+
+This is the *inner loop* in action: as an AI Developer or Engineer, you use Jupyter notebooks to experiment with prompts, tweak agent behavior, and evaluate outputs interactively. The notebook gives you a fast feedback cycle: change a prompt, re-run the evaluation, inspect the results, and iterate, all before any code reaches a pipeline or production.
+
+TIP: Want to learn more about MLflow's evaluation framework? Open the *MLflow Docs* tab at the top of this page and explore the https://mlflow.org/docs/latest/genai/eval-monitor/[Evaluation & Monitoring^] section, which covers scorers, datasets, and evaluation-driven development workflows in depth.
 
 The evaluation notebook is part of the mortgage-ai application repository. Let's clone it and set up the environment.
 
@@ -81,18 +91,45 @@ image::eval3.png[JupyterLab showing evaluate_agent.ipynb open with Setup cell an
 
 . Run the **Install Dependencies** cell to install the required packages (MLflow, LangChain, OpenAI, etc.). After installation completes, **restart the kernel** when prompted.
 
-. In the **Setup** cell, verify the environment variables are configured. The key variables are:
+. In the **Setup** cell, configure the environment variables. The cell should look like this:
++
+[source,python]
+----
+os.environ["LLM_BASE_URL"] = "<from llm-credentials secret>"
+os.environ["LLM_API_KEY"] = "<from llm-credentials secret>"
+os.environ["LLM_MODEL"] = "gpt-oss-120b"
+os.environ["MLFLOW_TRACKING_URI"] = "<from MLflow Console tab URL>"
+os.environ["MLFLOW_TRACKING_TOKEN"] = "<from terminal>"
+os.environ["MLFLOW_EXPERIMENT_NAME"] = "mortgage-ai"
+os.environ["MLFLOW_TRACKING_AUTH"] = "kubernetes"
+os.environ["MLFLOW_TRACKING_INSECURE_TLS"] = "true"
+----
++
+You need to fill in 4 values:
 +
 --
-* `MLFLOW_TRACKING_URI`: your MLflow tracking server URL
-* `MLFLOW_EXPERIMENT_NAME`: experiment name (e.g., `mortgage-ai`)
-* `LLM_BASE_URL`: your LLM inference endpoint
-* `LLM_MODEL`: the model name (e.g., `gpt-oss-120b`)
---
+* `LLM_BASE_URL` and `LLM_API_KEY`: extract these from the **llm-credentials** secret. In the OpenShift Console, navigate to **Workloads > Secrets** in the `{user_project}` namespace, find **llm-credentials**, scroll down, and click **Reveal values**:
 +
-NOTE: In the workshop environment, these variables are pre-configured. If running in your own environment, update them to match your infrastructure.
+image::eval2.2.png[OpenShift Console Secrets page showing llm-credentials secret in the workspace namespace,link=self,window=blank,width=700]
+
+* `MLFLOW_TRACKING_URI`: copy the URL from the *MLflow Console* tab at the top of this page. It follows the pattern `https://rh-ai.<domain>/mlflow/`.
+--
+
+. To get the `MLFLOW_TRACKING_TOKEN`, switch to the *Terminal* tab and run:
++
+[source,bash,subs="+attributes"]
+----
+TOKEN=$(oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password} > /dev/null 2>&1 && oc whoami --show-token)
+echo $\{TOKEN}
+----
++
+Copy the token value and paste it into the `MLFLOW_TRACKING_TOKEN` variable in the notebook's Setup cell.
 
 . Run the **Setup** and **Configure MLflow** cells. Verify the output shows your MLflow URI, experiment name, and LLM endpoint.
++
+TIP: You can run cells one by one with **Shift+Enter**, or click the **Restart and Run All** button (rewind icon) in the toolbar to execute the entire notebook at once:
++
+image::eval2.3.png[JupyterLab toolbar showing Restart and Run All rewind button,link=self,window=blank,width=700]
 
 == Exercise 3: Register a prompt in MLflow's Prompt Registry
 
@@ -178,8 +215,14 @@ Each row shows the Trace ID, the request sent to the agent, the response receive
 image::eval9.png[MLflow Traces view with Assessment columns showing contains_expected has_numeric_result and response_length results per trace,link=self,window=blank,width=700]
 +
 The assessment columns show True/False for each scorer on each trace. You can quickly spot which test cases passed or failed each check.
++
+NOTE: Some assessment columns may show null values. This is expected — at this stage we are only running simple deterministic scorers (`contains_expected`, `has_numeric_result`, `response_length`), not the LLM-as-a-Judge scorers. You'll enable those in Exercise 6, and the remaining columns will populate.
++
+NOTE: If assessment columns are not visible in the Traces view, use the **Columns** dropdown and enable **All Assessments**. MLflow doesn't always show them by default.
++
+image::eval32.png[MLflow Columns dropdown showing All Assessments option to enable assessment columns,link=self,window=blank,width=350]
 
-. Click on any trace to see the detailed view with the **Assessments** sidebar:
+. Click on a trace that has the simple scorer columns filled (`contains_expected`, `has_numeric_result`, `response_length`) — the rest should be null at this point. You'll see the detailed view with the **Assessments** sidebar:
 +
 image::eval10.png[MLflow trace detail showing inputs outputs span timeline and Assessments sidebar with Feedback and Expectations,link=self,window=blank,width=500]
 +
@@ -214,7 +257,7 @@ This evaluation takes longer than the simple one because each test case is score
 +
 image::eval12.png[MLflow Evaluation Runs showing 2 runs - simple and LLM-as-a-Judge,link=self,window=blank,width=700]
 
-. Click **Traces** and enable all assessment columns. You'll see the full picture with both deterministic and LLM judge results:
+. Click **Traces** and use the **Columns** dropdown to enable **All Assessments**. You'll see the full picture with both deterministic and LLM judge results:
 +
 image::eval13.png[MLflow Traces view with full assessment columns including tool_call_correctness safety and relevance,link=self,window=blank,width=700]
 +

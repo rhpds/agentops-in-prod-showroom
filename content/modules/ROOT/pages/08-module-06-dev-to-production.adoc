@@ -231,7 +231,20 @@ Two of three scorers show regressions. The agent still produces long-enough resp
 +
 image::eval31.png[MLflow Prompts Traces tab showing Version 1 and Version 2 traces side by side with assessment columns contains_expected has_numeric_result and mortgage_guidelines,link=self,window=blank,width=700]
 +
-The traces are grouped by prompt version. You can see exactly which test cases passed or failed for each version: Version 1 traces show consistent `True` values for `contains_expected`, while Version 2 traces show `False` for several test cases. The per-trace detail lets you click into any failing trace to understand _why_ the response missed the expected keyword (the agent answered from general knowledge instead of calling the `product_info` tool).
+The traces are grouped by prompt version. You can see exactly which test cases passed or failed for each version:
++
+--
+* **Version 1** traces show consistent `True` values for `contains_expected` — the agent called the right tools and included the expected keywords.
+* **Version 2** traces show `False` for several test cases — the agent answered from general knowledge instead of calling the `product_info` tool, missing expected keywords.
+--
++
+Click into any failing trace to understand why the response missed the expected keyword and diagnose the root cause.
+
+. To compare the prompt versions side by side, navigate to **Prompts** > **public-assistant-system-prompt** and click **Text** in the comparison view to see the differences between versions:
++
+image::eval34.png[MLflow Prompt comparison showing text differences between Version 1 and Version 2,link=self,window=blank,width=700]
++
+This lets you correlate specific prompt changes with evaluation regressions — a critical capability for prompt engineering at scale.
 
 === The verdict
 
