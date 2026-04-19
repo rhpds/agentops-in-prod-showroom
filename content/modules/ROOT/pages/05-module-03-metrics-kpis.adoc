@@ -116,6 +116,13 @@ A Grafana instance is pre-deployed in your workspace namespace with a **Mortgage
 
 Let's open it and see what's there.
 
+. First, log in to the OpenShift cluster from the terminal:
++
+[source,bash,subs="+attributes"]
+----
+oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password}
+----
+
 . Find the Grafana route and open it in your browser:
 +
 [source,bash,subs="+attributes"]
