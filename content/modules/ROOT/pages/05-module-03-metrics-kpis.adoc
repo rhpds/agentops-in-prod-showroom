@@ -50,6 +50,8 @@ Traditional applications need request rate, error rate, and latency. Agentic app
 |Are queries routing to the fast or capable model? Is the classifier working?
 |===
 
+image::agentic-app-pre4.png[Agentic Metrics - The 6 That Matter showing traditional metrics plus agentic additions with model routing and Prometheus scraping by OpenShift UWM,link=self,window=blank,width=700]
+
 The mortgage-ai API exposes all these at `GET /metrics` in Prometheus format. OpenShift User Workload Monitoring scrapes them automatically.
 
 [%collapsible]
