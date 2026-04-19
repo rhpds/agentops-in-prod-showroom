@@ -128,7 +128,7 @@ oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {pas
 [source,bash,subs="+attributes"]
 ----
 GRAFANA_ROUTE=$(oc get route -n {user_project} grafana-route -o jsonpath='\{.spec.host}')
-echo "Grafana: https://\${GRAFANA_ROUTE}"
+echo "Grafana: https://$\{GRAFANA_ROUTE}"
 ----
 +
 Alternatively, you can find the Grafana route in the OpenShift Console. Navigate to **Networking > Routes** in the `{user_project}` project and click the `grafana-route` Location link:
