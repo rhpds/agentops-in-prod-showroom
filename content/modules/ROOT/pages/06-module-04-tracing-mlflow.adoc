@@ -62,7 +62,6 @@ NOTE: Red Hat OpenShift AI (RHOAI) deploys a single shared MLflow instance that 
 * **Tracing**: Capture and debug LLM interactions and agent workflows (our focus)
 * **Evaluation**: Measure and compare LLM quality with built-in and custom scorers
 * **Prompts**: Version control and manage prompts with aliases across teams
-* **Model Training**: Track experiments with parameters, metrics, and artifacts
 --
 
 NOTE: RHOAI {rhoai_version} ships with MLflow {mlflow_version}, but may be updated in future releases.
