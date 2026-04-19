@@ -70,6 +70,8 @@ The Prospect Agent should respond with mortgage product options:
 
 image::agentic-app2.png[Mortgage-AI chat interface with Prospect Agent responding with loan options,link=self,window=blank,width=700]
 
+NOTE: The LLM backend has rate limiting and may occasionally time out. If the agent does not respond or you see an error, reload the page and ask the question again.
+
 NOTE: Because the application uses generative AI, responses are non-deterministic. The exact wording, formatting, and details may differ from the screenshots shown in this workshop.
 
 == Exercise 2: Explore the multi-agent architecture
