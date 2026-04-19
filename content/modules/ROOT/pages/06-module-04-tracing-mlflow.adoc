@@ -152,6 +152,8 @@ MLflow captures the full user context with every trace:
 --
 +
 Below the inputs, the span sequence shows the agent's execution plan: `ChatOpenAI` was called (the LLM decides what to do), then `ceo_pipeline_summary` was called (the tool fetches data), then `ChatOpenAI` was called again (the LLM formulates the response).
++
+NOTE: If you don't see a tool call (e.g., `ceo_pipeline_summary`) in the span sequence, go back to the Mortgage AI App and ask the same question again. LLMs are non-deterministic: even with an optimized system prompt, the model may occasionally answer from its training data without invoking the tool. Repeat until you see a trace that includes the tool call, then continue with the next steps.
 
 === Explore the execution timeline
 
