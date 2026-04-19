@@ -100,7 +100,9 @@ MLflow Tracing is built on https://opentelemetry.io/[OpenTelemetry^], the indust
 
 In Module 1, you clicked **Explore Products** and chatted with the Prospect Agent. That conversation looked like a simple exchange, but MLflow captured every step. Let's find that trace.
 
-. In MLflow, click **Traces** in the left sidebar. You'll see a list of all traced requests, sorted by most recent:
+. In MLflow, click **Experiments** in the left sidebar, then select the **mortgage-ai** experiment. This is the experiment configured by the mortgage-ai application where all traces are recorded.
+
+. Click **Traces** in the left sidebar. You'll see a list of all traced requests, sorted by most recent:
 +
 image::mlflow2.png[MLflow Traces list showing captured requests including Explore Products and portfolio health queries,link=self,window=blank,width=700]
 +
