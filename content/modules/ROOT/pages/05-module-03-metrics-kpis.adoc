@@ -133,7 +133,11 @@ GRAFANA_ROUTE=$(oc get route -n {user_project} grafana-route -o jsonpath='\{.spe
 echo "Grafana: https://$\{GRAFANA_ROUTE}"
 ----
 +
-Authentication is handled via OpenShift OAuth. Log in with your OpenShift credentials if prompted.
+. Grafana uses OpenShift OAuth for authentication. When prompted, log in with your OpenShift credentials: username `{user}`, password `{password}`:
++
+image::agentic-app-pre7.png[OpenShift SSO login page for Grafana authentication,link=self,window=blank,width=400]
+
+. Navigate to the **Mortgage-AI Backend Metrics** dashboard.
 
 === Overview and HTTP panels
 
