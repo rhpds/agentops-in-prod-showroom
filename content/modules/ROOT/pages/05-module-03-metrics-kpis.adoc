@@ -135,9 +135,13 @@ Alternatively, you can find the Grafana route in the OpenShift Console. Navigate
 +
 image::agentic-app-pre5.png[OpenShift Console Routes page showing grafana-route in the wksp-user1 project,link=self,window=blank,width=700]
 +
+Or use the **application launcher** (waffle icon) in the top-right corner and click **Grafana ({user_project})** under **Third Party Services**:
++
+image::agentic-app-pre6.png[OpenShift Console application launcher showing Grafana under Third Party Services,link=self,window=blank,width=250]
++
 Authentication is handled via OpenShift OAuth. Log in with your OpenShift credentials if prompted.
 
-. Navigate to the **Mortgage-AI Backend Metrics** dashboard, or open it directly:
+. Optionally, navigate to the **Mortgage-AI Backend Metrics** dashboard directly:
 +
 [source,bash]
 ----
