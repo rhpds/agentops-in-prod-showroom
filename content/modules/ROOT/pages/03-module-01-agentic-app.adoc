@@ -220,6 +220,27 @@ What's the portfolio health?
 +
 image::agentic-app6.png[CEO Assistant responding with portfolio health overview,link=self,window=blank,width=700]
 
+=== Build a conversation for later analysis
+
+Before we move on, let's generate a richer session with multiple turns. This will give us more data to explore when we get to tracing in Module 4.
+
+[start=5]
+. In the same chat, ask a follow-up question:
++
+[source,text]
+----
+What are the denial trends?
+----
+
+. Then ask one more:
++
+[source,text]
+----
+What is the Loan Officer Performance?
+----
+
+Each question triggers a different tool call behind the scenes. By the time you finish, your CEO session will have 3 turns spanning portfolio health, denial analysis, and officer performance. In Module 4, you'll trace every step of this conversation end-to-end.
+
 === The observability challenge
 
 The response looks great. But stop and think about what just happened behind the scenes:
