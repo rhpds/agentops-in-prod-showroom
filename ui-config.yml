@@ -28,6 +28,10 @@ tabs:
   - name: Mortgage AI App
     url: 'https://mortgage-ai-ui-route-wksp-user1.%DOMAIN%'
 
+  # Grafana - metrics dashboards
+  - name: Grafana
+    url: 'https://grafana-route-wksp-user1.%DOMAIN%'
+
   # External documentation
   - name: MLflow Docs
     url: 'https://mlflow.org/docs/latest/genai/tracing/'
