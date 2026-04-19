@@ -109,6 +109,8 @@ Additionally, `prometheus-fastapi-instrumentator` provides automatic HTTP metric
 
 == Exercise 1: Explore the Mortgage-AI Grafana dashboard
 
+TIP: You can access the Grafana dashboard directly from the *Grafana* tab at the top of this page, without navigating through the OpenShift Console.
+
 A Grafana instance is pre-deployed in your workspace namespace with a **Mortgage-AI Backend Metrics** dashboard already configured. It connects to 2 Prometheus datasources:
 
 * **User Workload Monitoring**: scrapes the mortgage-ai application metrics (default)
