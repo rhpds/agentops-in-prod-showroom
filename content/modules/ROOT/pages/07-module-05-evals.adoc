@@ -98,7 +98,7 @@ image::eval3.png[JupyterLab showing evaluate_agent.ipynb open with Setup cell an
 os.environ["LLM_BASE_URL"] = "<from llm-credentials secret>"
 os.environ["LLM_API_KEY"] = "<from llm-credentials secret>"
 os.environ["LLM_MODEL"] = "gpt-oss-120b"
-os.environ["MLFLOW_TRACKING_URI"] = "<from MLflow Console tab URL>"
+os.environ["MLFLOW_TRACKING_URI"] = "https://mlflow.redhat-ods-applications.svc.cluster.local:8443/mlflow"
 os.environ["MLFLOW_TRACKING_TOKEN"] = "<from terminal>"
 os.environ["MLFLOW_EXPERIMENT_NAME"] = "mortgage-ai"
 os.environ["MLFLOW_TRACKING_AUTH"] = "kubernetes"
@@ -112,7 +112,7 @@ You need to fill in 4 values:
 +
 image::eval2.2.png[OpenShift Console Secrets page showing llm-credentials secret in the workspace namespace,link=self,window=blank,width=700]
 
-* `MLFLOW_TRACKING_URI`: copy the URL from the *MLflow Console* tab at the top of this page. It follows the pattern `https://rh-ai.<domain>/mlflow/`.
+* `MLFLOW_TRACKING_URI`: use the internal cluster URL: `https://mlflow.redhat-ods-applications.svc.cluster.local:8443/mlflow`.
 --
 
 . To get the `MLFLOW_TRACKING_TOKEN`, switch to the *Terminal* tab and run:
