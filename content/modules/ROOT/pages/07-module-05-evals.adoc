@@ -89,7 +89,7 @@ Click **Clone** to download the repository.
 +
 image::eval3.png[JupyterLab showing evaluate_agent.ipynb open with Setup cell and environment variables,link=self,window=blank,width=700]
 
-. Run the **Install Dependencies** cell to install the required packages (MLflow, LangChain, OpenAI, etc.). After installation completes, **restart the kernel** when prompted.
+. Run the **Install Dependencies** cell to install the required packages (MLflow, LangChain, OpenAI, etc.).
 
 . In the **Setup** cell, configure the environment variables. The cell should look like this:
 +
