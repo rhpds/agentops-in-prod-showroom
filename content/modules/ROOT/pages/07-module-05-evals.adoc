@@ -139,7 +139,7 @@ image::eval4.png[Notebook cell registering the public-assistant system prompt in
 
 . Switch to the MLflow UI (use the *MLflow Console* tab at the top of this page). Switch to the **mortgage-ai-eval** workspace by clicking the back arrow next to the current workspace name, then selecting **mortgage-ai-eval**:
 +
-image::eval35.png[MLflow workspace selector showing mortgage-ai-eval workspace,link=self,window=blank,width=700]
+image::eval35.png[MLflow workspace selector showing mortgage-ai-eval workspace,link=self,window=blank,width=400]
 +
 Click **Prompts** in the left sidebar. You'll see the registered prompt:
 +
