@@ -50,7 +50,7 @@ TIP: Throughout this workshop, you can switch between CLI and Console freely. So
 +
 [source,bash,subs="+attributes"]
 ----
-MORTGAGE_UI=$(oc get route mortgage-ai-ui-route -n {user_project} -o jsonpath='\{.spec.host}')
+MORTGAGE_UI=$(oc get route mortgage-ai-ui-route -n {user_project} -o jsonpath='{.spec.host}')
 echo "Mortgage AI UI: https://$\{MORTGAGE_UI}"
 ----
 +
@@ -113,7 +113,7 @@ oc get pods -n {user_project}
 +
 [source,bash,subs="+attributes"]
 ----
-MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n {user_project} -o jsonpath='\{.spec.host}')
+MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n {user_project} -o jsonpath='{.spec.host}')
 curl -sk https://$\{MORTGAGE_HEALTH}/health/ | jq -r .
 ----
 +

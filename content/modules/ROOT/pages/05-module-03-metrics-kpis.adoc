@@ -131,7 +131,7 @@ Alternatively, from the terminal:
 [source,bash,subs="+attributes"]
 ----
 oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password}
-GRAFANA_ROUTE=$(oc get route -n {user_project} grafana-route -o jsonpath='\{.spec.host}')
+GRAFANA_ROUTE=$(oc get route -n {user_project} grafana-route -o jsonpath='{.spec.host}')
 echo "Grafana: https://$\{GRAFANA_ROUTE}"
 ----
 +
@@ -179,7 +179,7 @@ image::grafana1.png[Grafana AI Agent Metrics showing token usage and tool call s
 The 4 stat panels at the top show:
 
 * **Active Chat Sessions**: live WebSocket connections. How many users are chatting right now?
-* **Total LLM Tokens (1h)**: tokens consumed in the last hour. This is your cost proxy, in the screenshot, 18.5K tokens.
+* **Total LLM Tokens (1h)**: tokens consumed in the last hour. This is your cost proxy, in the screenshot, 18.5K tokens. This panel requires more than 1 hour of collected data to display meaningful values.
 * **Tool Call Success Rate**: are agent tools working? 100% means everything is healthy.
 * **Avg LLM Latency**: median time for an LLM inference call. 1.75s in the screenshot.
 
