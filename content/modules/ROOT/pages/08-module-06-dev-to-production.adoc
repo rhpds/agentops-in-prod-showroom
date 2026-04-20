@@ -102,7 +102,7 @@ image::eval20.png[Create run form showing run type project experiment and run na
 . Scroll down to **Parameters** and configure the required values:
 +
 --
-* `mlflow_tracking_uri`: `https://mlflow.redhat-ods-applications.svc.cluster.local:8443/mlflow`
+* `mlflow_tracking_uri`: `pass:[https://mlflow.redhat-ods-applications.svc.cluster.local:8443]`
 * `mlflow_workspace`: `{user_project}`
 --
 +
