@@ -105,14 +105,12 @@ os.environ["MLFLOW_TRACKING_AUTH"] = "kubernetes"
 os.environ["MLFLOW_TRACKING_INSECURE_TLS"] = "true"
 ----
 +
-You need to fill in 4 values:
+You need to fill in 3 values:
 +
 --
 * `LLM_BASE_URL` and `LLM_API_KEY`: extract these from the **llm-credentials** secret. In the OpenShift Console, navigate to **Workloads > Secrets** in the `{user_project}` namespace, find **llm-credentials**, scroll down, and click **Reveal values**:
 +
 image::eval2.2.png[OpenShift Console Secrets page showing llm-credentials secret in the workspace namespace,link=self,window=blank,width=700]
-
-* `MLFLOW_TRACKING_URI`: use the internal cluster URL: `https://mlflow.redhat-ods-applications.svc.cluster.local:8443/mlflow`.
 --
 
 . To get the `MLFLOW_TRACKING_TOKEN`, switch to the *Terminal* tab and run:
