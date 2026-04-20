@@ -47,7 +47,7 @@ The outer loop solves these problems by packaging the same evaluation logic into
 |Reproducible, auditable runs
 |===
 
-Red Hat OpenShift AI includes https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2-latest/html/working_with_data_science_pipelines/index[Data Science Pipelines^] (based on Kubeflow Pipelines) for orchestrating multi-step ML workflows, including evaluation pipelines.
+Red Hat OpenShift AI includes https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.4/[Data Science Pipelines^] (based on Kubeflow Pipelines) for orchestrating multi-step ML workflows, including evaluation pipelines.
 
 == Exercise 1: Import an evaluation pipeline
 
