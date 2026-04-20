@@ -137,7 +137,11 @@ Before running evaluations, let's register the agent's system prompt in MLflow's
 +
 image::eval4.png[Notebook cell registering the public-assistant system prompt in MLflow Prompt Registry,link=self,window=blank,width=500]
 
-. Switch to the MLflow UI (use the *MLflow Console* tab at the top of this page). Click **Prompts** in the left sidebar. You'll see the registered prompt:
+. Switch to the MLflow UI (use the *MLflow Console* tab at the top of this page). Switch to the **mortgage-ai-eval** workspace by clicking the back arrow next to the current workspace name, then selecting **mortgage-ai-eval**:
++
+image::eval35.png[MLflow workspace selector showing mortgage-ai-eval workspace,link=self,window=blank,width=700]
++
+Click **Prompts** in the left sidebar. You'll see the registered prompt:
 +
 image::eval5.png[MLflow Prompts page showing public-assistant-system-prompt at Version 1,link=self,window=blank,width=700]
 
