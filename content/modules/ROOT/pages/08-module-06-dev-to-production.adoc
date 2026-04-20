@@ -148,7 +148,7 @@ image::eval25.png[JupyterLab showing evaluate_agent_v2.ipynb open with Prompt Re
 +
 This notebook is purpose-built for prompt regression detection. It registers a modified Version 2 of the system prompt, runs the same evaluation dataset from Module 5, and compares results against the Version 1 baseline.
 
-. Run the **Install Dependencies** cell, then **restart the kernel** when prompted. Run the **Setup** cells to configure the environment variables (these are the same as Module 5).
+. Run the **Install Dependencies** cell. Run the **Setup** cells to configure the environment variables (these are the same as Module 5).
 
 === Review the modified prompt
 
