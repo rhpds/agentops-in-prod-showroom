@@ -173,7 +173,11 @@ The output confirms: `public-assistant-system-prompt (version 2)` with URI `prom
 === Compare prompt versions in MLflow
 
 [start=5]
-. Switch to the MLflow UI. Navigate to **Prompts** and click on **public-assistant-system-prompt**. Click the **Compare** tab. MLflow shows a side-by-side diff of Version 2 (left) and Version 1 (right):
+. Switch to the MLflow UI. Make sure you are in the **multi-agent-loan-origination-eval** workspace (if not, click the back arrow next to the current workspace name and select it, as shown below):
++
+image::eval36.png[MLflow workspace selector showing multi-agent-loan-origination-eval workspace,link=self,window=blank,width=400]
+
+. Navigate to **Prompts** and click on **public-assistant-system-prompt**. Click the **Compare** tab. MLflow shows a side-by-side diff of Version 2 (left) and Version 1 (right):
 +
 image::eval28.png[MLflow Prompts Compare view showing side-by-side diff of Version 2 and Version 1 with red and green highlighting on the TOOL USE change,link=self,window=blank,width=700]
 +
