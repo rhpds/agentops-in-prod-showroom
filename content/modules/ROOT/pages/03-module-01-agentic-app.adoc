@@ -25,7 +25,7 @@ TIP: You can access the mortgage-ai application directly from the *Mortgage AI A
 
 . First, log in to the OpenShift cluster from the terminal:
 +
-[source,bash,subs="+attributes"]
+[source,console,role=execute,subs=attributes+]
 ----
 oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password}
 ----
@@ -34,8 +34,9 @@ oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {pas
 +
 image::agentic-app-pre1.png[OpenShift SSO login page,link=self,window=blank,width=500]
 
-. Once logged in, verify the project selector (top-left) shows `{user_project}`. Navigate to **Workloads > Pods** to see the mortgage-ai components running in your namespace:
+. Once logged in, you will see the `Projects` page and a single project: `{user_project}`. Navigate to **Workloads > Pods** to see the mortgage-ai components running in your namespace:
 +
+image::workloads-pods.png[]
 image::agentic-app0.png[OpenShift Console Pods view showing mortgage-ai components running,link=self,window=blank,width=700]
 +
 You will explore these components in Exercise 2.
@@ -46,21 +47,11 @@ You will explore these components in Exercise 2.
 
 TIP: Throughout this workshop, you can switch between CLI and Console freely. Some tasks are faster in the terminal; others are easier to understand visually in the Console.
 
-. Get the UI route:
-+
-[source,bash,subs="+attributes"]
-----
-MORTGAGE_UI=$(oc get route mortgage-ai-ui-route -n {user_project} -o jsonpath='{.spec.host}')
-echo "Mortgage AI UI: https://$\{MORTGAGE_UI}"
-----
-+
-You can also find this route in the OpenShift Console you explored earlier. Navigate to **Networking > Routes** in the `{user_project}` project and filter by Name `mortgage-ai-ui`:
-+
-image::agentic-app-pre0.png[OpenShift console Routes page showing mortgage-ai-ui-route in the wksp-user project,link=self,window=blank,width=700]
+. Navigate to the Mortgage AI App tab:
 
-. Open the URL in your browser. You'll land on the Fed Aura Capital mortgage-ai interface:
 +
-image::agentic-app1.png[Fed Aura Capital mortgage-ai application interface,link=self,window=blank,width=700]
+image::mortgage-app.png[]
++
 
 . Try a sample conversation clicking the **Explore Products** button:
 +
@@ -111,7 +102,7 @@ oc get pods -n {user_project}
 
 . Check the API service health:
 +
-[source,bash,subs="+attributes"]
+[source,console,role=execute,subs=attributes+]
 ----
 MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n {user_project} -o jsonpath='{.spec.host}')
 curl -sk https://$\{MORTGAGE_HEALTH}/health/ | jq -r .
@@ -201,9 +192,22 @@ Now that you understand the 5 agent personas and how they collaborate, let's exp
 
 You'll interact with the application as a CEO and ask the assistant a question. The response will look correct, but you'll have no way of knowing what happened behind the scenes.
 
-. From the application landing page, click **Sign In**. In the sign-in dialog, use the **Persona Demo Login** section at the bottom and select the **CEO** persona:
+. From the application landing page, click **Sign In**. 
+
++
+image::sign-in.png[]
++
+
+. In the sign-in dialog, use the **Persona Demo Login** section at the bottom and select the **CEO** persona:
+
 +
 image::agentic-app4.png[Sign in dialog with Persona Demo Login showing CEO selection,link=self,window=blank,width=700]
++
+. Click `Sign In`:
+
++
+image::ceo-sign-in.png[]
++
 
 . After signing in, you'll land on the **Executive Dashboard**, the CEO persona's view of portfolio health and operations:
 +
@@ -211,7 +215,7 @@ image::agentic-app5.png[CEO Executive Dashboard showing Pipeline Overview and De
 
 . In the **Your Assistant** chat panel on the right, type the following question:
 +
-[source,text]
+[source,console,role=execute,subs=attributes+]
 ----
 What's the portfolio health?
 ----
@@ -222,19 +226,19 @@ image::agentic-app6.png[CEO Assistant responding with portfolio health overview,
 
 === Build a conversation for later analysis
 
-Before we move on, let's generate a richer session with multiple turns. This will give us more data to explore when we get to tracing in Module 4.
+Before we move on, let's generate a richer session with multiple conversation exchanges (called "turns" in AI terminology — each turn is one question from you and one response from the agent). This will give us more data to explore when we get to tracing in Module 4.
 
 [start=5]
 . In the same chat, ask a follow-up question:
 +
-[source,text]
+[source,console,role=execute,subs=attributes+]
 ----
 What are the denial trends?
 ----
 
 . Then ask one more:
 +
-[source,text]
+[source,console,role=execute,subs=attributes+]
 ----
 What is the Loan Officer Performance?
 ----

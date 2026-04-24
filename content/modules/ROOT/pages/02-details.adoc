@@ -6,20 +6,12 @@
 
 == Timing and schedule
 
-=== Full workshop (1 hour 30 minutes)
-
 * **Module 1**: The Agentic App and Why Observability Matters (15 minutes)
 * **Module 2**: Observability Pillars, Concepts, and Personas (10 minutes)
 * **Module 3**: Metrics and Logs for Agentic Applications (15 minutes)
 * **Module 4**: Tracing and MLflow (20 minutes)
 * **Module 5**: LLM Evaluations (15 minutes)
 * **Module 6**: From Development to Production (15 minutes)
-
-=== Abbreviated workshop (45 minutes)
-
-* **Module 1**: The Agentic App and Why Observability Matters (10 minutes)
-* **Module 3**: Metrics and Logs for Agentic Applications (15 minutes)
-* **Module 4**: Tracing and MLflow (20 minutes)
 
 == Technical requirements
 

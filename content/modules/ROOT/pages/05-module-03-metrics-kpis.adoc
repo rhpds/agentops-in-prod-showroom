@@ -111,35 +111,25 @@ Additionally, `prometheus-fastapi-instrumentator` provides automatic HTTP metric
 
 TIP: You can access the Grafana dashboard directly from the *Grafana* tab at the top of this page, without navigating through the OpenShift Console.
 
-A Grafana instance is pre-deployed in your workspace namespace with a **Mortgage-AI Backend Metrics** dashboard already configured. It connects to 2 Prometheus datasources:
+If prompted, login again with your credentials:
+
+* **Username**: {user}
+* **Password**: {password}
+
+The Grafana instance is pre-deployed in your workspace namespace with a **Mortgage-AI Backend Metrics** dashboard already configured. It connects to 2 Prometheus datasources:
 
 * **User Workload Monitoring**: scrapes the mortgage-ai application metrics (default)
 * **Red Hat OpenShift AI (RHOAI) Prometheus**: provides model serving metrics from OpenShift AI
 
 Let's open it and see what's there.
 
-. Open Grafana using the **application launcher** (waffle icon) in the top-right corner of the OpenShift Console and click **Grafana ({user_project})** under **Third Party Services**:
-+
-image::agentic-app-pre6.png[OpenShift Console application launcher showing Grafana under Third Party Services,link=self,window=blank,width=250]
-+
-You can also find it in **Networking > Routes** in the `{user_project}` project and click the `grafana-route` Location link:
-+
-image::agentic-app-pre5.png[OpenShift Console Routes page showing grafana-route in the wksp-user1 project,link=self,window=blank,width=700]
-+
-Alternatively, from the terminal:
-+
-[source,bash,subs="+attributes"]
-----
-oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password}
-GRAFANA_ROUTE=$(oc get route -n {user_project} grafana-route -o jsonpath='{.spec.host}')
-echo "Grafana: https://$\{GRAFANA_ROUTE}"
-----
-+
-. Grafana uses OpenShift OAuth for authentication. When prompted, log in with your OpenShift credentials: username `{user}`, password `{password}`:
-+
-image::agentic-app-pre7.png[OpenShift SSO login page for Grafana authentication,link=self,window=blank,width=400]
+. Select the `Grafana` tab.
 
 . Navigate to the **Mortgage-AI Backend Metrics** dashboard.
+
++
+image::open-metrics-dashboard.png[]
++
 
 === Overview and HTTP panels
 
@@ -211,6 +201,8 @@ Metrics show aggregated health, but when something goes wrong you need the actua
 
 . Return to the OpenShift Console (use the *OCP Console* tab at the top of this page). Navigate to **Observe** -> **Logs**.
 +
+image::observe-logs.png[]
++
 You'll see a **Forbidden — Missing permissions to get logs** error:
 +
 image::logging4.png[OpenShift Console Observe Logs showing Forbidden error for regular user,link=self,window=blank,width=700]
@@ -226,7 +218,7 @@ image::logging5.png[OpenShift Console Logs Show Query button,link=self,window=bl
 +
 Enter this LogQL query to scope the logs to your namespace:
 +
-[source,logql,subs="+attributes"]
+[source,logql,role=execute,subs=attributes+]
 ----
 { log_type="application", kubernetes_namespace_name="{user_project}" }
 ----
@@ -240,7 +232,7 @@ TIP: `log_type="application"` filters out infrastructure logs (kubelet, CRI-O). 
 [start=3]
 . Narrow the view to the UI container and filter for `/api/` calls. This strips out health probes and static assets, showing only real user interactions:
 +
-[source,logql,subs="+attributes"]
+[source,logql,role=execute,subs=attributes+]
 ----
 { log_type="application", kubernetes_namespace_name="{user_project}", kubernetes_container_name="ui" } |= "/api/"
 ----
@@ -261,7 +253,7 @@ Notice the mix of real user traffic (`/api/chat`, `/api/applications/...`) and K
 [start=4]
 . Add a pipeline filter to find only chat-related entries:
 +
-[source,logql,subs="+attributes"]
+[source,logql,role=execute,subs=attributes+]
 ----
 { log_type="application", kubernetes_namespace_name="{user_project}", kubernetes_container_name="ui" } |= "/api/chat"
 ----
@@ -281,7 +273,7 @@ The traffic you generated in Module 1 should already appear in these logs. WebSo
 ====
 The API container (`api`) shows the server-side processing: FastAPI access logs, MLflow warnings, and agent responses:
 
-[source,logql,subs="+attributes"]
+[source,logql,role=execute,subs=attributes+]
 ----
 { log_type="application", kubernetes_namespace_name="{user_project}", kubernetes_container_name="api" }
 ----
