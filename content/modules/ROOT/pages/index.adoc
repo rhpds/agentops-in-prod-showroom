@@ -13,7 +13,7 @@ In this workshop, you will:
 
 == Who this is for
 
-This workshop is designed for SREs, Platform Engineers, and AI Developers/Engineers who want to implement end-to-end observability for multi-agent AI systems. See the xref:01-overview.adoc[Workshop Overview] for detailed prerequisites and target audience.
+This workshop is designed for SREs, Platform Engineers, and AI Developers/Engineers who want to implement end-to-end observability for multi-agent AI systems.
 
 == Workshop environment
 
@@ -29,7 +29,7 @@ NOTE: All environment details and credentials are available in the lab interface
 
 == Estimated time
 
-This workshop will take approximately **1 hour 30 minutes** to complete. An xref:02-details.adoc#_abbreviated_workshop_45_minutes[abbreviated 45-minute path] is also available, covering Modules 1, 3, and 4.
+This workshop will take approximately **1 hour 30 minutes** to complete.
 
 You can work at your own pace.
 
