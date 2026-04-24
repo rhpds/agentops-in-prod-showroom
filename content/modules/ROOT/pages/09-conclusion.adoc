@@ -1,4 +1,5 @@
 = Conclusion and next steps
+:imagesdir: ../assets/images
 :navtitle: Conclusion
 :toc:
 :toc-placement: preamble

@@ -1,4 +1,5 @@
 = Workshop overview
+:imagesdir: ../assets/images
 :navtitle: Workshop Overview
 :toc:
 :toc-placement: preamble
