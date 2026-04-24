@@ -118,8 +118,13 @@ Each step runs in its own container on the OpenShift AI platform. The pipeline a
 
 == Exercise 3: View automated evaluation results in MLflow
 
+. Switch to the MLflow UI. Make sure you are in the **multi-agent-loan-origination-eval** workspace (if not, click the back arrow next to the current workspace name and select it, as shown below):
++
+image::eval36.png[MLflow workspace selector showing multi-agent-loan-origination-eval workspace,link=self,window=blank,width=400]
+
 Once the pipeline completes, the evaluation results appear in MLflow just like the notebook-driven evaluations from Module 5.
 
+[start=2]
 . In the MLflow UI (use the *MLflow Console* tab at the top of this page), navigate to your experiment's **Traces** view. You'll see the 6 new traces from the pipeline run with their assessment results:
 +
 image::eval23.png[MLflow Traces showing 6 automated evaluation traces with assessment columns contains_expected has_numeric_result and response_length,link=self,window=blank,width=700]
@@ -173,9 +178,9 @@ The output confirms: `public-assistant-system-prompt (version 2)` with URI `prom
 === Compare prompt versions in MLflow
 
 [start=5]
-. Switch to the MLflow UI. Make sure you are in the **multi-agent-loan-origination-eval** workspace (if not, click the back arrow next to the current workspace name and select it, as shown below):
+. Switch to the MLflow UI (use the *MLflow Console* tab at the top of this page). Switch to the **mortgage-ai-eval** workspace by clicking the back arrow next to the current workspace name, then selecting **mortgage-ai-eval**:
 +
-image::eval36.png[MLflow workspace selector showing multi-agent-loan-origination-eval workspace,link=self,window=blank,width=400]
+image::eval37.png[MLflow workspace selector showing mortgage-ai-eval workspace,link=self,window=blank,width=400]
 
 . Navigate to **Prompts** and click on **public-assistant-system-prompt**. Click the **Compare** tab. MLflow shows a side-by-side diff of Version 2 (left) and Version 1 (right):
 +
