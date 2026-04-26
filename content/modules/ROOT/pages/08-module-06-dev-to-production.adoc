@@ -1,7 +1,6 @@
 = Module 6: From development to production
 :imagesdir: ../assets/images
 :navtitle: Module 6: Dev to Production
-:source-highlighter: rouge
 :toc: macro
 :toclevels: 1
 
@@ -126,7 +125,7 @@ image::eval36.png[MLflow workspace selector showing multi-agent-loan-origination
 Once the pipeline completes, the evaluation results appear in MLflow just like the notebook-driven evaluations from Module 5.
 
 [start=2]
-. In the MLflow UI (use the *MLflow Console* tab at the top of this page), navigate to your experiment's **Traces** view. You'll see the 6 new traces from the pipeline run with their assessment results:
+. Navigate to the *MLflow Console* tab and view your experiment's **Traces**. You'll see the 6 new traces from the pipeline run with their assessment results:
 +
 image::eval23.png[MLflow Traces showing 6 automated evaluation traces with assessment columns contains_expected has_numeric_result and response_length,link=self,window=blank,width=700]
 +
@@ -179,7 +178,7 @@ The output confirms: `public-assistant-system-prompt (version 2)` with URI `prom
 === Compare prompt versions in MLflow
 
 [start=5]
-. Switch to the MLflow UI (use the *MLflow Console* tab at the top of this page). Switch to the **mortgage-ai-eval** workspace by clicking the back arrow next to the current workspace name, then selecting **mortgage-ai-eval**:
+. Navigate to the *MLflow Console* tab. Switch to the **mortgage-ai-eval** workspace by clicking the back arrow next to the current workspace name, then selecting **mortgage-ai-eval**:
 +
 image::eval37.png[MLflow workspace selector showing mortgage-ai-eval workspace,link=self,window=blank,width=400]
 

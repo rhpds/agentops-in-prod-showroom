@@ -1,7 +1,6 @@
 = Module 2: Observability pillars, concepts, and personas
 :imagesdir: ../assets/images
 :navtitle: Module 2: Observability Pillars
-:source-highlighter: rouge
 :toc: macro
 :toclevels: 1
 

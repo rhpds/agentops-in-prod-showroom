@@ -1,7 +1,6 @@
 = Module 3: Metrics and logs for agentic applications
 :imagesdir: ../assets/images
 :navtitle: Module 3: Metrics & Logs
-:source-highlighter: rouge
 :toc: macro
 :toclevels: 1
 
@@ -53,7 +52,13 @@ Traditional applications need request rate, error rate, and latency. Agentic app
 
 image::agentic-app-pre4.png[Agentic Metrics - The 6 That Matter showing traditional metrics plus agentic additions with model routing and Prometheus scraping by OpenShift UWM,link=self,window=blank,width=700]
 
-The mortgage-ai API exposes all these at `GET /metrics` in Prometheus format. OpenShift User Workload Monitoring scrapes them automatically.
+The mortgage-ai API exposes all these at `GET /metrics` in Prometheus format. **OpenShift User Workload Monitoring** (a built-in Prometheus instance that comes with Red Hat OpenShift AI) scrapes them automatically every 30 seconds and stores them in a time-series database.
+
+This means you don't need to set up Prometheus yourself—the platform handles collection and storage. You just need to:
+
+1. Expose metrics from your application (mortgage-ai already does this)
+2. Configure Grafana to query the OpenShift Prometheus data source (already configured)
+3. Build dashboards to visualize the metrics (you'll explore this next)
 
 [%collapsible]
 .Complete metrics reference (click to expand)
@@ -110,7 +115,9 @@ Additionally, `prometheus-fastapi-instrumentator` provides automatic HTTP metric
 
 == Exercise 1: Explore the Mortgage-AI Grafana dashboard
 
-TIP: You can access the Grafana dashboard directly from the *Grafana* tab at the top of this page, without navigating through the OpenShift Console.
+TIP: Navigate to the *Grafana* tab to access the dashboard.
+
+image::grafana-tab.png[]
 
 If prompted, login again with your credentials:
 
@@ -124,13 +131,12 @@ The Grafana instance is pre-deployed in your workspace namespace with a **Mortga
 
 Let's open it and see what's there.
 
-. Select the `Grafana` tab.
+. Navigate to the *Grafana* tab.
 
 . Navigate to the **Mortgage-AI Backend Metrics** dashboard.
 
-+
+image::open-grafana-sidebar.png[]
 image::open-metrics-dashboard.png[]
-+
 
 === Overview and HTTP panels
 
@@ -167,7 +173,7 @@ Scroll down to the **AI Agent Metrics** row. This is where it gets interesting. 
 
 image::grafana1.png[Grafana AI Agent Metrics showing token usage and tool call success rate,link=self,window=blank,width=700]
 
-The 4 stat panels at the top show:
+The 4 stat panels at the top of this section show:
 
 * **Active Chat Sessions**: live WebSocket connections. How many users are chatting right now?
 * **Total LLM Tokens**: cumulative tokens consumed since the API started. This is your cost proxy, in the screenshot, 18.5K tokens.
@@ -196,11 +202,11 @@ The traffic you generated in Module 1 (Explore Products, CEO portfolio health) i
 
 == Exercise 2: Explore application logs with LokiStack
 
-Metrics show aggregated health, but when something goes wrong you need the actual log events. OpenShift's LokiStack automatically collects everything your application writes to STDOUT or STDERR, no code changes needed. Let's explore the mortgage-ai logs.
+Metrics show aggregated health, but when something goes wrong you need the actual log events. Red Hat AI includes **LokiStack**, a high-performance log aggregation system that automatically collects everything your application writes to STDOUT or STDERR—no code changes needed. Let's explore the mortgage-ai logs.
 
 === Navigate to the log viewer
 
-. Return to the OpenShift Console (use the *OCP Console* tab at the top of this page). Navigate to **Observe** -> **Logs**.
+. Navigate to the *OCP Console* tab. Then navigate to **Observe** → **Logs**.
 +
 image::observe-logs.png[]
 +
@@ -210,7 +216,7 @@ image::logging4.png[OpenShift Console Observe Logs showing Forbidden error for r
 +
 This is expected. Because you're logged in as a regular user (`{user}`), OpenShift restricts log access to only your namespace for security. Cluster-wide log access is reserved for cluster administrators.
 
-=== Filter to mortgage-ai
+=== Scope logs to your namespace
 
 [start=2]
 . Click **Show Query** to open the query editor:
@@ -224,73 +230,76 @@ Enter this LogQL query to scope the logs to your namespace:
 { log_type="application", kubernetes_namespace_name="{user_project}" }
 ----
 +
-Click **Run Query**. You should now see only logs from the mortgage-ai pods.
+Click **Run Query**. You should now see logs from the mortgage-ai pods.
 +
 TIP: `log_type="application"` filters out infrastructure logs (kubelet, CRI-O). The `kubernetes_namespace_name` label is injected automatically by the log collector.
 
-=== Explore the UI logs
+=== Understanding the log format
+
+What you see is structured JSON. Each log entry contains:
+
+* **Kubernetes metadata**: Pod IDs, container names, namespace labels, network configs
+* **Application message**: The actual log event from your application (in the `message` field)
+* **Timestamps**: When the event occurred
+
+Scroll through a log entry to find the `message` field—that's where the useful application data lives. The metadata helps correlate logs across containers and filter by pod, namespace, or container.
+
+TIP: To quickly locate the `message` field in a log entry, use your browser's find feature: **Cmd+F** (Mac) or **Ctrl+F** (Windows/Linux), then search for `"message"`. This helps you skip past the Kubernetes metadata and jump straight to the application log content.
+
+=== Extract application messages
 
 [start=3]
-. Narrow the view to the UI container and filter for `/api/` calls. This strips out health probes and static assets, showing only real user interactions:
+. Use LogQL to extract just the application messages and filter to API container logs:
 +
-[source,logql,role=execute,subs=attributes+]
-----
-{ log_type="application", kubernetes_namespace_name="{user_project}", kubernetes_container_name="ui" } |= "/api/"
-----
-+
-You'll see nginx access logs like:
-+
-[source,text]
-----
-10.131.0.19 - - [08/Apr/2026:00:26:48 +0000] "GET /api/chat HTTP/1.1" 101 2342
-10.128.2.19 - - [08/Apr/2026:00:26:48 +0000] "GET /api/applications/2590/conditions HTTP/1.1" 200 1097
-10.131.0.2  - - [08/Apr/2026:00:26:50 +0000] "GET / HTTP/1.1" 200 771 "-" "kube-probe/1.33"
-----
-+
-Notice the mix of real user traffic (`/api/chat`, `/api/applications/...`) and Kubernetes health probes (`kube-probe`). The UI proxies API calls, so you see the complete request flow from the user's browser.
-
-=== Filter for specific traffic
-
-[start=4]
-. Add a pipeline filter to find only chat-related entries:
-+
-[source,logql,role=execute,subs=attributes+]
-----
-{ log_type="application", kubernetes_namespace_name="{user_project}", kubernetes_container_name="ui" } |= "/api/chat"
-----
-+
-image::logging2.png[LogQL query filtering mortgage-ai UI logs for chat activity,link=self,window=blank,width=700]
-+
-The `|=` operator is a case-sensitive substring filter. Try also `|= "404"` to find failed requests, or `|= "500"` to find server errors.
-+
-After running the query, you'll see the matching log entries with full metadata:
-+
-image::logging3.png[OpenShift Console Logs showing filtered chat activity results,link=self,window=blank,width=700]
-
-The traffic you generated in Module 1 should already appear in these logs. WebSocket connections (chat sessions) show as HTTP 101 upgrades.
-
-[%collapsible]
-.Compare with API container logs (click to expand)
-====
-The API container (`api`) shows the server-side processing: FastAPI access logs, MLflow warnings, and agent responses:
-
 [source,logql,role=execute,subs=attributes+]
 ----
 { log_type="application", kubernetes_namespace_name="{user_project}", kubernetes_container_name="api" }
+| json
+| line_format "{{.message}}"
 ----
++
+This strips the Kubernetes metadata and shows only what the application wrote to its logs.
 
-Sample output:
+=== How AI helps with log analysis
+
+Raw logs contain rich data, but parsing JSON manually is tedious. In production, teams can use AI-powered observability tools to extract insights:
+
+**What AI assistants can do with these logs:**
+
+* "Show me all errors from the CEO agent in the last hour"
+* "What caused the latency spike at 2pm?"
+* "Summarize today's failed tool calls"
+
+**Example AI-generated insight:**
 
 [source,text]
 ----
-INFO:  10.131.1.212:45042 - "GET /api/applications/2590/risk-assessment HTTP/1.1" 200 OK
-WARNING mlflow.utils.autologging_utils: Encountered unexpected error during autologging...
+Analysis of mortgage-ai logs (last hour):
+• 42 tool calls: 40 succeeded, 2 failed
+• Failures: get_credit_score timeout (30s)
+• Slowest tool: get_pipeline_summary (avg 2.3s)
+• Most active agent: Prospect (27 requests)
 ----
 
-You can see the same `/api/` requests in both the UI and API logs. The UI shows the incoming request, and the API shows how it was processed.
-====
+The raw data exists in LokiStack—AI makes it accessible without manual JSON parsing or complex queries.
 
-IMPORTANT: In production, containers are ephemeral. When a pod restarts or gets redeployed, its local logs vanish. LokiStack persists logs beyond pod lifetime, making post-incident investigation possible. For multi-agent systems, correlating logs across API, UI, and database containers is essential for understanding end-to-end request flow.
+=== Logs and traces are complementary
+
+Logs capture detailed events: errors, warnings, debug output, tool results. They're essential for:
+
+* Debugging specific failures ("What was the error message?")
+* Auditing compliance events ("Who accessed this PII?")
+* Investigating unexpected behavior ("Why did this calculation return zero?")
+
+**Module 4 introduces tracing**, which complements logs by providing:
+
+* Hierarchical request flow across agents and tools
+* Timing breakdowns for each step
+* Parent-child relationships showing what called what
+
+Together, logs and traces give you complete visibility: logs for detailed events, traces for request flow.
+
+IMPORTANT: **LokiStack is a supported feature of Red Hat AI.** Logs persist beyond pod lifetime—when a container restarts or gets redeployed, LokiStack retains the historical logs, making post-incident investigation possible. For multi-agent systems, this persistent log storage is essential for correlating events across API, UI, and database containers.
 
 == Module summary
 

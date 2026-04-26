@@ -1,7 +1,6 @@
 = Module 4: Tracing and MLflow
 :imagesdir: ../assets/images
 :navtitle: Module 4: Tracing & MLflow
-:source-highlighter: rouge
 :toc: macro
 :toclevels: 1
 
@@ -38,7 +37,7 @@ MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that ca
 
 Red Hat OpenShift AI includes MLflow as part of the platform. Let's access the MLflow UI.
 
-. Access the MLflow UI directly from the *MLflow Console* tab at the top of this page:
+. Navigate to the *MLflow Console* tab:
 +
 image::agentic-app-pre8.png[Showroom tabs showing MLflow Console tab,link=self,window=blank,width=700]
 +

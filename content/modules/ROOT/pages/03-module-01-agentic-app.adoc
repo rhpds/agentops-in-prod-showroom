@@ -1,7 +1,6 @@
 = Module 1: The agentic app and why observability matters
 :imagesdir: ../assets/images
 :navtitle: Module 1: The Agentic App
-:source-highlighter: rouge
 :toc: macro
 :toclevels: 1
 
@@ -22,7 +21,7 @@ By the end of this module, you'll be able to:
 
 == Exercise 1: Access the application UI
 
-TIP: Throughout this workshop, all key services are accessible as *tabs at the top of this page* — no need to open separate browser windows. You can access the mortgage-ai application directly from the *Mortgage AI App* tab above.
+TIP: Throughout this workshop, all key services are accessible as *tabs at the top of this page* — no need to open separate browser windows. Navigate to the *Mortgage AI App* tab to access the application.
 
 . First, log in to the OpenShift cluster from the terminal:
 +
@@ -31,7 +30,7 @@ TIP: Throughout this workshop, all key services are accessible as *tabs at the t
 oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password}
 ----
 
-. Open the OpenShift Console using the *OCP Console* tab at the top of the environment-side of the browser window. Log in with the same credentials you just used: username `{user}`, password `{password}`:
+. Navigate to the *OCP Console* tab. Log in with the same credentials you just used: username `{user}`, password `{password}`:
 +
 image::agentic-app-pre1.png[OpenShift SSO login page,link=self,window=blank,width=500]
 
@@ -42,7 +41,7 @@ image::agentic-app0.png[OpenShift Console Pods view showing mortgage-ai componen
 +
 You will explore these components in Exercise 2.
 
-. Navigate to the Mortgage AI App tab:
+. Navigate to the *Mortgage AI App* tab:
 
 +
 image::mortgage-app.png[]

@@ -1,7 +1,6 @@
 = Module 5: Agent & LLM evaluations (Evals)
 :imagesdir: ../assets/images
 :navtitle: Module 5: Agent & LLM Evaluations
-:source-highlighter: rouge
 :toc: macro
 :toclevels: 1
 
@@ -35,9 +34,9 @@ Metrics tell you the agent responded. Traces tell you how it responded. **Evalua
 
 To run evaluations, you need a Jupyter environment. Red Hat OpenShift AI provides managed workbenches with pre-installed data science libraries.
 
-TIP: Throughout this workshop, all key services are accessible as *tabs at the top of this page* — no need to open separate browser windows. You can access the Red Hat OpenShift AI dashboard directly from the *RHOAI Console* tab above.
+TIP: Throughout this workshop, all key services are accessible as *tabs at the top of this page* — no need to open separate browser windows. Navigate to the *RHOAI Console* tab to access the Red Hat OpenShift AI dashboard.
 
-. Access the Red Hat OpenShift AI dashboard directly from the *RHOAI Console* tab at the top of this page:
+. Navigate to the *RHOAI Console* tab:
 +
 image::agentic-app-pre8.png[Showroom tabs showing RHOAI Console tab,link=self,window=blank,width=700]
 +
@@ -116,7 +115,7 @@ You need to fill in 3 values:
 image::eval2.2.png[OpenShift Console Secrets page showing llm-credentials secret in the workspace namespace,link=self,window=blank,width=700]
 --
 
-. To get the `MLFLOW_TRACKING_TOKEN`, switch to the *Terminal* tab and run:
+. To get the `MLFLOW_TRACKING_TOKEN`, navigate to the *Terminal* tab and run:
 +
 [source,bash,subs="+attributes"]
 ----
@@ -140,7 +139,7 @@ Before running evaluations, let's register the agent's system prompt in MLflow's
 +
 image::eval4.png[Notebook cell registering the public-assistant system prompt in MLflow Prompt Registry,link=self,window=blank,width=500]
 
-. Switch to the MLflow UI (use the *MLflow Console* tab at the top of this page). Switch to the **mortgage-ai-eval** workspace by clicking the back arrow next to the current workspace name, then selecting **mortgage-ai-eval**:
+. Navigate to the *MLflow Console* tab. Switch to the **mortgage-ai-eval** workspace by clicking the back arrow next to the current workspace name, then selecting **mortgage-ai-eval**:
 +
 image::eval37.png[MLflow workspace selector showing mortgage-ai-eval workspace,link=self,window=blank,width=400]
 +
