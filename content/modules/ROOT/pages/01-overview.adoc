@@ -7,9 +7,11 @@
 
 == What is AgentOps?
 
-*AgentOps* (Agent Operations) is the discipline of monitoring, tracing, evaluating, and maintaining AI agent systems in production, analogous to how DevOps applies operational practices to software delivery. It addresses the unique challenges of multi-agent AI systems: non-deterministic behavior, distributed decision-making, tool orchestration, and LLM quality assurance.
+Traditional DevOps taught us to monitor, debug, and maintain software systems in production. But AI agents introduce new challenges: non-deterministic behavior, multi-agent orchestration, LLM quality variations, and distributed tool calls.
 
-While traditional observability focuses on request rates, error rates, and latency, AgentOps extends these practices to cover token consumption, agent reasoning paths, tool call success rates, model routing decisions, and output quality evaluation.
+**AgentOps** extends observability practices to handle these realities. Beyond tracking request rates and latency, you need to trace agent reasoning paths, measure token consumption, validate tool call success, and continuously evaluate output quality.
+
+This workshop shows you how.
 
 == Your role and mission
 
@@ -20,39 +22,6 @@ Your CTO has called an emergency meeting: "Our AI agents are failing in producti
 **Your assignment**: Implement a comprehensive AgentOps observability strategy using Red Hat OpenShift AI to gain full visibility into your multi-agent system.
 
 **The objective**: Establish monitoring, tracing, and evaluation capabilities that allow your team to diagnose distributed failures, understand agent decision paths, and ensure consistent quality across all AI-powered workflows.
-
-== Success criteria for your mission
-
-By the end of this workshop, you'll have practical AgentOps skills to address Fed Aura Capital's observability requirements:
-
-* Understand the multi-agent architecture and why observability matters: clear mental model of distributed AI system challenges
-* Master the 3 pillars of observability (metrics, logs, traces): foundation for systematic monitoring
-* Explore metrics dashboards with Red Hat OpenShift AI (RHOAI) and Grafana: real-time visibility into system health
-* Configure MLflow tracing for multi-agent workflows: end-to-end request tracking across agents
-* Set up LLM evaluations for quality assurance: continuous validation of agent outputs
-* Automate evaluations with AI Pipelines: move from manual notebooks to production-ready automated quality checks
-
-**Technical outcome**: Hands-on experience with the complete AgentOps observability stack on Red Hat OpenShift AI.
-
-**Business benefit**: Reduced mean time to resolution (MTTR), improved system reliability, and confidence in AI system behavior.
-
-== Target audience
-
-This workshop is designed for:
-
-* SREs and Platform Engineers who need to monitor and maintain AI systems in production
-* AI Developers and ML Engineers building multi-agent applications
-* DevOps engineers evaluating observability solutions for AI workloads
-* Anyone responsible for the reliability of LLM-based applications
-
-== Prerequisites
-
-You should have:
-
-* Basic understanding of Kubernetes and OpenShift concepts
-* Familiarity with AI/ML concepts and LLM-based applications
-* Experience with observability fundamentals (metrics, logs, traces)
-* Basic Python knowledge for understanding agent instrumentation code
 
 == Fed Aura Capital's challenges
 
@@ -70,20 +39,3 @@ You should have:
 **The opportunity**: Red Hat OpenShift AI provides an integrated observability stack that can address these challenges. You've been selected to evaluate and implement it for Fed Aura Capital's use case.
 
 **Technical perspective**: "MLflow tracing combined with RHOAI's metrics stack can give us the visibility we need, but we need to validate how it integrates with our LangGraph agents and MCP tools."
-
-== Common questions
-
-**"How does tracing work with AI agents?"** +
-Module 4 covers the integration in detail, showing how to instrument AI Agent workflows for automatic trace capture.
-
-**"What metrics should we monitor for AI agents?"** +
-Module 3 introduces the key metrics and logs for agentic applications and how to explore dashboards in Grafana.
-
-**"How do we evaluate if our agents are producing quality responses?"** +
-Module 5 walks through LLM evaluations using MLflow, including building evaluation datasets and running scorers against agent outputs.
-
-**"How do we automate evaluations for production?"** +
-Module 6 shows how to move from manual notebook evaluations to automated AI Pipelines that run on the platform: reproducible, schedulable, and auditable.
-
-**"What's the difference between observing traditional apps and agentic apps?"** +
-Module 2 explains the 3 pillars of observability and how each pillar applies differently to multi-agent AI systems compared to traditional microservices.

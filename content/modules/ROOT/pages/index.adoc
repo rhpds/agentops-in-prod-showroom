@@ -15,13 +15,16 @@ In this workshop, you will:
 
 This workshop is designed for SREs, Platform Engineers, and AI Developers/Engineers who want to implement end-to-end observability for multi-agent AI systems.
 
+== Prerequisites
+
+This workshop assumes basic familiarity with Kubernetes and AI/ML concepts.
+
 == Workshop environment
 
 You will work with a multi-agent mortgage lending application built with LangGraph and integrated with Model Context Protocol (MCP) tools.
 
-You will have access to:
+Log into OpenShift with the following credentials:
 
-* OpenShift cluster: {openshift_console_url}
 * Username: {user}
 * Password: {password}
 
