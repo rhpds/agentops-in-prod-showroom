@@ -101,26 +101,6 @@ Deepen your knowledge with these resources:
 * link:https://opentelemetry.io/docs/[OpenTelemetry Documentation^]: Industry standard for observability
 * link:https://grafana.com/docs/grafana/latest/[Grafana Documentation^]: Dashboard and visualization
 
-=== Related workshops
-
-Explore these workshops to expand your skills:
-
-* **Introduction to Red Hat OpenShift AI**: Foundational RHOAI skills
-* **Building Multi-Agent Applications with LangGraph**: Deep dive into agent development
-* **GitOps for AI/ML Workloads**: Managing AI infrastructure with GitOps
-
-=== Practice projects
-
-Put your new skills to work:
-
-. **Instrument your own agents**: Take an existing LangChain/LangGraph application and add MLflow tracing.
-
-. **Build a custom dashboard**: Create a Grafana dashboard tailored to your specific AI workloads.
-
-. **Implement evaluation pipelines**: Set up continuous evaluation for your production agents.
-
-. **Create runbooks**: Document troubleshooting procedures for common failure modes.
-
 === Get certified
 
 Validate your expertise with Red Hat certifications:
@@ -145,25 +125,3 @@ Thank you for participating in this workshop. You've taken an important step tow
 Remember: **Agentic AI apps don't fail silently. They fail distributedly.** But with proper AgentOps observability, you can see everything, diagnose quickly, and maintain quality.
 
 Keep building, keep learning, keep observing!
-
----
-
-**Workshop**: AgentOps Observability with Red Hat AI +
-**Completed**: {localdate} +
-**Platform**: Red Hat Showroom
-
-== References
-
-The following resources were used in creating this workshop:
-
-=== Documentation
-
-* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow Tracing for GenAI^]: MLflow tracing concepts and implementation
-* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.3/html/managing_openshift_ai/managing-observability_managing-rhoai[RHOAI Observability Documentation^]: Red Hat OpenShift AI observability features
-
-=== Frameworks and tools
-
-* link:https://langchain-ai.github.io/langgraph/[LangGraph^]: Multi-agent orchestration framework
-* link:https://modelcontextprotocol.io/[Model Context Protocol (MCP)^]: Tool integration protocol
-* link:https://grafana.com/[Grafana^]: Metrics visualization platform
-* link:https://prometheus.io/[Prometheus^]: Metrics collection and alerting
