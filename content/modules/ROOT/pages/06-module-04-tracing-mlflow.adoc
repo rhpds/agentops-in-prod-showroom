@@ -23,26 +23,20 @@ MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that ca
 
 == Exercise 1: Access the MLflow tracking server
 
-Red Hat OpenShift AI includes MLflow as part of the platform. Let's access the MLflow UI.
+Red Hat OpenShift AI includes MLflow as part of the platform.
 
-. Navigate to the *MLflow Console* tab:
-+
-image::agentic-app-pre8.png[Showroom tabs showing MLflow Console tab,link=self,window=blank,width=700]
-+
-Authentication is handled via OpenShift OAuth. If prompted again, log in with your OpenShift credentials: username `{user}`, password `{password}`.
-
-. Select your workspace from the **Select workspace** dropdown in the top-left corner. Choose `{user_project}`. Your workspace contains the traces and experiments for your mortgage-ai app.
+. Navigate to the *MLflow Console* tab. If prompted, log in with username `{user}`, password `{password}`. Then select `{user_project}` from the **Select workspace** dropdown in the top-left corner:
 +
 image::select-mlflow-wksp.png[MLflow UI welcome page showing workspace selection and core features,link=self,window=blank,width=700]
 +
 NOTE: Red Hat OpenShift AI (RHOAI) deploys a single shared MLflow instance that provides namespace-based isolation through **workspaces**. Each data science project (OpenShift namespace) maps to its own MLflow workspace, giving teams logically separated experiments, traces, registered models, and prompts, all while sharing a single tracking server.
 
-. Once in your workspace, explore the MLflow interface:
+. MLflow provides three main capabilities. For this module, you'll focus on **Tracing** to analyze the agent workflows from Module 1:
 +
 --
-* **Tracing**: Capture and debug LLM interactions and agent workflows (our focus)
-* **Evaluation**: Measure and compare LLM quality with built-in and custom scorers
-* **Prompts**: Version control and manage prompts with aliases across teams
+* **Tracing**: Capture and debug LLM interactions and agent workflows
+* **Evaluation**: Measure and compare LLM quality with built-in and custom scorers (Module 5)
+* **Prompts**: Version control and manage prompts with aliases across teams (Module 5)
 --
 
 == How does tracing work?
@@ -101,7 +95,7 @@ The Summary tab reveals what was invisible in Module 1:
 * **Outputs**: The complete response returned to the user, including metadata
 --
 
-== Exercise 3: Close the observability gap
+== Exercise 3: Analyze the CEO trace end-to-end
 
 Remember Module 1, Exercise 3? You signed in as CEO David Park, asked _"What is my portfolio health?"_, and got a detailed response. We pointed out the observability gap: you had no way of knowing which agents processed your question, which tools were invoked, or how long each step took.
 
