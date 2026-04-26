@@ -235,7 +235,7 @@ image::agentic-app5.png[CEO Executive Dashboard showing Pipeline Overview and De
 +
 [source,console,role=execute,subs=attributes+]
 ----
-What's the portfolio health?
+Show me the current pipeline status
 ----
 
 . The assistant responds with a detailed portfolio health overview: active applications, stage breakdown, pull-through rate, and average days to close:
@@ -258,10 +258,10 @@ What are the denial trends?
 +
 [source,console,role=execute,subs=attributes+]
 ----
-What is the Loan Officer Performance?
+How are my loan officers doing?
 ----
 
-Each question triggers a different tool call behind the scenes. By the time you finish, your CEO session will have 3 turns spanning portfolio health, denial analysis, and officer performance. In Module 4, you'll trace every step of this conversation end-to-end.
+Each question triggers a different tool call behind the scenes. By the time you finish, your CEO session will have 3 turns spanning pipeline health, denial analysis, and officer performance. In Module 4, you'll trace every step of this conversation end-to-end.
 
 === The observability challenge
 

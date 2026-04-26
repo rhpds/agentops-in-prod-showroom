@@ -19,19 +19,7 @@ By the end of this module, you'll be able to:
 
 == Introduction to MLflow tracing
 
-MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that captures inputs, outputs, and metadata for each step of a request. For Fed Aura Capital, this means visibility into:
-
-* The complete path of a loan application across all 5 agents
-* Every LLM inference call with prompt and response
-* All Model Context Protocol (MCP) tool invocations and their results
-* Agent decision points and handoffs
-
-=== Key concepts
-
-* **Trace**: A complete record of a request's journey through the system
-* **Span**: A single operation within a trace (e.g., one LLM call, one tool invocation)
-* **Parent-child relationships**: Spans form a tree showing the call hierarchy
-* **Attributes**: Metadata attached to spans (tokens used, model name, etc.)
+MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that captures inputs, outputs, and metadata for each step of a request. For Fed Aura Capital, this means visibility into the complete path of loan applications across agents, every LLM call with its prompt and response, all tool invocations, and agent decision points. Each request creates a **trace** (the complete request flow) composed of **spans** (individual operations like LLM calls or tool invocations) organized in a parent-child tree showing what called what.
 
 == Exercise 1: Access the MLflow tracking server
 
@@ -41,18 +29,11 @@ Red Hat OpenShift AI includes MLflow as part of the platform. Let's access the M
 +
 image::agentic-app-pre8.png[Showroom tabs showing MLflow Console tab,link=self,window=blank,width=700]
 +
-Authentication is handled via OpenShift OAuth. Log in with your OpenShift credentials: username `{user}`, password `{password}`.
-+
-[NOTE]
-====
-Alternatively, you can access MLflow from the OpenShift Console. Click the **application launcher** (waffle icon) in the top-right corner. Under **OpenShift Self Managed Services**, click **MLflow**:
-
-image::mlflow0.png[OpenShift Console application launcher showing MLflow under OpenShift Self Managed Services,link=self,window=blank,width=250]
-====
+Authentication is handled via OpenShift OAuth. If prompted again, log in with your OpenShift credentials: username `{user}`, password `{password}`.
 
 . Select your workspace from the **Select workspace** dropdown in the top-left corner. Choose `{user_project}`. Your workspace contains the traces and experiments for your mortgage-ai app.
 +
-image::mlflow1.png[MLflow UI welcome page showing workspace selection and core features,link=self,window=blank,width=700]
+image::select-mlflow-wksp.png[MLflow UI welcome page showing workspace selection and core features,link=self,window=blank,width=700]
 +
 NOTE: Red Hat OpenShift AI (RHOAI) deploys a single shared MLflow instance that provides namespace-based isolation through **workspaces**. Each data science project (OpenShift namespace) maps to its own MLflow workspace, giving teams logically separated experiments, traces, registered models, and prompts, all while sharing a single tracking server.
 
@@ -63,8 +44,6 @@ NOTE: Red Hat OpenShift AI (RHOAI) deploys a single shared MLflow instance that 
 * **Evaluation**: Measure and compare LLM quality with built-in and custom scorers
 * **Prompts**: Version control and manage prompts with aliases across teams
 --
-
-NOTE: RHOAI {rhoai_version} ships with MLflow {mlflow_version}, but may be updated in future releases.
 
 == How does tracing work?
 
@@ -132,18 +111,18 @@ image::mlflow4.png[CEO Executive Dashboard showing the portfolio health question
 
 === Find the CEO trace
 
-. Return to the MLflow **Traces** list and locate the trace for _"what is my portfolio health"_:
+. Return to the MLflow **Traces** list and locate the trace for _"Show me the current pipeline status"_:
 +
-image::mlflow4.1.png[MLflow Traces list with the portfolio health trace highlighted,link=self,window=blank,width=700]
+image::find-trace.png[MLflow Traces list with the pipeline status trace highlighted,link=self,window=blank,width=700]
 +
 Notice the execution time: 8.07s. That's the total end-to-end latency for a question that seemed to be answered instantly in the chat UI.
 
 === Examine user identity tracking
 
 [start=2]
-. Click on the trace to open the **Summary** tab:
+. Click on the trace to open the **Summary** tab.
 +
-image::mlflow5.png[MLflow trace summary showing David Park user identity and the span sequence with ChatOpenAI and ceo_pipeline_summary calls,link=self,window=blank,width=700]
+image::trace-summary.png[MLflow trace summary showing David Park user identity and the span sequence with ChatOpenAI and ceo_pipeline_summary calls,link=self,window=blank,width=700]
 +
 MLflow captures the full user context with every trace:
 +
@@ -162,7 +141,7 @@ NOTE: If you don't see a tool call (e.g., `ceo_pipeline_summary`) in the span se
 [start=3]
 . Click the **Details & Timeline** tab, then click **Show execution timeline** to see the full trace breakdown:
 +
-image::mlflow6.png[MLflow Details and Timeline view showing the full execution tree from LangGraph through input shield agent ChatOpenAI tool calls and output shield,link=self,window=blank,width=700]
+image::nav-execution-timeline.png[MLflow Details and Timeline view showing the full execution tree from LangGraph through input shield agent ChatOpenAI tool calls and output shield,link=self,window=blank,width=700]
 +
 The trace tree shows the complete execution path: `LangGraph` → `input_shield` → `agent` → `ChatOpenAI` (1.26s, decides to call a tool) → `tool_auth` → `ceo_pipeline_summary` (17ms, fetches pipeline data) → `agent` → `ChatOpenAI` (6.44s, composes the response) → `output_shield`. Now you can answer every question from Module 1's observability challenge.
 +
