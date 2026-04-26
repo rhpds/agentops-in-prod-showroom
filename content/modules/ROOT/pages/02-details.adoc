@@ -17,6 +17,33 @@ This workshop builds incrementally. Each module depends on concepts from previou
 
 Feel free to revisit earlier modules as needed. The concepts build on each other, so if something isn't clear later, go back and review.
 
+== Understanding and navigating the workshop UI
+
+The workshop interface is designed to let you read instructions while working in your environment.
+
+**Left panel**: Workshop instructions and content
+
+**Right panel**: Environment tabs for hands-on exercises
+
+* **OCP Console**: OpenShift web console for managing your cluster
+* **Terminal**: Command-line access to run CLI commands
+* **MLflow Console**: MLflow UI for viewing traces and experiments
+* **Mortgage AI App**: The multi-agent application you'll observe
+* **Grafana**: Dashboards for metrics and logs
+* **RHOAI Console**: Dashboard for Red Hat OpenShift AI
+
+**View modes** (top navigation):
+
+image::view-modes.png[]
+
+* **Instructions**: Full-page instructions (hide environment tabs)
+* **Split**: Side-by-side view (current default) - see both instructions and environment
+* **Tabs**: Full-page environment (hide instructions)
+
+**Adjusting the layout**: In Split mode, drag the middle divider left or right to resize the panels.
+
+TIP: Most exercises work best in Split mode so you can reference instructions while working in the environment tabs.
+
 == Technical requirements
 
 === Software versions
