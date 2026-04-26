@@ -18,7 +18,7 @@ By the end of this module, you'll be able to:
 * Describe the architecture of the multi-agent mortgage lending system
 * Identify the 5 distinct agent personas and their responsibilities
 * Explain why distributed AI systems require specialized observability approaches
-* Recognize the key failure modes in multi-agent architectures
+* Recognize the key failure modes (ways the system can fail or degrade) in multi-agent architectures
 
 == Exercise 1: Access the application UI
 
@@ -31,7 +31,7 @@ TIP: Throughout this workshop, all key services are accessible as *tabs at the t
 oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password}
 ----
 
-. Open the OpenShift Console using the *OCP Console* tab at the top of this page, or navigate directly to {openshift_console_url}. Log in with the same credentials you just used: username `{user}`, password `{password}`:
+. Open the OpenShift Console using the *OCP Console* tab at the top of the environment-side of the browser window. Log in with the same credentials you just used: username `{user}`, password `{password}`:
 +
 image::agentic-app-pre1.png[OpenShift SSO login page,link=self,window=blank,width=500]
 
@@ -42,19 +42,15 @@ image::agentic-app0.png[OpenShift Console Pods view showing mortgage-ai componen
 +
 You will explore these components in Exercise 2.
 
-. Notice the **application launcher** (waffle icon) in the top-right corner. This provides quick access to integrated services like MLflow, Red Hat OpenShift AI, and Grafana. You will use it in Modules 4, 5, and 6.
-+
-TIP: Most of these integrated services (MLflow, Red Hat OpenShift AI, Grafana) are also available as dedicated *tabs at the top of this page*, making it easy to switch between them without leaving the workshop environment.
-
 . Navigate to the Mortgage AI App tab:
 
 +
 image::mortgage-app.png[]
 +
 
-. Try a sample conversation clicking the **Explore Products** button:
+. Scroll down a bit. Try a sample conversation clicking the **Explore Products** button:
 +
-image::agentic-app2.1.png[Explore Products button on the Fed Aura Capital landing page,link=self,window=blank,width=400]
+image::explore-products.png[Explore Products button on the Fed Aura Capital landing page,link=self,window=blank,width=400]
 
 The Prospect Agent should respond with mortgage product options:
 
@@ -68,31 +64,111 @@ NOTE: Because the application uses generative AI, responses are non-deterministi
 
 Now that you've seen the application in action, let's explore what's running under the hood. The mortgage-ai system serves 5 distinct agent personas through a single API deployment.
 
-=== The deployed components
+=== Understanding the architecture
+
+The mortgage-ai system runs as **a single FastAPI service with 5 LangGraph agent implementations** inside it. Each agent serves a different persona in the lending workflow, but they all run in the same pod.
+
+**System architecture:**
+
+image::agentic-app-pre2.png[Mortgage AI system architecture showing React frontend connecting via WebSocket to FastAPI backend with 5 agent personas and PostgreSQL with pgvector and MinIO object storage,link=self,window=blank,width=700]
+
+**Deployed components:**
 
 [cols="1,2",options="header"]
 |===
 |Component |Purpose
 
 |mortgage-ai-api
-|FastAPI backend serving all 5 agent personas via WebSocket endpoints
+|**One FastAPI pod** containing all 5 agent implementations, routes by role via WebSocket
 
 |mortgage-ai-ui
 |React frontend for interacting with agents
 
 |mortgage-ai-db
-|PostgreSQL with pgvector for document storage and vector embeddings
+|PostgreSQL with pgvector for document storage and RAG (Retrieval-Augmented Generation) embeddings
+
+|minio
+|S3-compatible object storage for uploaded documents
 
 |keycloak
 |Identity provider (disabled for this workshop)
-
-|minio
-|S3-compatible object storage for documents
 |===
 
-image::agentic-app-pre2.png[Mortgage AI system architecture showing React frontend connecting via WebSocket to FastAPI backend with 5 agent personas and PostgreSQL with pgvector and MinIO object storage,link=self,window=blank,width=700]
+=== The 5 agent personas
 
-. View the pods and their status:
+Each agent has its own endpoint, tools, and responsibilities. They **don't call each other** directly—instead, they're isolated workflows serving different user roles:
+
+image::agentic-app-pre3.png[The 5 agent personas showing Prospect and Borrower and Loan Officer and Underwriter and CEO with their roles and capabilities routing into a single FastAPI deployment via WebSocket,link=self,window=blank,width=700]
+
+[cols="1,1,2,2",options="header"]
+|===
+|Persona |Role |Agent |Key Capabilities
+
+|Prospect
+|Unauthenticated
+|Public Assistant
+|Product info, affordability estimates
+
+|Borrower
+|`borrower`
+|Borrower Assistant
+|Application intake, document upload, status tracking, condition response
+
+|Loan Officer
+|`loan_officer`
+|LO Assistant
+|Pipeline management, application review, communication drafting, knowledge base search
+
+|Underwriter
+|`underwriter`
+|Underwriter Assistant
+|Risk assessment, compliance checks, condition management, decisions
+
+|CEO
+|`ceo`
+|CEO Assistant
+|Pipeline analytics, audit trail, decision trace, model monitoring
+|===
+
+**API endpoints (all served by the same `mortgage-ai-api` pod):**
+
+[source,text]
+----
+/api/prospect/chat    - Prospect Agent (initial inquiries)
+/api/borrower/chat    - Borrower Agent (application intake)
+/api/loanofficer/chat - Loan Officer Agent (pipeline management)
+/api/underwriter/chat - Underwriter Agent (risk assessment)
+/api/ceo/chat         - Executive Agent (analytics)
+----
+
+=== How a request flows
+
+**Request path:** User → UI → WebSocket → API router → Specific agent → LangGraph workflow → Tools (DB, MCP, LLM) → Response
+
+**Example (CEO asking "What's the portfolio health?"):**
+
+. User asks question in UI
+. WebSocket routes to `/api/ceo/chat` based on authenticated role
+. CEO Agent (LangGraph workflow) receives the question
+. Agent decides which tools to call: `get_pipeline_summary`, `calculate_pull_through_rate`
+. Each tool may query the database or call external MCP tools
+. Agent calls the LLM multiple times to reason about tool results
+. Final response is sent back to the user
+
+**Why this matters for observability:** A single user question can trigger 5+ LLM calls, 10+ tool invocations, and multiple database queries. When something fails or returns wrong data, you need to trace the entire decision path to find the root cause.
+
+IMPORTANT: **Common failure modes in multi-agent architectures** +
+Understanding how these systems fail is key to implementing effective observability: +
+ +
+• **Silent tool failures**: MCP tool returns empty data, but the agent proceeds anyway and generates a response based on incomplete information +
+• **Cascading latency**: A slow database query delays the LLM call, which delays the response—but you can't tell which step caused the bottleneck +
+• **Context overflow**: Agent tries to pass too much data to the LLM, the call fails with a cryptic error, and the user sees a generic timeout +
+• **Non-deterministic failures**: The same question produces different results due to LLM variations, making bugs difficult to reproduce +
+• **Distributed failures**: One agent's tool call fails, affecting downstream agents without clear error propagation
+
+=== Verify the deployment
+
+. Navigate to the **Terminal** tab. View the pods and their status:
 +
 [source,bash,subs="+attributes"]
 ----
@@ -129,62 +205,6 @@ Expected output:
 ]
 ----
 
-. Each persona has its own chat endpoint:
-+
-[source,text]
-----
-/api/prospect/chat    - Prospect Agent (initial inquiries)
-/api/borrower/chat    - Borrower Agent (application intake)
-/api/loanofficer/chat - Loan Officer Agent (pipeline management)
-/api/underwriter/chat - Underwriter Agent (risk assessment)
-/api/ceo/chat         - Executive Agent (analytics)
-----
-
-=== The 5 agent personas
-
-[cols="1,1,2,2",options="header"]
-|===
-|Persona |Role |Agent |Key Capabilities
-
-|Prospect
-|Unauthenticated
-|Public Assistant
-|Product info, affordability estimates
-
-|Borrower
-|`borrower`
-|Borrower Assistant
-|Application intake, document upload, status tracking, condition response
-
-|Loan Officer
-|`loan_officer`
-|LO Assistant
-|Pipeline management, application review, communication drafting, knowledge base search
-
-|Underwriter
-|`underwriter`
-|Underwriter Assistant
-|Risk assessment, compliance checks, condition management, decisions
-
-|CEO
-|`ceo`
-|CEO Assistant
-|Pipeline analytics, audit trail, decision trace, model monitoring
-|===
-
-image::agentic-app-pre3.png[The 5 agent personas showing Prospect and Borrower and Loan Officer and Underwriter and CEO with their roles and capabilities routing into a single FastAPI deployment via WebSocket,link=self,window=blank,width=700]
-
-=== Key AI patterns
-
-This application demonstrates production-ready AI patterns for regulated industries:
-
-* **Multi-agent orchestration** - 5 LangGraph (a framework for building stateful, multi-agent AI workflows) agents with role-scoped tools and RBAC (Role-Based Access Control) enforcement
-* **Compliance knowledge base** - Retrieval-Augmented Generation (RAG) using pgvector (a PostgreSQL extension for vector similarity search), with tiered boosting (federal regulations > agency guidelines > internal policies)
-* **Model routing** - Complexity-based routing between fast and capable LLM tiers
-* **Comprehensive audit trail** - Hash-chained, append-only audit events with MLflow trace correlation
-* **PII masking** - Middleware-based masking for executive roles (SSN, DOB, account numbers)
-* **Safety shields** - Input and output content filters with escalation pattern detection
-
 == Exercise 3: Experience the observability gap
 
 Now that you understand the 5 agent personas and how they collaborate, let's experience firsthand the observability challenge that comes with distributed AI systems.
@@ -212,7 +232,7 @@ image::ceo-sign-in.png[]
 +
 image::agentic-app5.png[CEO Executive Dashboard showing Pipeline Overview and Denial Analysis,link=self,window=blank,width=700]
 
-. In the **Your Assistant** chat panel on the right, type the following question:
+. In the **Your Assistant** chat panel on the right, type the following question (if needed, adjust the center divider to reveal the chat panel):
 +
 [source,console,role=execute,subs=attributes+]
 ----
@@ -255,6 +275,35 @@ The response looks great. But stop and think about what just happened behind the
 * What if a tool call **failed silently**? Would you even know?
 
 Without proper observability instrumentation, these questions are unanswerable. The application gives you a polished response, but the entire decision-making process (the agent routing, tool invocations, LLM calls, and data retrieval) remains a black box.
+
+**Why traditional monitoring isn't enough:**
+
+Traditional application monitoring tracks HTTP requests, error rates, and response times. For the mortgage-ai API, that means you'd see:
+
+* `POST /api/ceo/chat` → 200 OK, 2.3s response time
+
+But you wouldn't see:
+
+* Which tools the CEO agent called (`get_pipeline_summary`, `calculate_pull_through_rate`)
+* How many LLM calls happened (was it 3 or 8?)
+* Which call took 1.8s of that 2.3s total
+* Whether the agent retrieved the correct data from the database
+* If any tool calls failed silently but the agent still generated a response
+
+This is why AgentOps requires specialized observability: you need to see inside the decision-making process, not just the HTTP wrapper around it. In the next modules, you'll learn how to instrument this visibility using the 3 pillars of observability.
+
+[%collapsible]
+.Under the hood: Production-ready AI patterns
+====
+This application demonstrates key patterns for regulated industries:
+
+* **Multi-agent orchestration**: 5 LangGraph agents with role-scoped tools and RBAC enforcement
+* **Compliance knowledge base**: RAG using pgvector with tiered boosting (federal regulations > agency guidelines > internal policies)
+* **Model routing**: Complexity-based routing between fast and capable LLM tiers
+* **Comprehensive audit trail**: Hash-chained, append-only audit events with MLflow trace correlation
+* **PII masking**: Middleware-based masking for executive roles (SSN, DOB, account numbers)
+* **Safety shields**: Input and output content filters with escalation pattern detection
+====
 
 == Module summary
 
