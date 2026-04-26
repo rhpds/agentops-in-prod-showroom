@@ -5,9 +5,21 @@
 :toc: macro
 :toclevels: 1
 
-Now that you've experienced the challenges of monitoring a multi-agent system, it's time to understand the foundational concepts that will guide your observability strategy. Different roles in your organization have different observability needs, and understanding these perspectives is key to building effective monitoring.
+== Revisiting your CEO conversation
 
-In this module, you'll learn the 3 pillars of observability and how they apply to agentic AI systems, while understanding the distinct needs of SRE/Platform Engineers versus AI Developers/Engineers.
+Remember when you asked the CEO Assistant "What's the portfolio health?" in Module 1? That single question generated a polished response with pipeline statistics and metrics. But what actually happened behind the scenes?
+
+**Your question triggered:**
+
+* **30+ metrics**: Token counts, LLM latency, database query times, tool call durations
+* **15+ log events**: Agent decisions, tool parameters, prompt/completion pairs, database results
+* **1 distributed trace**: Spanning 5+ LLM calls and 3+ tool invocations across the CEO agent workflow
+
+All you saw was the final answer. The decision-making process—which tools were called, how long each step took, whether any calls failed—remained completely invisible.
+
+**This is the observability gap in action.**
+
+In this module, you'll learn the 3 pillars of observability (metrics, logs, traces) that make that invisible decision-making process visible. You'll understand what Fed Aura Capital needs to capture from your CEO conversation to debug issues, optimize performance, and ensure quality.
 
 NOTE: This is a conceptual module: no terminal or cluster work required. The goal is to build a shared vocabulary before diving into hands-on tooling in Modules 3-6.
 
