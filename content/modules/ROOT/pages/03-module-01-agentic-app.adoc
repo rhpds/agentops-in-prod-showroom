@@ -21,9 +21,9 @@ By the end of this module, you'll be able to:
 
 == Exercise 1: Access the application UI
 
-TIP: Throughout this workshop, all key services are accessible as *tabs at the top of this page* — no need to open separate browser windows. Navigate to the *Mortgage AI App* tab to access the application.
+TIP: Throughout this workshop, all key services are accessible as *tabs* — no need to open separate browser windows.
 
-. First, log in to the OpenShift cluster from the terminal:
+. First, log in to the OpenShift cluster from the **Terminal** tab:
 +
 [source,console,role=execute,subs=attributes+]
 ----
@@ -37,6 +37,12 @@ image::agentic-app-pre1.png[OpenShift SSO login page,link=self,window=blank,widt
 . Once logged in, you will see the `Projects` page and a single project: `{user_project}`. Navigate to **Workloads > Pods** to see the mortgage-ai components running in your namespace:
 +
 image::workloads-pods.png[]
++
+
+If you do not see pods, make sure you select your project:
+
++
+image::select-project.png[]
 image::agentic-app0.png[OpenShift Console Pods view showing mortgage-ai components running,link=self,window=blank,width=700]
 +
 You will explore these components in Exercise 2.
@@ -167,20 +173,26 @@ Understanding how these systems fail is key to implementing effective observabil
 
 === Verify the deployment
 
+Before exploring the application, let's confirm all components are running and healthy. We'll check two things: that the OpenShift pods are ready, and that the API can successfully connect to its database.
+
 . Navigate to the **Terminal** tab. View the pods and their status:
 +
 [source,bash,subs="+attributes"]
 ----
 oc get pods -n {user_project}
 ----
++
+This command shows all pods in your namespace and their readiness status. All pods should show `Running` with `1/1` or `2/2` containers ready. If any pod shows `CrashLoopBackOff`, `Error`, or `0/1`, the deployment has not completed successfully.
 
-. Check the API service health:
+. Check the API service health endpoint:
 +
 [source,console,role=execute,subs=attributes+]
 ----
 MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n {user_project} -o jsonpath='{.spec.host}')
 curl -sk https://$\{MORTGAGE_HEALTH}/health/ | jq -r .
 ----
++
+This health check verifies two critical dependencies for the multi-agent system: the FastAPI service itself, and its connection to the PostgreSQL database (which stores application state, embeddings for RAG, and audit trails).
 +
 Expected output:
 +
@@ -203,6 +215,8 @@ Expected output:
   }
 ]
 ----
++
+**What this result means:** Both the API and Database components report `"status": "healthy"`. This confirms the FastAPI pod is running and can establish a connection to PostgreSQL. Without a healthy database connection, the agents cannot access their knowledge base, retrieve application data, or execute RAG workflows. If either component shows a status other than `"healthy"`, troubleshoot that service before proceeding.
 
 == Exercise 3: Experience the observability gap
 
@@ -231,7 +245,7 @@ image::ceo-sign-in.png[]
 +
 image::agentic-app5.png[CEO Executive Dashboard showing Pipeline Overview and Denial Analysis,link=self,window=blank,width=700]
 
-. In the **Your Assistant** chat panel on the right, type the following question (if needed, adjust the center divider to reveal the chat panel):
+. In the **Your Assistant** chat panel on the right, type the following question (if needed, adjust the center divider to reveal the chat panel or select the chat icon in the bottom right corner):
 +
 [source,console,role=execute,subs=attributes+]
 ----

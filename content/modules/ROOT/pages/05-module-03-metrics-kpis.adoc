@@ -57,7 +57,7 @@ The mortgage-ai API exposes all these at `GET /metrics` in Prometheus format. **
 This means you don't need to set up Prometheus yourself—the platform handles collection and storage. You just need to:
 
 1. Expose metrics from your application (mortgage-ai already does this)
-2. Configure Grafana to query the OpenShift Prometheus data source (already configured)
+2. Configure a visualization platform (we're using Grafana in this workshop) to query the OpenShift Prometheus data source (already configured)
 3. Build dashboards to visualize the metrics (you'll explore this next)
 
 [%collapsible]
@@ -115,7 +115,7 @@ Additionally, `prometheus-fastapi-instrumentator` provides automatic HTTP metric
 
 == Exercise 1: Explore the Mortgage-AI Grafana dashboard
 
-TIP: Navigate to the *Grafana* tab to access the dashboard.
+Navigate to the *Grafana* tab to access the dashboard.
 
 image::grafana-tab.png[]
 
@@ -131,7 +131,7 @@ The Grafana instance is pre-deployed in your workspace namespace with a **Mortga
 
 Let's open it and see what's there.
 
-. Navigate to the *Grafana* tab.
+. Open the *Grafana* tab.
 
 . Navigate to the **Mortgage-AI Backend Metrics** dashboard.
 

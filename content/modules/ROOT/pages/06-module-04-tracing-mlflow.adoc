@@ -45,7 +45,7 @@ When you deployed the mortgage-ai application in Module 1, tracing was already e
 
 === MLflow autolog: one-line tracing
 
-MLflow Tracing integrates with https://mlflow.org/docs/latest/genai/tracing/integrations/#agent-frameworks-python[40+ popular LLM and AI agent frameworks^], offering a **one-line automatic tracing** experience. No manual span creation, no decorator boilerplate, no SDK wiring.
+MLflow Tracing integrates with https://mlflow.org/docs/latest/genai/tracing/integrations/#agent-frameworks-python[40+ popular LLM and AI agent frameworks^], offering a **one-line automatic tracing** experience. Call `autolog()` once at application startup, and all your LangChain operations (LLM calls, tool invocations, agent decisions) are automatically captured—no changes needed to your agent logic.
 
 The mortgage-ai application uses https://mlflow.org/docs/latest/genai/tracing/integrations/listing/langchain/[LangChain autologging^]. In https://github.com/rh-ai-quickstart/multi-agent-loan-origination/blob/main/packages/api/src/observability.py#L105[observability.py^], the entire tracing setup is:
 
@@ -109,7 +109,7 @@ image::mlflow4.png[CEO Executive Dashboard showing the portfolio health question
 +
 image::find-trace.png[MLflow Traces list with the pipeline status trace highlighted,link=self,window=blank,width=700]
 +
-Notice the execution time: 8.07s. That's the total end-to-end latency for a question that seemed to be answered instantly in the chat UI.
+Notice the execution time. That's the total end-to-end latency for a question that seemed to be answered instantly in the chat UI.
 
 === Examine user identity tracking
 
@@ -142,48 +142,38 @@ The trace tree shows the complete execution path: `LangGraph` → `input_shield`
 [%collapsible]
 .Full span breakdown (click to expand)
 ====
-[cols="2,1,3",options="header"]
+[cols="1,2",options="header"]
 |===
-|Span |Duration |What It Does
+|Span |What It Does
 
 |`LangGraph`
-|8.08s
 |Root orchestrator: manages the full agent workflow
 
 |`input_shield`
-|26.45ms
 |Safety filter: checks the input for harmful content
 
 |`agent` (first)
-|1.33s
 |LangGraph agent node: routes to the LLM
 
 |`ChatOpenAI` (first)
-|1.26s
 |LLM call: decides to call the `ceo_pipeline_summary` tool
 
 |`should_continue`
-|0.75ms
 |Decision point: should the agent keep processing?
 
 |`tool_auth`
-|21.50ms
 |Authorization check: does the CEO role have access to this tool?
 
 |`tools` → `ceo_pipeline_summary`
-|17.11ms
 |Tool execution: queries the database for pipeline data
 
 |`agent` (second)
-|6.52s
 |LangGraph agent node: routes the tool result back to the LLM
 
 |`ChatOpenAI` (second)
-|6.44s
 |LLM call: formulates a natural-language response from the raw pipeline data
 
 |`output_shield`
-|—
 |Safety filter: checks the output before returning to the user
 |===
 ====
