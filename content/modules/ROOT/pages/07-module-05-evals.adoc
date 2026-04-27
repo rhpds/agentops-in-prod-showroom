@@ -38,18 +38,19 @@ TIP: Throughout this workshop, all key services are accessible as *tabs at the t
 
 . Navigate to the *RHOAI Console* tab:
 +
-image::agentic-app-pre8.png[Showroom tabs showing RHOAI Console tab,link=self,window=blank,width=700]
+image::rhoai-console-tab.png[Showroom tabs showing RHOAI Console tab,link=self,window=blank,width=700]
 +
-[NOTE]
-====
-Alternatively, you can access it from the OpenShift Console. Click the **application launcher** (waffle icon) in the top-right corner. Under **OpenShift Self Managed Services**, click **Red Hat OpenShift AI**:
-
-image::eval0.png[OpenShift Console application launcher showing Red Hat OpenShift AI,link=self,window=blank,width=250]
-====
 
 . In the Red Hat OpenShift AI (RHOAI) dashboard, navigate to **Projects** and select your workspace (`{user_project}`).
 
-. Click **Create workbench** and configure it:
+image::find-project.png[]
+
+. Click **Create a workbench**:
++
+image::create-workbench.png[]
++
+
+Now, configure it:
 +
 --
 * **Name**: `{user_project}`
@@ -60,13 +61,15 @@ image::eval0.png[OpenShift Console application launcher showing Red Hat OpenShif
 +
 image::eval1.png[Red Hat OpenShift AI Create workbench form showing name and image configuration,link=self,window=blank,width=700]
 
-. Click **Create workbench** and wait for it to start. Once the status shows **Running**, click **Open** to launch JupyterLab.
+. Click **Create workbench** and wait for it to start. 
 +
 NOTE: The workbench image download can take a couple of minutes the first time. Please be patient while it pulls the container image and starts.
 
-. Once the status shows **Running**, click **Open** to launch JupyterLab:
+. Once the status shows **Running**, click to launch JupyterLab:
 +
 image::eval2.1.png[Red Hat OpenShift AI workbench status showing Running with Open button,link=self,window=blank,width=700]
+
+NOTE: JupyterLab opens in a new window. Use your browser's split tab feature to view both JupyterLab and these instructions side-by-side, or toggle between windows as you work.
 
 == Exercise 2: Clone the repository and open the evaluation notebook
 
@@ -76,9 +79,15 @@ TIP: Want to learn more about MLflow's evaluation framework? Open the *MLflow Do
 
 The evaluation notebook is part of the mortgage-ai application repository. Let's clone it and set up the environment.
 
-. In JupyterLab, click **Git** > **Clone a Repository** (or use the Git icon in the left sidebar). Enter the repository URL:
+. In JupyterLab, click **Git** > **Clone a Repository** (or use the Git icon in the left sidebar). 
+
 +
-[source,text]
+image::git-clone.png[]
++
+
+Enter the repository URL:
++
+[source,console,role=execute,subs=attributes+]
 ----
 https://github.com/rh-ai-quickstart/multi-agent-loan-origination.git
 ----
@@ -90,6 +99,12 @@ Click **Clone** to download the repository.
 . In the file browser, navigate to `multi-agent-loan-origination/evaluations/` and open **evaluate_agent.ipynb**:
 +
 image::eval3.png[JupyterLab showing evaluate_agent.ipynb open with Setup cell and environment variables,link=self,window=blank,width=700]
++
+IMPORTANT: **New to JupyterLab?** Use these keyboard shortcuts to run notebook cells: +
+• **Shift+Enter** — Run current cell and move to the next one +
+• **Ctrl+Enter** (Windows/Linux) or **Cmd+Enter** (Mac) — Run current cell without advancing +
+• A cell showing `[*]` on the left is currently executing +
+• To run all cells at once, click the restart-and-run-all button (⏮▶) in the toolbar
 
 . Run the **Install Dependencies** cell to install the required packages (MLflow, LangChain, OpenAI, etc.).
 
