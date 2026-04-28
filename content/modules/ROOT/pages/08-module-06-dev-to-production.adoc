@@ -4,6 +4,11 @@
 :toc: macro
 :toclevels: 1
 
+[NOTE]
+====
+**This module is optional** and builds on Module 5. It shows how to automate evaluations into CI/CD pipelines for continuous quality monitoring.
+====
+
 In Module 5, you ran evaluations manually from a Jupyter notebook, the *inner loop* of an AI Developer's workflow. But manual evaluations don't scale. In production, you need evaluations that run automatically, on a schedule, or as part of a CI/CD pipeline.
 
 In this module, you'll move from the inner loop to the *outer loop* by importing and running an evaluation pipeline in Red Hat OpenShift AI. The same scorers, datasets, and MLflow integration you used in Module 5 now run as an automated pipeline. No notebook required.
@@ -118,16 +123,26 @@ Each step runs in its own container on the OpenShift AI platform. The pipeline a
 
 == Exercise 3: View automated evaluation results in MLflow
 
-. Switch to the MLflow UI. Make sure you are in the **multi-agent-loan-origination-eval** workspace (if not, click the back arrow next to the current workspace name and select it, as shown below):
+. Switch to the MLflow UI. Make sure you are still in the **{user_project}** workspace:
 +
-image::eval36.png[MLflow workspace selector showing multi-agent-loan-origination-eval workspace,link=self,window=blank,width=400]
-
+image::reselect-project-mlflow.png[MLflow workspace selector showing user project workspace,link=self,window=blank,width=400]
++
 Once the pipeline completes, the evaluation results appear in MLflow just like the notebook-driven evaluations from Module 5.
 
 [start=2]
-. Navigate to the *MLflow Console* tab and view your experiment's **Traces**. You'll see the 6 new traces from the pipeline run with their assessment results:
+. Navigate to the experiments tab to view the traces. The name of the new experiment is **multi-agent-loan-origination-eval**. 
 +
-image::eval23.png[MLflow Traces showing 6 automated evaluation traces with assessment columns contains_expected has_numeric_result and response_length,link=self,window=blank,width=700]
+image::find-new-exp.png[]
++
+
+. Click on `Traces` from the side bar:
++
+image::traces-nav.png[]
++
+
+You'll see the 6 new traces from the pipeline run with their assessment results:
++
+image::eval23.png[MLflow Traces showing 6 automated evaluation traces with assessment columns,link=self,window=blank,width=700]
 +
 The results are identical in structure to what you saw in Module 5: the same scorers, the same dataset, the same assessment columns. The only difference is that these were produced by an automated pipeline instead of a notebook.
 
@@ -139,9 +154,11 @@ TIP: If assessment columns are not visible in the Traces view (in this module or
 
 == Exercise 4: Catch a bad prompt before production
 
-Automated pipelines ensure evaluations run continuously, but the real payoff comes when they catch a problem before it reaches users. In this exercise, you'll simulate a realistic scenario: a team member proposes a prompt change to reduce latency, and you use evaluations to discover that the change would silently degrade response quality.
+Automated pipelines ensure evaluations run continuously, but the real payoff comes when they catch a problem before it reaches users.
 
-The scenario is simple. A developer on the Fed Aura Capital team notices that the prospect agent spends time calling tools for questions it could answer from general knowledge. They propose a "quick optimization": change `TOOL USE (MANDATORY)` to `TOOL USE (OPTIONAL)` in the system prompt, telling the agent to prefer answering from its own knowledge and only call tools when it truly cannot answer on its own.
+In this exercise, you'll simulate a realistic scenario: a team member proposes a prompt change to reduce latency, and you use evaluations to discover that the change would silently degrade response quality.
+
+The scenario: A developer at Fed Aura Capital notices the prospect agent calls tools for questions it could answer from general knowledge. They propose a "quick optimization"—change `TOOL USE (MANDATORY)` to `TOOL USE (OPTIONAL)` in the system prompt, telling the agent to prefer its own knowledge and only call tools when truly necessary.
 
 This sounds reasonable. It might reduce latency. But will the agent still provide accurate, product-specific responses? Let's find out.
 
@@ -153,7 +170,11 @@ image::eval25.png[JupyterLab showing evaluate_agent_v2.ipynb open with Prompt Re
 +
 This notebook is purpose-built for prompt regression detection. It registers a modified Version 2 of the system prompt, runs the same evaluation dataset from Module 5, and compares results against the Version 1 baseline.
 
-. Run the **Install Dependencies** cell. Run the **Setup** cells to configure the environment variables (these are the same as Module 5).
+. Run the **Install Dependencies** cell. 
+
+. Run the environment variables configuration cell. Copy the **LLM_API_KEY** and **MLFLOW_TRACKING_TOKEN** values from **evaluate_agent.ipynb** (same as Module 5). 
+
+. Run the **Setup**, **Configure MLflow** and **1. Load Existing Prompt (Version 1)** cells.
 
 === Review the modified prompt
 
@@ -173,16 +194,22 @@ This is a realistic scenario. Someone might "optimize" the prompt to reduce tool
 +
 image::eval27.png[Notebook registering Version 2 prompt in MLflow with commit message V2 Changed TOOL USE from MANDATORY to OPTIONAL,link=self,window=blank,width=500]
 +
-The output confirms: `public-assistant-system-prompt (version 2)` with URI `prompts:/public-assistant-system-prompt/2`. Notice the tags include `"purpose": "regression-detection"`, making it clear this version is being tested, not deployed.
+The output confirms `public-assistant-system-prompt (version 2)` with URI `prompts:/public-assistant-system-prompt/2`. Notice the tags include `"purpose": "regression-detection"`, making it clear this version is being tested, not deployed.
 
 === Compare prompt versions in MLflow
 
 [start=5]
-. Navigate to the *MLflow Console* tab. Switch to the **mortgage-ai-eval** workspace by clicking the back arrow next to the current workspace name, then selecting **mortgage-ai-eval**:
+. Navigate to the *MLflow Console* tab. Switch to the **mortgage-ai-eval** experiment:
 +
-image::eval37.png[MLflow workspace selector showing mortgage-ai-eval workspace,link=self,window=blank,width=400]
+image::nav-mortgageaieval-exp.png[]
++
+. Navigate to **Prompts** and click on **public-assistant-system-prompt**. Click the **Compare** tab. 
 
-. Navigate to **Prompts** and click on **public-assistant-system-prompt**. Click the **Compare** tab. MLflow shows a side-by-side diff of Version 2 (left) and Version 1 (right):
++
+image::compare-prompts.png[]
++
+
+. MLflow shows a side-by-side diff of Version 2 (left) and Version 1 (right):
 +
 image::eval28.png[MLflow Prompts Compare view showing side-by-side diff of Version 2 and Version 1 with red and green highlighting on the TOOL USE change,link=self,window=blank,width=700]
 +
@@ -193,11 +220,11 @@ This is the same experience as reviewing a code diff in a pull request, but for 
 === Run evaluations against Version 2
 
 [start=6]
-. Return to the notebook. Run the cells under **7. Run Evaluation with V2 Prompt**. This runs the same 6 test cases and 3 deterministic scorers from Module 5, but with the modified v2 prompt:
+. Return to the notebook. Run the cells under **#5** thru  **7. Run Evaluation with V2 Prompt**. This cell runs the same 6 test cases and 3 deterministic scorers from Module 5, but with the modified v2 prompt:
 +
 image::eval29.png[Notebook running V2 evaluation showing 6 examples and 3 scorers with results contains_expected 83 percent has_numeric_result 50 percent response_length 100 percent,link=self,window=blank,width=500]
 +
-The results are already concerning. Compare with the Module 5 baseline: `contains_expected` dropped from 100% to 83%, meaning the agent is no longer mentioning expected product keywords in some responses. The `has_numeric_result` also shifted. The agent is giving generic answers instead of tool-sourced specifics.
+The results will likely show regressions compared to your Module 5 baseline. Look for drops in `contains_expected` (the agent may no longer mention expected product keywords consistently) and changes in `has_numeric_result` (suggesting the agent is giving generic answers instead of tool-sourced specifics). Your exact percentages may vary, but the pattern of degradation should be visible.
 
 === Compare V1 vs V2 results
 
@@ -206,7 +233,7 @@ The results are already concerning. Compare with the Module 5 baseline: `contain
 +
 image::eval30.png[Notebook comparing V1 baseline vs V2 modified prompt showing contains_expected 100 percent to 83 percent REGRESSION and has_numeric_result regression,link=self,window=blank,width=500]
 +
-The comparison table is clear:
+The comparison table will show which scorers regressed (exact percentages may vary):
 +
 [cols="2,1,1,1,1",options="header"]
 |===
@@ -231,25 +258,31 @@ The comparison table is clear:
 |OK
 |===
 +
-Two of three scorers show regressions. The agent still produces long-enough responses (`response_length` is unchanged), but those responses are now less specific: they miss expected keywords and lack numeric values like rates and dollar amounts. The "optimization" made responses faster but less accurate.
+You'll likely see regressions in multiple scorers. The agent may still produce long-enough responses (`response_length` often stays stable), but those responses become less specific: missing expected keywords and lacking numeric values like rates and dollar amounts. The "optimization" made responses faster but less accurate.
 
 === View per-trace results in MLflow
 
 [start=8]
-. In the MLflow UI, navigate to **Prompts**, click **public-assistant-system-prompt**, and select the **Traces** tab. You can now see evaluation traces from both Version 1 and Version 2, with assessment columns showing per-trace pass/fail:
+. In the MLflow UI, from the **MLflow Console** tab, navigate to **Prompts**, click **public-assistant-system-prompt**, and select the **Traces** tab:
+
++
+image::prompt-traces.png[]
++
+
+You can now see evaluation traces from both Version 1 and Version 2, with assessment columns showing per-trace pass/fail:
 +
 image::eval31.png[MLflow Prompts Traces tab showing Version 1 and Version 2 traces side by side with assessment columns contains_expected has_numeric_result and mortgage_guidelines,link=self,window=blank,width=700]
 +
 The traces are grouped by prompt version. You can see exactly which test cases passed or failed for each version:
 +
 --
-* **Version 1** traces show consistent `True` values for `contains_expected` — the agent called the right tools and included the expected keywords.
-* **Version 2** traces show `False` for several test cases — the agent answered from general knowledge instead of calling the `product_info` tool, missing expected keywords.
+* **Version 1** traces should show more consistent `True` values for `contains_expected` — the agent called the right tools and included the expected keywords.
+* **Version 2** traces will likely show `False` for several test cases — the agent answered from general knowledge instead of calling the `product_info` tool, missing expected keywords.
 --
 +
 Click into any failing trace to understand why the response missed the expected keyword and diagnose the root cause.
 
-. To compare the prompt versions side by side, navigate to **Prompts** > **public-assistant-system-prompt** and click **Text** in the comparison view to see the differences between versions:
+. To compare the prompt versions side by side, navigate to **Prompts** > **public-assistant-system-prompt** and click the **Text** tab to view the differences:
 +
 image::eval34.png[MLflow Prompt comparison showing text differences between Version 1 and Version 2,link=self,window=blank,width=700]
 +
@@ -257,7 +290,7 @@ This lets you correlate specific prompt changes with evaluation regressions — 
 
 === The verdict
 
-The prompt change that seemed like a harmless optimization would have caused a **17% regression** in response accuracy. Without the evaluation framework you built in Modules 5 and 6, this change would have been deployed to production based on a quick manual test ("it still answers questions, looks good"). Fed Aura Capital's prospect agent would have started giving generic mortgage advice instead of specific product information, potentially misguiding customers and creating compliance risk.
+The prompt change that seemed like a harmless optimization would have caused a **measurable regression** in response accuracy. Without the evaluation framework you built in Modules 5 and 6, this change would have been deployed to production based on a quick manual test ("it still answers questions, looks good"). Fed Aura Capital's prospect agent would have started giving generic mortgage advice instead of specific product information, potentially misguiding customers and creating compliance risk.
 
 The evaluation infrastructure caught the regression before it reached a single user. This is the core value of AgentOps: **visibility into quality, not just availability**.
 
@@ -279,4 +312,4 @@ The evaluation infrastructure caught the regression before it reached a single u
 
 **Next steps:**
 
-The Conclusion will recap the full observability journey, from the black box of Module 1 through metrics, traces, evaluations, and automated pipelines, and provide resources for continuing your AgentOps practice.
+The Conclusion recaps the full observability journey—from the black box of Module 1 through metrics, traces, evaluations, and automated pipelines—and provides resources for continuing your AgentOps practice.

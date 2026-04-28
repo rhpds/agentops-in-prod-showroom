@@ -4,7 +4,12 @@
 :toc: macro
 :toclevels: 1
 
-Observability tells you if your system is working, but evaluations tell you if your agents are working *well*. In this module, you'll go beyond basic observability by running LLM evaluations against the Fed Aura Capital prospect agent using MLflow's evaluation framework, Prompt Registry, and LLM-as-a-Judge scorers.
+[NOTE]
+====
+**This module is optional.** If you completed Modules 1-4, you have a strong observability foundation. This module adds advanced quality assurance capabilities for those who want deeper expertise in evaluation frameworks or have additional time.
+====
+
+Observability tells you if your system is working, but evaluations tell you if your agents are working *well*. Without evals, a 20% drop in answer quality can go unnoticed for weeks until customers complain. In this module, you'll go beyond basic observability by running LLM evaluations against the Fed Aura Capital prospect agent using MLflow's evaluation framework, Prompt Registry, and LLM-as-a-Judge scorers (using one LLM to evaluate another LLM's output quality).
 
 TIP: In this module, you're wearing your **AI Developer / Engineer hat**, focusing on model output quality, prompt management, and evaluation design.
 
@@ -24,11 +29,11 @@ By the end of this module, you'll be able to:
 
 In the Fed Aura Capital mortgage system, agents make consequential decisions:
 
-* The prospect agent qualifies leads. Wrong qualification costs sales.
-* The underwriter agent assesses risk. Incorrect assessment creates liability.
-* The underwriter agent checks compliance. Failures risk legal penalties.
+* The prospect agent qualifies leads. A false negative loses a $300K mortgage sale.
+* The underwriter agent assesses risk. A $500K bad loan approval creates regulatory exposure.
+* The underwriter agent checks compliance. Violations risk legal penalties and license suspension.
 
-Metrics tell you the agent responded. Traces tell you how it responded. **Evaluations tell you if it responded correctly.**
+In production, even a 1% error rate means 100 failures per day on 10,000 daily interactions. Metrics tell you the agent responded. Traces tell you how it responded. **Evaluations tell you if it responded correctly.**
 
 == Exercise 1: Launch a Jupyter workbench
 
@@ -108,7 +113,7 @@ IMPORTANT: **New to JupyterLab?** Use these keyboard shortcuts to run notebook c
 
 . Run the **Install Dependencies** cell to install the required packages (MLflow, LangChain, OpenAI, etc.).
 
-. In the **Setup** cell, configure the environment variables. The cell should look like this:
+. The next cell, in the **Install Dependencies** section, configures the environment variables. The cell should look like this:
 +
 [source,python]
 ----
@@ -122,15 +127,21 @@ os.environ["MLFLOW_TRACKING_AUTH"] = "kubernetes"
 os.environ["MLFLOW_TRACKING_INSECURE_TLS"] = "true"
 ----
 +
-You need to fill in 3 values:
+You need to fill in 2 values: `LLM_API_KEY` and `MLFLOW_TRACKING_TOKEN`
 +
 --
-* `LLM_BASE_URL` and `LLM_API_KEY`: extract these from the **llm-credentials** secret. In the OpenShift Console, navigate to **Workloads > Secrets** in the `{user_project}` namespace, find **llm-credentials**, scroll down, and click **Reveal values**:
+* `LLM_API_KEY`: extract this from the **llm-credentials** secret. In the OpenShift Console, navigate to **Workloads > Secrets** in the `{user_project}` namespace, find **llm-credentials** by using the search bar to filter. 
 +
 image::eval2.2.png[OpenShift Console Secrets page showing llm-credentials secret in the workspace namespace,link=self,window=blank,width=700]
 --
 
-. To get the `MLFLOW_TRACKING_TOKEN`, navigate to the *Terminal* tab and run:
+. Click to open the secret's details. Scroll down, and click **Reveal values**:
++
+image::reveal-values.png[]
++
+. Copy the `LLM_API_KEY` value for your notebook cell.
+
+. To get the `MLFLOW_TRACKING_TOKEN` value, navigate to the *Terminal* tab and run:
 +
 [source,bash,subs="+attributes"]
 ----
@@ -138,27 +149,35 @@ TOKEN=$(oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user}
 echo $\{TOKEN}
 ----
 +
-Copy the token value and paste it into the `MLFLOW_TRACKING_TOKEN` variable in the notebook's Setup cell.
+Copy the token value and paste it into the `MLFLOW_TRACKING_TOKEN` variable in the notebook's environment variables cell.
 
-. Run the **Setup** and **Configure MLflow** cells. Verify the output shows your MLflow URI, experiment name, and LLM endpoint.
+. Run the environment variable configuration, **Setup** and **Configure MLflow** cells. This will take a bit to process. Remember, if the cell shows `[*]` on the left it is still executing.
+
+. Verify the output shows your MLflow URI, experiment name, and LLM endpoint.
 +
-TIP: You can run cells one by one with **Shift+Enter**, or click the **Restart and Run All** button (rewind icon) in the toolbar to execute the entire notebook at once:
+image::setup-expected-output.png[]
++
+TIP: You can run cells one by one with **Shift+Enter**, or click the **Restart the kernel and run all cells** button (fast-forward icon) in the toolbar to execute the entire notebook at once:
 +
 image::eval2.3.png[JupyterLab toolbar showing Restart and Run All rewind button,link=self,window=blank,width=700]
 
 == Exercise 3: Register a prompt in MLflow's Prompt Registry
 
-Before running evaluations, let's register the agent's system prompt in MLflow's https://mlflow.org/docs/latest/genai/prompt-registry/[Prompt Registry^]. The Prompt Registry provides version control for prompts. Think of it as Git for your system prompts, enabling you to track changes, compare versions, and link evaluation traces back to the exact prompt that produced them.
+Before running evaluations, let's register the agent's system prompt (the instructions that define the agent's role and behavior) in MLflow's https://mlflow.org/docs/latest/genai/prompt-registry/[Prompt Registry^]. The Prompt Registry provides version control for prompts. Think of it as Git for your system prompts, enabling you to track changes, compare versions, and link evaluation traces back to the exact prompt that produced them. Without versioning, when quality drops you can't identify which prompt change caused it or safely roll back.
 
-. Run the cells under **1. Register System Prompt in MLflow**. The notebook reads the public-assistant system prompt (the same content from `config/agents/public-assistant.yaml`) and registers it as a versioned artifact:
+. Run the 3 cells under **1. Register System Prompt in MLflow**. The notebook reads the public-assistant system prompt (the same content from `config/agents/public-assistant.yaml`) and registers it as a versioned artifact:
 +
 image::eval4.png[Notebook cell registering the public-assistant system prompt in MLflow Prompt Registry,link=self,window=blank,width=500]
 
-. Navigate to the *MLflow Console* tab. Switch to the **mortgage-ai-eval** workspace by clicking the back arrow next to the current workspace name, then selecting **mortgage-ai-eval**:
+. Navigate to the *MLflow Console* tab. Switch to the **mortgage-ai-eval** experiment:
 +
-image::eval37.png[MLflow workspace selector showing mortgage-ai-eval workspace,link=self,window=blank,width=400]
+image::nav-mortgageaieval-exp.png[]
 +
-Click **Prompts** in the left sidebar. You'll see the registered prompt:
+Click **Prompts** in the left sidebar. 
++
+image::nav-prompts.png[]
++
+You'll see the registered prompt:
 +
 image::eval5.png[MLflow Prompts page showing public-assistant-system-prompt at Version 1,link=self,window=blank,width=700]
 
@@ -188,17 +207,24 @@ The foundation of good evaluations is a high-quality dataset. The notebook creat
 * **expectations**: Expected behavior including keywords, tool calls, topics, and forbidden content
 --
 
-. In the MLflow UI, navigate to your experiment and click **Datasets**. You'll see the `public_assistant_eval` dataset with 6 records:
+. In the MLflow UI, navigate to your experiment and click **Datasets**. 
++
+image::nav-datasets.png[]
++
+
+You'll see the `public_assistant_eval` dataset with 6 records:
 +
 image::eval7.1.png[MLflow Datasets page showing public_assistant_eval with 6 records and their inputs and expectations,link=self,window=blank,width=700]
 +
 Each record shows the user message input alongside the expected answer and expected tool calls. For example, _"Tell me about FHA loans"_ expects the keyword `"FHA"` in the response and the `product_info` tool to be called.
 
-NOTE: Datasets are stored on the MLflow server, not as local files. This means they're versioned, shareable across team members, and can be reused across evaluation runs.
+NOTE: Datasets are stored on the MLflow server, not as local files. This means they're versioned, shareable across team members, and can be reused across evaluation runs. When a new team member joins, they run evaluations against the same test cases—ensuring consistent quality standards across the team.
+
+IMPORTANT: Teams without evaluation datasets often discover quality issues only after customer complaints—weeks too late. A structured dataset catches regressions during development, before they reach production.
 
 == Exercise 5: Run a simple evaluation
 
-Let's start with deterministic scorers, which are fast checks that don't require LLM calls. These are your first line of defense for catching obvious regressions.
+Back in the notebook, let's start with deterministic scorers (automated checks that grade responses using simple rules), which are fast checks that don't require LLM calls. These are your first line of defense for catching obvious regressions.
 
 === Simple scorers
 
@@ -210,7 +236,7 @@ The notebook defines 3 deterministic scorers:
 
 === Set up the predictor and run the evaluation
 
-Before running the evaluation, the notebook needs 2 pieces: a **predictor function** that invokes the prospect agent for each test case, and the **scorer definitions**. The predictor wraps the agent invocation and loads the registered prompt inside the traced context. This is what creates the automatic prompt-trace linkage you'll explore in Exercise 7.
+Before running the evaluation, the notebook needs 2 pieces: a **predictor function** (the function that calls your agent for each test case) and the **scorer definitions**. The predictor wraps the agent invocation and loads the registered prompt, creating the automatic linkage between prompts and traces that you'll explore in Exercise 7.
 
 . Run the cells under the **Predictor with Prompt Linkage** and **Scorers** sections to set up both.
 
@@ -218,12 +244,20 @@ Before running the evaluation, the notebook needs 2 pieces: a **predictor functi
 +
 image::eval7.png[Notebook running simple evaluation with 6 examples and 3 scorers showing results,link=self,window=blank,width=500]
 +
-The evaluation runs all 6 test cases against the prospect agent and reports the aggregate scores.
+The evaluation runs all 6 test cases against the prospect agent and reports the overall scores.
+
+NOTE: If you see any failures, double check your environment variables were correctly set. If you change the environment variables again, restart the kernel before rerunning the cells.
 
 === View results in MLflow
 
 [start=3]
-. In the MLflow UI, click **Evaluation runs** in the left sidebar. You'll see the evaluation run with all 6 traces:
+. Back in the MLflow UI, using the **MLflow Console** tab, click **Evaluation runs** in the left sidebar. 
+
++
+image::nav-eval-runs.png[]
++
+
+You'll see the evaluation run with all 6 traces:
 +
 image::eval8.png[MLflow Evaluation Runs showing the evaluation run with 6 traces and their requests responses and token counts,link=self,window=blank,width=700]
 +
@@ -243,13 +277,13 @@ image::eval32.png[MLflow Columns dropdown showing All Assessments option to enab
 
 . Click on a trace that has the simple scorer columns filled (`contains_expected`, `has_numeric_result`, `response_length`) — the rest should be null at this point. You'll see the detailed view with the **Assessments** sidebar:
 +
-image::eval10.png[MLflow trace detail showing inputs outputs span timeline and Assessments sidebar with Feedback and Expectations,link=self,window=blank,width=500]
+image::eval10.png[MLflow trace detail showing inputs outputs span sequence and Assessments sidebar with Feedback and Expectations,link=self,window=blank,width=500]
 +
-The detail view combines the trace information (inputs, outputs, span timeline) with the evaluation assessments. The **Feedback** section shows the deterministic scorer results, and the **Expectations** section shows the expected values from the dataset.
+The detail view combines the trace information (inputs, outputs, span sequence) with the evaluation assessments. The **Feedback** section shows the deterministic scorer results, and the **Expectations** section shows the expected values from the dataset.
 
 == Exercise 6: Run LLM-as-a-Judge evaluation
 
-Deterministic scorers catch surface-level issues, but can't assess whether a response is *actually helpful*. For that, you need https://mlflow.org/docs/latest/genai/eval-monitor/running-evaluation/agents/[LLM-as-a-Judge^], using an LLM to evaluate the quality of another LLM's output.
+Deterministic scorers catch surface-level issues, but can't assess whether a response is *actually helpful*. A deterministic scorer sees "FHA" in the response and passes—but can't detect if the agent gave incorrect rate information or violated compliance guidelines. For that, you need https://mlflow.org/docs/latest/genai/eval-monitor/running-evaluation/agents/[LLM-as-a-Judge^], using an LLM to evaluate the quality of another LLM's output.
 
 === LLM judge scorers
 
@@ -272,7 +306,12 @@ This evaluation takes longer than the simple one because each test case is score
 === View results in MLflow
 
 [start=2]
-. In the MLflow UI, click **Evaluation runs**. You'll now see 2 runs: the simple evaluation and the LLM-as-a-Judge evaluation:
+. In the MLflow UI, click **Evaluation runs**. 
+
++
+image::nav-eval-runs.png[]
++
+You'll now see 2 runs: the simple evaluation and the LLM-as-a-Judge evaluation:
 +
 image::eval12.png[MLflow Evaluation Runs showing 2 runs - simple and LLM-as-a-Judge,link=self,window=blank,width=700]
 
@@ -288,9 +327,11 @@ image::eval14.png[MLflow trace detail showing all 8 assessments including safety
 +
 The assessments sidebar now shows the full evaluation picture for this single trace: safety (Yes), mortgage_guidelines (No, perhaps the response was too informal), tool_call_efficiency (Yes), tool_call_correctness (Yes), relevance_to_query (Yes), and the 3 deterministic checks.
 
+TIP: LLM judges catch quality issues that deterministic scorers miss. In Fed Aura Capital's testing, LLM-as-a-Judge evaluations identified 17% more quality problems than keyword checks alone—problems that would have reached customers without this layer of assessment.
+
 == Exercise 7: Explore prompt-trace linkage
 
-One of the key features of MLflow's evaluation framework is automatic prompt-trace linkage. Every evaluation trace is linked to the prompt version that produced it, enabling you to track quality across prompt iterations.
+When quality drops in production, prompt-trace linkage lets you answer "which prompt version caused this?" in seconds rather than days of manual correlation. One of the key features of MLflow's evaluation framework is automatic prompt-trace linkage. Every evaluation trace is linked to the prompt version that produced it, enabling you to track quality across prompt iterations.
 
 . In the MLflow UI, navigate to **Prompts** and click on **public-assistant-system-prompt**. Click the **Traces** tab:
 +
@@ -308,11 +349,11 @@ All evaluation traces are automatically linked to the prompt version that produc
 * Ran deterministic and LLM-as-a-Judge evaluations against the live agent
 * Analyzed per-trace assessments and prompt-trace linkage in MLflow
 
-**Key takeaways:**
+**Why this matters:**
 
-* MLflow's Prompt Registry provides version control for system prompts: track changes, compare versions, and link evaluations to specific prompt versions
-* Evaluations combine fast deterministic scorers (keyword checks, length) with LLM judges (tool correctness, safety, relevance) for comprehensive quality assessment
-* Prompt-trace linkage automatically connects evaluation results to the prompt version that produced them, enabling regression detection across prompt iterations
+Without evaluations, you're flying blind—quality drops go undetected until customers complain. This inner-loop evaluation process catches agent failures in development that would otherwise reach production. Prompt versioning lets you identify and roll back quality-breaking changes in seconds. LLM judges detect subtle failures (wrong tool calls, unsafe responses, guideline violations) that simple checks miss.
+
+**Bottom line:** Evaluations shift quality control left, from post-incident firefighting to pre-deployment prevention.
 
 **Next steps:**
 

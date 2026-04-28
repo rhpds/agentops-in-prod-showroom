@@ -11,9 +11,9 @@ This workshop builds incrementally. Each module depends on concepts from previou
 
 **Foundation (Modules 1-2)**: Understand the multi-agent application and core observability concepts. These modules set the stage for everything that follows.
 
-**Hands-on Practice (Modules 3-4)**: Work directly with metrics, logs, and tracing. You'll explore Grafana dashboards and configure MLflow tracing for the multi-agent system.
+**Core Practice (Modules 3-4)**: Work directly with metrics, logs, and tracing. You'll explore Grafana dashboards and configure MLflow tracing for the multi-agent system.
 
-**Advanced Topics (Modules 5-6)**: Implement LLM evaluations and automated quality monitoring. You'll learn how to catch issues before production and establish continuous evaluation pipelines.
+**Optional Advanced Topics (Modules 5-6)**: For those with more advanced knowledge or who finish more quickly, implement LLM evaluations and automated quality monitoring. These modules require additional time but provide deeper expertise in quality assurance.
 
 Feel free to revisit earlier modules as needed. The concepts build on each other, so if something isn't clear later, go back and review.
 

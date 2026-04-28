@@ -38,9 +38,7 @@ image::agentic-app-pre1.png[OpenShift SSO login page,link=self,window=blank,widt
 +
 image::workloads-pods.png[]
 +
-
 If you do not see pods, make sure you select your project:
-
 +
 image::select-project.png[]
 image::agentic-app0.png[OpenShift Console Pods view showing mortgage-ai components running,link=self,window=blank,width=700]
@@ -56,9 +54,9 @@ image::mortgage-app.png[]
 . Scroll down a bit. Try a sample conversation clicking the **Explore Products** button:
 +
 image::explore-products.png[Explore Products button on the Fed Aura Capital landing page,link=self,window=blank,width=400]
-
++
 The Prospect Agent should respond with mortgage product options:
-
++
 image::agentic-app2.png[Mortgage-AI chat interface with Prospect Agent responding with loan options,link=self,window=blank,width=700]
 
 NOTE: The LLM backend has rate limiting and may occasionally time out. If the agent does not respond or you see an error, reload the page and ask the question again.

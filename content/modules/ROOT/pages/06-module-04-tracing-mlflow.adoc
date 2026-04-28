@@ -245,4 +245,12 @@ This is especially valuable for debugging multi-turn conversations where agent b
 
 **Next steps:**
 
-Module 5 will introduce LLM Evaluations (Evals), combining tracing with quality assessment to ensure your agents maintain high-quality outputs alongside system reliability.
+You've completed the core observability modules! You now have metrics, traces, and logs working together to monitor your multi-agent system.
+
+**Option 1 - Continue to Advanced Topics (recommended if time permits):**
+
+link:07-module-05-evals.html[Module 5: Agent & LLM Evaluations] introduces quality assessment frameworks, combining tracing with evaluations to catch regressions before production. link:08-module-06-dev-to-production.html[Module 6] automates these evaluations into CI/CD pipelines.
+
+**Option 2 - Skip to Conclusion:**
+
+If you're short on time, skip to the link:09-conclusion.html[Conclusion], which recaps your observability journey and provides resources for continuing your learning.
