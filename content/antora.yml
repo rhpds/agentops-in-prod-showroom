@@ -9,6 +9,8 @@ asciidoc:
     experimental: true
     page-pagination: true
     showroom-collection-version: v1.5.6
+    source-highlighter: highlightjs
+    release-version: main
     # Lab metadata
     lab_name: "AgentOps Observability with Red Hat AI"
     # Version placeholders - can be overridden by Showroom at runtime

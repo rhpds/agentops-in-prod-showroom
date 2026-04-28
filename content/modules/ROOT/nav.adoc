@@ -1,3 +1,4 @@
+.Welcome and Introduction
 * xref:index.adoc[Welcome]
 * xref:01-overview.adoc[Workshop Overview]
 * xref:02-details.adoc[Workshop Details]
@@ -12,4 +13,5 @@
 * xref:07-module-05-evals.adoc[Module 5: Agent & LLM Evaluations]
 * xref:08-module-06-dev-to-production.adoc[Module 6: Dev to Production]
 
+.Conclusion
 * xref:09-conclusion.adoc[Conclusion]

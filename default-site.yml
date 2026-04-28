@@ -24,6 +24,9 @@ antora:
       mermaid_initialize_options:
         start_on_load: true
     - require: '@andrew-jones/antora-tabs-extension'
+    - require: ./content/lib/dev-mode.js
+      enabled: false
+    - require: ./content/lib/inject-buttons.js
 
 output:
   dir: ./www
