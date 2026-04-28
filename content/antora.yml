@@ -6,9 +6,8 @@ nav:
   - modules/ROOT/nav.adoc
 asciidoc:
   attributes:
-    experimental: true
+    experimental:
     page-pagination: true
-    showroom-collection-version: v1.5.6
     source-highlighter: highlight.js
     # Lab metadata
     lab_name: "AgentOps Observability with Red Hat AI"
