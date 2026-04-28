@@ -1,7 +1,6 @@
 name: modules
 title: "AgentOps Observability with Red Hat AI"
 version: ~
-start_page: index.adoc
 nav:
   - modules/ROOT/nav.adoc
 asciidoc:
