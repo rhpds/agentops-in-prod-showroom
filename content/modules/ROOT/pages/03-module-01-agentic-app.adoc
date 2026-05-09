@@ -175,7 +175,7 @@ Before exploring the application, let's confirm all components are running and h
 
 . Navigate to the **Terminal** tab. View the pods and their status:
 +
-[source,bash,role="execute,subs="+attributes"]
+[source,bash,role=execute,subs=attributes+]
 ----
 oc get pods -n {user_project}
 ----
