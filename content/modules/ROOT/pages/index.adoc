@@ -25,8 +25,8 @@ You will work with a multi-agent mortgage lending application built with LangGra
 
 Log into OpenShift with the following credentials:
 
-* Username: {user}
-* Password: {password}
+* Username: [.notranslate] #{user}#
+* Password: [.notranslate] #{password}#
 
 NOTE: All environment details and credentials are available in the lab interface.
 
