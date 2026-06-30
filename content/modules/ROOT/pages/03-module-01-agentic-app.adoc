@@ -1,188 +1,188 @@
-= Module 1: The agentic app and why observability matters
+= モジュール 1: エージェント型アプリとオブザーバビリティが重要な理由
 :imagesdir: ../assets/images
-:navtitle: Module 1: The Agentic App
+:navtitle: モジュール 1: エージェント型アプリ
 :toc: macro
 :toclevels: 1
 
-Agentic AI apps don't fail silently; they fail distributedly. In this module, you'll explore the pre-deployed mortgage-ai multi-agent application and understand why traditional monitoring approaches fall short for these complex systems.
+エージェント型AIアプリは静かに失敗するのではなく、分散して失敗します。このモジュールでは、事前にデプロイされた mortgage-ai マルチエージェントアプリケーションを探索し、これらの複雑なシステムに対して従来の監視アプローチがなぜ不十分なのかを理解します。
 
-But first, what exactly is an AI agent? An *AI agent* is a system that uses a Large Language Model (LLM) to reason about a task, decide which tools to call, and take autonomous actions, going beyond simple request/response patterns like traditional APIs or basic chatbots. When multiple agents collaborate, each with its own tools and responsibilities, you get a *multi-agent system*, which is capable but significantly harder to observe and debug.
+しかしその前に、AIエージェントとは正確には何でしょうか？ **AIエージェント**とは、タスクについて推論し、どのツールを呼び出すかを決定し、自律的なアクションを実行するために大規模言語モデル（LLM）を使用するシステムであり、従来のAPIや基本的なチャットボットのような単純なリクエスト/レスポンスパターンを超えたものです。複数のエージェントが連携し、それぞれが独自のツールと責任を持つ場合、機能は高いものの、観察やデバッグがはるかに困難な**マルチエージェントシステム**になります。
 
-Fed Aura Capital needs end-to-end visibility into their multi-agent workflows, and you've been tasked with evaluating how observability can help. Before implementing solutions, you need to understand what you're working with.
+Fed Aura Capitalは、自社のマルチエージェントワークフローに対するエンドツーエンドの可視性を必要としており、あなたはオブザーバビリティがどのように役立つかを評価する任務を負っています。ソリューションを実装する前に、自分が何を扱っているのかを理解する必要があります。
 
-== Learning objectives
+== 学習目標
 
-By the end of this module, you'll be able to:
+このモジュールを修了すると、以下のことができるようになります：
 
-* Describe the architecture of the multi-agent mortgage lending system
-* Identify the 5 distinct agent personas and their responsibilities
-* Explain why distributed AI systems require specialized observability approaches
-* Recognize the key failure modes (ways the system can fail or degrade) in multi-agent architectures
+* マルチエージェントの住宅ローン融資システムのアーキテクチャを説明できる
+* 5つの異なるエージェントのペルソナとその責任を特定できる
+* 分散型AIシステムがなぜ特化したオブザーバビリティアプローチを必要とするのかを説明できる
+* マルチエージェントアーキテクチャにおける主要な障害モード（システムが失敗または劣化するパターン）を認識できる
 
-== Exercise 1: Access the application UI
+== 演習 1: アプリケーションUIへのアクセス
 
-TIP: Throughout this workshop, all key services are accessible as *tabs* — no need to open separate browser windows.
+TIP: このワークショップ全体を通して、すべての主要なサービスには**タブ**としてアクセスできます。別のブラウザウィンドウを開く必要はありません。
 
-. First, log in to the OpenShift cluster from the **Terminal** tab:
+. まず、**Terminal** タブからOpenShiftクラスターにログインします：
 +
 [source,console,role=execute,subs=attributes+]
 ----
 oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password}
 ----
 
-. Navigate to the *OCP Console* tab. Log in with the same credentials you just used: username `{user}`, password `{password}`:
+. **OCP Console** タブに移動します。先ほど使用したのと同じ資格情報でログインします：ユーザー名 `{user}`、パスワード `{password}`：
 +
 image::agentic-app-pre1.png[OpenShift SSO login page,link=self,window=blank,width=500]
 
-. Once logged in, you will see the `Projects` page and a single project: `{user_project}`. Navigate to **Workloads > Pods** to see the mortgage-ai components running in your namespace:
+. ログインすると、`Projects` ページが表示され、単一のプロジェクト `{user_project}` が表示されます。**Workloads > Pods** に移動して、ネームスペースで実行されている mortgage-ai コンポーネントを確認します：
 +
 image::workloads-pods.png[]
 +
-If you do not see pods, make sure you select your project:
+ポッドが表示されない場合は、自分のプロジェクトを選択していることを確認してください：
 +
 image::select-project.png[]
 image::agentic-app0.png[OpenShift Console Pods view showing mortgage-ai components running,link=self,window=blank,width=700]
 +
-You will explore these components in Exercise 2.
+これらのコンポーネントについては、演習 2 で詳しく調べます。
 
-. Navigate to the *Mortgage AI App* tab:
+. **Mortgage AI App** タブに移動します：
 
 +
 image::mortgage-app.png[]
 +
 
-. Scroll down a bit. Try a sample conversation clicking the **Explore Products** button:
+. 少し下にスクロールします。**Explore Products** ボタンをクリックして、サンプルの会話を試してみましょう：
 +
 image::explore-products.png[Explore Products button on the Fed Aura Capital landing page,link=self,window=blank,width=400]
 +
-The Prospect Agent should respond with mortgage product options:
+プロスペクトエージェント（Prospect Agent）が住宅ローン製品のオプションを返答するはずです：
 +
 image::agentic-app2.png[Mortgage-AI chat interface with Prospect Agent responding with loan options,link=self,window=blank,width=700]
 
-NOTE: The LLM backend has rate limiting and may occasionally time out. If the agent does not respond or you see an error, reload the page and ask the question again.
+NOTE: LLMバックエンドにはレート制限があり、タイムアウトが発生することがあります。エージェントが応答しない場合やエラーが表示された場合は、ページをリロードしてもう一度質問してください。
 
-NOTE: Because the application uses generative AI, responses are non-deterministic. The exact wording, formatting, and details may differ from the screenshots shown in this workshop.
+NOTE: アプリケーションは生成AIを使用しているため、応答は非決定的です。正確な表現、フォーマット、および詳細は、このワークショップで示されているスクリーンショットと異なる場合があります。
 
-== Exercise 2: Explore the multi-agent architecture
+== 演習 2: マルチエージェントアーキテクチャの探索
 
-Now that you've seen the application in action, let's explore what's running under the hood. The mortgage-ai system serves 5 distinct agent personas through a single API deployment.
+アプリケーションの動作を確認したところで、内部で何が実行されているかを調べてみましょう。mortgage-ai システムは、単一のAPIデプロイメントを通じて5つの異なるエージェントペルソナを提供します。
 
-=== Understanding the architecture
+=== アーキテクチャの理解
 
-The mortgage-ai system runs as **a single FastAPI service with 5 LangGraph agent implementations** inside it. Each agent serves a different persona in the lending workflow, but they all run in the same pod.
+mortgage-ai システムは、**5つのLangGraphエージェント実装を含む単一のFastAPIサービス**として実行されます。各エージェントは融資ワークフローにおいて異なるペルソナにサービスを提供しますが、すべて同じポッド内で実行されます。
 
-**System architecture:**
+**システムアーキテクチャ:**
 
 image::agentic-app-pre2.png[Mortgage AI system architecture showing React frontend connecting via WebSocket to FastAPI backend with 5 agent personas and PostgreSQL with pgvector and MinIO object storage,link=self,window=blank,width=700]
 
-**Deployed components:**
+**デプロイされたコンポーネント:**
 
 [cols="1,2",options="header"]
 |===
-|Component |Purpose
+|コンポーネント |目的
 
 |mortgage-ai-api
-|**One FastAPI pod** containing all 5 agent implementations, routes by role via WebSocket
+|全5種類のエージェント実装を含む**1つのFastAPIポッド**。WebSocket経由でロールごとにルーティングします
 
 |mortgage-ai-ui
-|React frontend for interacting with agents
+|エージェントとやり取りするためのReactフロントエンド
 
 |mortgage-ai-db
-|PostgreSQL with pgvector for document storage and RAG (Retrieval-Augmented Generation) embeddings
+|ドキュメントストレージおよびRAG (検索拡張生成) 埋め込み用のpgvectorを備えたPostgreSQL
 
 |minio
-|S3-compatible object storage for uploaded documents
+|アップロードされたドキュメント用のS3互換オブジェクトストレージ
 
 |keycloak
-|Identity provider (disabled for this workshop)
+|アイデンティティプロバイダー (このワークショップでは無効化されています)
 |===
 
-=== The 5 agent personas
+=== 5つのエージェントペルソナ
 
-Each agent has its own endpoint, tools, and responsibilities. They **don't call each other** directly—instead, they're isolated workflows serving different user roles:
+各エージェントには独自のエンドポイント、ツール、および責任があります。これらは直接**互いに呼び出すことはなく**、代わりに、異なるユーザーロールにサービスを提供する分離されたワークフローとして機能します：
 
 image::agentic-app-pre3.png[The 5 agent personas showing Prospect and Borrower and Loan Officer and Underwriter and CEO with their roles and capabilities routing into a single FastAPI deployment via WebSocket,link=self,window=blank,width=700]
 
 [cols="1,1,2,2",options="header"]
 |===
-|Persona |Role |Agent |Key Capabilities
+|ペルソナ |ロール |エージェント |主な機能
 
-|Prospect
-|Unauthenticated
-|Public Assistant
-|Product info, affordability estimates
+|プロスペクト (見込み客)
+|非認証
+|Public Assistant (パブリックアシスタント)
+|製品情報、アフォーダビリティ（支払い能力）の見積もり
 
-|Borrower
+|借り手
 |`borrower`
-|Borrower Assistant
-|Application intake, document upload, status tracking, condition response
+|Borrower Assistant (借り手アシスタント)
+|申し込み受付、ドキュメントのアップロード、ステータス追跡、条件への対応
 
-|Loan Officer
+|ローン担当者
 |`loan_officer`
-|LO Assistant
-|Pipeline management, application review, communication drafting, knowledge base search
+|LO Assistant (LOアシスタント)
+|パイプライン管理、申し込みのレビュー、コミュニケーションの起草、ナレッジベースの検索
 
-|Underwriter
+|アンダーライター (審査担当者)
 |`underwriter`
-|Underwriter Assistant
-|Risk assessment, compliance checks, condition management, decisions
+|Underwriter Assistant (アンダーライターアシスタント)
+|リスク評価、コンプライアンスチェック、条件管理、意思決定
 
 |CEO
 |`ceo`
-|CEO Assistant
-|Pipeline analytics, audit trail, decision trace, model monitoring
+|CEO Assistant (CEOアシスタント)
+|パイプライン分析、監査証跡、意思決定トレース、モデルのモニタリング
 |===
 
-**API endpoints (all served by the same `mortgage-ai-api` pod):**
+**API エンドポイント (すべて同じ `mortgage-ai-api` ポッドによって提供されます):**
 
 [source,text]
 ----
-/api/prospect/chat    - Prospect Agent (initial inquiries)
-/api/borrower/chat    - Borrower Agent (application intake)
-/api/loanofficer/chat - Loan Officer Agent (pipeline management)
-/api/underwriter/chat - Underwriter Agent (risk assessment)
-/api/ceo/chat         - Executive Agent (analytics)
+/api/prospect/chat    - Prospect Agent (初期の問い合わせ)
+/api/borrower/chat    - Borrower Agent (申し込み受付)
+/api/loanofficer/chat - Loan Officer Agent (パイプライン管理)
+/api/underwriter/chat - Underwriter Agent (リスク評価)
+/api/ceo/chat         - Executive Agent (アナリティクス)
 ----
 
-=== How a request flows
+=== リクエストのフロー
 
-**Request path:** User → UI → WebSocket → API router → Specific agent → LangGraph workflow → Tools (DB, MCP, LLM) → Response
+**リクエストパス:** ユーザー → UI → WebSocket → APIルーター → 特定のエージェント → LangGraph ワークフロー → ツール (DB, MCP, LLM) → 応答
 
-**Example (CEO asking "What's the portfolio health?"):**
+**例 (CEOが「ポートフォリオの健全性は？」と尋ねる場合):**
 
-. User asks question in UI
-. WebSocket routes to `/api/ceo/chat` based on authenticated role
-. CEO Agent (LangGraph workflow) receives the question
-. Agent decides which tools to call: `get_pipeline_summary`, `calculate_pull_through_rate`
-. Each tool may query the database or call external MCP tools
-. Agent calls the LLM multiple times to reason about tool results
-. Final response is sent back to the user
+. ユーザーがUIで質問をする
+. WebSocketが認証されたロールに基づいて `/api/ceo/chat` にルーティングする
+. CEOエージェント（LangGraphワークフロー）が質問を受け取る
+. エージェントが呼び出すツールを決定する: `get_pipeline_summary`、`calculate_pull_through_rate`
+. 各ツールがデータベースにクエリを実行するか、外部のMCPツールを呼び出す場合がある
+. エージェントはツールの結果について推論するためにLLMを複数回呼び出す
+. 最終的な応答がユーザーに返される
 
-**Why this matters for observability:** A single user question can trigger 5+ LLM calls, 10+ tool invocations, and multiple database queries. When something fails or returns wrong data, you need to trace the entire decision path to find the root cause.
+**これがオブザーバビリティにとって重要な理由:** 1つのユーザーの質問が、5回以上のLLM呼び出し、10回以上のツール呼び出し、そして複数のデータベースクエリをトリガーする可能性があります。何かが失敗したり、間違ったデータを返したりした場合、根本原因を見つけるために意思決定パス全体をトレースする必要があります。
 
-IMPORTANT: **Common failure modes in multi-agent architectures** +
-Understanding how these systems fail is key to implementing effective observability: +
+IMPORTANT: **マルチエージェントアーキテクチャにおける一般的な障害モード** +
+効果的なオブザーバビリティを実装するには、これらのシステムがどのように失敗するかを理解することが重要です： +
  +
-• **Silent tool failures**: MCP tool returns empty data, but the agent proceeds anyway and generates a response based on incomplete information +
-• **Cascading latency**: A slow database query delays the LLM call, which delays the response—but you can't tell which step caused the bottleneck +
-• **Context overflow**: Agent tries to pass too much data to the LLM, the call fails with a cryptic error, and the user sees a generic timeout +
-• **Non-deterministic failures**: The same question produces different results due to LLM variations, making bugs difficult to reproduce +
-• **Distributed failures**: One agent's tool call fails, affecting downstream agents without clear error propagation
+• **サイレントなツールの障害**: MCPツールが空のデータを返しても、エージェントはそのまま処理を続行し、不完全な情報に基づいて応答を生成してしまう +
+• **カスケードするレイテンシ**: データベースクエリが遅いとLLMの呼び出しが遅れ、応答が遅延するが、どのステップがボトルネックを引き起こしたかを特定できない +
+• **コンテキストのオーバーフロー**: エージェントがLLMに渡そうとするデータ量が多すぎると、不可解なエラーで呼び出しが失敗し、ユーザーには一般的なタイムアウトが表示される +
+• **非決定的な障害**: LLMのばらつきにより、同じ質問でも異なる結果が生じるため、バグの再現が困難になる +
+• **分散された障害**: あるエージェントのツール呼び出しが失敗すると、明確なエラーの伝播なしに下流のエージェントに影響を及ぼす
 
-=== Verify the deployment
+=== デプロイメントの検証
 
-Before exploring the application, let's confirm all components are running and healthy. We'll check two things: that the OpenShift pods are ready, and that the API can successfully connect to its database.
+アプリケーションを探索する前に、すべてのコンポーネントが実行されており正常であることを確認しましょう。ここでは2つのことを確認します。OpenShiftのポッドが準備完了（Ready）であることと、APIがデータベースに正常に接続できることです。
 
-. Navigate to the **Terminal** tab. View the pods and their status:
+. **Terminal** タブに移動します。ポッドとそのステータスを表示します：
 +
 [source,bash,role=execute,subs=attributes+]
 ----
 oc get pods -n {user_project}
 ----
 +
-This command shows all pods in your namespace and their readiness status. All pods should show `Running` with `1/1` or `2/2` containers ready. If any pod shows `CrashLoopBackOff`, `Error`, or `0/1`, the deployment has not completed successfully.
+このコマンドは、ネームスペース内のすべてのポッドとその準備状況（readiness status）を表示します。すべてのポッドが `Running` を示し、コンテナが `1/1` または `2/2` で準備完了になっているはずです。いずれかのポッドが `CrashLoopBackOff`、`Error`、または `0/1` を示している場合、デプロイメントは正常に完了していません。
 
-. Check the API service health endpoint:
+. APIサービスのヘルスエンドポイントを確認します：
 +
 [source,console,role=execute,subs=attributes+]
 ----
@@ -190,9 +190,9 @@ MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n {user_project} -o
 curl -sk https://$\{MORTGAGE_HEALTH}/health/ | jq -r .
 ----
 +
-This health check verifies two critical dependencies for the multi-agent system: the FastAPI service itself, and its connection to the PostgreSQL database (which stores application state, embeddings for RAG, and audit trails).
+このヘルスチェックは、マルチエージェントシステムにとって重要な2つの依存関係を検証します。FastAPIサービス自体と、PostgreSQLデータベース（アプリケーションの状態、RAG用の埋め込み、および監査証跡を保存する）への接続です。
 +
-Expected output:
+予想される出力：
 +
 [source,json]
 ----
@@ -214,122 +214,122 @@ Expected output:
 ]
 ----
 +
-**What this result means:** Both the API and Database components report `"status": "healthy"`. This confirms the FastAPI pod is running and can establish a connection to PostgreSQL. Without a healthy database connection, the agents cannot access their knowledge base, retrieve application data, or execute RAG workflows. If either component shows a status other than `"healthy"`, troubleshoot that service before proceeding.
+**この結果が意味するもの:** APIとDatabaseコンポーネントの両方が `"status": "healthy"` を報告しています。これは、FastAPIポッドが実行されており、PostgreSQLへの接続を確立できることを確認するものです。正常なデータベース接続がないと、エージェントはナレッジベースにアクセスしたり、アプリケーションデータを取得したり、RAGワークフローを実行したりできません。どちらかのコンポーネントが `"healthy"` 以外のステータスを示している場合は、先に進む前にそのサービスをトラブルシューティングしてください。
 
-== Exercise 3: Experience the observability gap
+== 演習 3: オブザーバビリティのギャップを体験する
 
-Now that you understand the 5 agent personas and how they collaborate, let's experience firsthand the observability challenge that comes with distributed AI systems.
+5つのエージェントのペルソナとそれらがどのように連携するかを理解したところで、分散型AIシステムに伴うオブザーバビリティの課題を直接体験してみましょう。
 
-You'll interact with the application as a CEO and ask the assistant a question. The response will look correct, but you'll have no way of knowing what happened behind the scenes.
+あなたはCEOとしてアプリケーションを操作し、アシスタントに質問をします。応答は正しく見えますが、裏で何が起こったかを知る術はありません。
 
-. From the application landing page, click **Sign In**. 
+. アプリケーションのランディングページから、**Sign In** をクリックします。
 
 +
 image::sign-in.png[]
 +
 
-. In the sign-in dialog, use the **Persona Demo Login** section at the bottom and select the **CEO** persona:
+. サインインダイアログの下部にある **Persona Demo Login** セクションを使用して、**CEO** ペルソナを選択します：
 
 +
 image::agentic-app4.png[Sign in dialog with Persona Demo Login showing CEO selection,link=self,window=blank,width=700]
 +
-. Click `Sign In`:
+. `Sign In` をクリックします：
 
 +
 image::ceo-sign-in.png[]
 +
 
-. After signing in, you'll land on the **Executive Dashboard**, the CEO persona's view of portfolio health and operations:
+. サインイン後、CEOペルソナ用のポートフォリオの健全性とオペレーションのビューである **Executive Dashboard** が表示されます：
 +
 image::agentic-app5.png[CEO Executive Dashboard showing Pipeline Overview and Denial Analysis,link=self,window=blank,width=700]
 
-. In the **Your Assistant** chat panel on the right, type the following question (if needed, adjust the center divider to reveal the chat panel or select the chat icon in the bottom right corner):
+. 右側の **Your Assistant** チャットパネルに、次の質問を入力します（必要に応じて、中央の境界線を調整してチャットパネルを表示するか、右下隅にあるチャットアイコンを選択します）：
 +
 [source,console,role=execute,subs=attributes+]
 ----
 Show me the current pipeline status
 ----
 
-. The assistant responds with a detailed portfolio health overview: active applications, stage breakdown, pull-through rate, and average days to close:
+. アシスタントは、アクティブな申し込み、ステージの内訳、プルスルーレート（成約率）、平均成約日数など、詳細なポートフォリオの健全性の概要を返答します：
 +
 image::agentic-app6.png[CEO Assistant responding with portfolio health overview,link=self,window=blank,width=700]
 
-=== Build a conversation for later analysis
+=== 後の分析のために会話を構築する
 
-Before we move on, let's generate a richer session with multiple conversation exchanges (called "turns" in AI terminology — each turn is one question from you and one response from the agent). This will give us more data to explore when we get to tracing in Module 4.
+先に進む前に、複数回の会話のやり取り（AIの用語では「ターン(turn)」と呼ばれます。各ターンはあなたからの1つの質問とエージェントからの1つの応答です）を含む、より豊かなセッションを生成しましょう。これにより、モジュール4でトレースを学習する際に、より多くのデータを探索できるようになります。
 
 [start=5]
-. In the same chat, ask a follow-up question:
+. 同じチャットで、フォローアップの質問をします：
 +
 [source,console,role=execute,subs=attributes+]
 ----
 What are the denial trends?
 ----
 
-. Then ask one more:
+. さらに、もう1つ質問します：
 +
 [source,console,role=execute,subs=attributes+]
 ----
 How are my loan officers doing?
 ----
 
-Each question triggers a different tool call behind the scenes. By the time you finish, your CEO session will have 3 turns spanning pipeline health, denial analysis, and officer performance. In Module 4, you'll trace every step of this conversation end-to-end.
+それぞれの質問は、裏で異なるツール呼び出しをトリガーします。完了するまでに、CEOセッションにはパイプラインの健全性、拒否率の分析、担当者のパフォーマンスにまたがる3つのターンが含まれます。モジュール4では、この会話の各ステップをエンドツーエンドでトレースします。
 
-=== The observability challenge
+=== オブザーバビリティの課題
 
-The response looks great. But stop and think about what just happened behind the scenes:
+応答は素晴らしいように見えます。しかし、裏で何が起こったのかを少し考えてみてください。
 
-* Which **agent** processed your question? Was it a single agent, or did multiple agents collaborate?
-* Which **tools** did the agent invoke to gather pipeline data, denial rates, and performance metrics?
-* How **long** did each step take? Was the LLM call fast, or did a tool call add latency?
-* What if the response was **wrong**? How would you trace back to the root cause?
-* What if a tool call **failed silently**? Would you even know?
+* どの**エージェント**があなたの質問を処理しましたか？単一のエージェントでしたか、それとも複数のエージェントが連携しましたか？
+* パイプラインのデータ、拒否率、パフォーマンスメトリクスを収集するために、エージェントはどの**ツール**を呼び出しましたか？
+* 各ステップに**どれくらいの時間**がかかりましたか？LLMの呼び出しは速かったですか、それともツール呼び出しによってレイテンシが追加されましたか？
+* もし応答が**間違っていた**ら？根本原因までどのようにトレースバックしますか？
+* ツール呼び出しが**サイレントに失敗**したらどうなりますか？あなたはそれに気づくことができますか？
 
-Without proper observability instrumentation, these questions are unanswerable. The application gives you a polished response, but the entire decision-making process (the agent routing, tool invocations, LLM calls, and data retrieval) remains a black box.
+適切なオブザーバビリティのための計装(instrumentation)がなければ、これらの質問に答えることはできません。アプリケーションは洗練された応答を提供しますが、意思決定プロセス全体（エージェントのルーティング、ツールの呼び出し、LLMの呼び出し、データの取得）はブラックボックスのままです。
 
-**Why traditional monitoring isn't enough:**
+**従来の監視では不十分な理由：**
 
-Traditional application monitoring tracks HTTP requests, error rates, and response times. For the mortgage-ai API, that means you'd see:
+従来のアプリケーション監視では、HTTPリクエスト、エラー率、応答時間を追跡します。mortgage-ai APIの場合、以下のような情報が表示されます：
 
-* `POST /api/ceo/chat` → 200 OK, 2.3s response time
+* `POST /api/ceo/chat` → 200 OK, 応答時間 2.3秒
 
-But you wouldn't see:
+しかし、以下の情報は表示されません：
 
-* Which tools the CEO agent called (`get_pipeline_summary`, `calculate_pull_through_rate`)
-* How many LLM calls happened (was it 3 or 8?)
-* Which call took 1.8s of that 2.3s total
-* Whether the agent retrieved the correct data from the database
-* If any tool calls failed silently but the agent still generated a response
+* CEOエージェントがどのツールを呼び出したか（`get_pipeline_summary`, `calculate_pull_through_rate`）
+* LLM呼び出しが何回発生したか（3回ですか、それとも8回ですか？）
+* 全体で2.3秒のうち、1.8秒かかったのはどの呼び出しだったか
+* エージェントがデータベースから正しいデータを取得したかどうか
+* ツール呼び出しがサイレントに失敗したにもかかわらず、エージェントが応答を生成したかどうか
 
-This is why AgentOps requires specialized observability: you need to see inside the decision-making process, not just the HTTP wrapper around it. In the next modules, you'll learn how to instrument this visibility using the 3 pillars of observability.
+これが、AgentOpsに特化したオブザーバビリティが必要な理由です。単なるHTTPのラッパーではなく、意思決定プロセスの内部を見る必要があるのです。次のモジュールでは、オブザーバビリティの3本柱を使用してこの可視性を計装する方法を学びます。
 
 [%collapsible]
-.Under the hood: Production-ready AI patterns
+.内部の仕組み: 本番環境対応のAIパターン
 ====
-This application demonstrates key patterns for regulated industries:
+このアプリケーションは、規制産業向けの重要なパターンを示しています：
 
-* **Multi-agent orchestration**: 5 LangGraph agents with role-scoped tools and RBAC enforcement
-* **Compliance knowledge base**: RAG using pgvector with tiered boosting (federal regulations > agency guidelines > internal policies)
-* **Model routing**: Complexity-based routing between fast and capable LLM tiers
-* **Comprehensive audit trail**: Hash-chained, append-only audit events with MLflow trace correlation
-* **PII masking**: Middleware-based masking for executive roles (SSN, DOB, account numbers)
-* **Safety shields**: Input and output content filters with escalation pattern detection
+* **マルチエージェントオーケストレーション**: ロールスコープのツールとRBACの強制を備えた5つのLangGraphエージェント
+* **コンプライアンスナレッジベース**: 階層化されたブースティング（連邦規制 > 政府機関のガイドライン > 社内ポリシー）を備えたpgvectorを使用するRAG
+* **モデルルーティング**: 高速なLLM層と高性能なLLM層の間の複雑さに基づくルーティング
+* **包括的な監査証跡**: MLflowのトレースの相関付けを備えた、ハッシュチェーンによる追記型監査イベント
+* **PIIマスク処理**: エグゼクティブロール向けのミドルウェアベースのマスキング（SSN(社会保障番号)、DOB(生年月日)、口座番号）
+* **セーフティシールド**: エスカレーションパターンの検出を備えた入力および出力コンテンツフィルター
 ====
 
-== Module summary
+== モジュールのまとめ
 
-**What you accomplished:**
+**達成したこと:**
 
-* Explored the 5 agent personas and the multi-agent architecture
-* Interacted with agents via the application UI
-* Experienced the observability gap in distributed AI systems
+* 5つのエージェントのペルソナとマルチエージェントアーキテクチャの探索
+* アプリケーションUIを介したエージェントとの対話
+* 分散型AIシステムにおけるオブザーバビリティのギャップの体験
 
-**Key takeaways:**
+**重要なポイント:**
 
-* Multi-agent systems distribute decision-making across multiple components
-* A single API can serve multiple agent personas with different capabilities
-* Specialized observability approaches are required for AgentOps
+* マルチエージェントシステムは、複数のコンポーネントにわたって意思決定を分散させます
+* 単一のAPIで、異なる機能を持つ複数のエージェントペルソナを提供できます
+* AgentOpsには特化したオブザーバビリティのアプローチが必要です
 
-**Next steps:**
+**次のステップ:**
 
-Module 2 will introduce the 3 pillars of observability (metrics, logs, and traces) and how different personas (SRE/Platform Engineering vs. AI Developer/Engineer) approach monitoring these systems.
+モジュール2では、オブザーバビリティの3本柱（メトリクス、ログ、トレース）と、SRE/プラットフォームエンジニアリングとAI開発者/エンジニアという異なるペルソナがこれらのシステムの監視にどのようにアプローチするかについて紹介します。

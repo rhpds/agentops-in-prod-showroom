@@ -1,41 +1,41 @@
-= AgentOps Observability with Red Hat AI
+= Red Hat AI を使用した AgentOps オブザーバビリティ
 
-Welcome to the AgentOps Observability with Red Hat AI workshop!
+Red Hat AI を使用した AgentOps オブザーバビリティのワークショップへようこそ！
 
-== What you'll learn
+== 学習内容
 
-In this workshop, you will:
+このワークショップでは、以下のことを行います：
 
-* Monitor the Stack: Utilize Red Hat AI's out-of-the-box observability stack to track key metrics and logs of your Agentic App
-* Trace Multi-Agent Executions: Track requests across multi-agent frameworks and MCP tools to understand the complete decision-making path
-* LLM Evaluations: Combine tracing with LLM evaluations (Evals) in MLflow to ensure your agents maintain high-quality outputs
-* From Development to Production: Move from manual notebook evaluations to automated AI pipelines that run continuously on the platform
+* スタックの監視: Red Hat AI のすぐに使えるオブザーバビリティスタックを活用して、エージェント型アプリの主要なメトリクスとログを追跡します
+* マルチエージェント実行のトレース: マルチエージェントフレームワークと MCP ツールにまたがるリクエストを追跡し、完全な意思決定パスを理解します
+* LLM 評価: MLflow でトレースと LLM 評価 (Evals) を組み合わせ、エージェントが高品質な出力を維持できるようにします
+* 開発から本番環境へ: 手動のノートブック評価から、プラットフォーム上で継続的に実行される自動化された AI パイプラインへと移行します
 
-== Who this is for
+== 対象者
 
-This workshop is designed for SREs, Platform Engineers, and AI Developers/Engineers who want to implement end-to-end observability for multi-agent AI systems.
+このワークショップは、マルチエージェント AI システムのエンドツーエンドのオブザーバビリティを実装したい SRE、プラットフォームエンジニア、および AI 開発者/エンジニアを対象として設計されています。
 
-== Prerequisites
+== 前提条件
 
-This workshop assumes basic familiarity with Kubernetes and AI/ML concepts.
+このワークショップでは、Kubernetes および AI/ML の概念に関する基本的な知識があることを前提としています。
 
-== Workshop environment
+== ワークショップ環境
 
-You will work with a multi-agent mortgage lending application built with LangGraph and integrated with Model Context Protocol (MCP) tools.
+LangGraph で構築され、Model Context Protocol (MCP) ツールと統合された、マルチエージェントの住宅ローン融資アプリケーションを使用して作業します。
 
-Log into OpenShift with the following credentials:
+以下の認証情報を使用して OpenShift にログインします：
 
-* Username: {user}
-* Password: {password}
+* ユーザー名: {user}
+* パスワード: {password}
 
-NOTE: All environment details and credentials are available in the lab interface.
+NOTE: すべての環境の詳細と認証情報は、ラボのインターフェースで確認できます。
 
-== Estimated time
+== 所要時間の目安
 
-This workshop will take approximately **1 hour 30 minutes** to complete.
+このワークショップを完了するのに必要な時間は、約 **1時間30分** です。
 
-You can work at your own pace.
+ご自身のペースで進めることができます。
 
-== Let's get started!
+== さあ、始めましょう！
 
-Click on **Workshop Overview** in the navigation to begin your learning journey.
+ナビゲーションの **Workshop Overview (ワークショップの概要)** をクリックして、学習の旅を始めましょう。

@@ -1,73 +1,73 @@
-= Module 6: From development to production
+= モジュール 6: 開発から本番環境へ
 :imagesdir: ../assets/images
-:navtitle: Module 6: Dev to Production
+:navtitle: モジュール 6: 開発から本番環境へ
 :toc: macro
 :toclevels: 1
 
 [NOTE]
 ====
-**This module is optional** and builds on Module 5. It shows how to automate evaluations into CI/CD pipelines for continuous quality monitoring.
+**このモジュールはオプションであり**、モジュール 5 に基づいて構築されています。継続的な品質監視のために、評価を CI/CD パイプラインに自動化する方法を示します。
 ====
 
-In Module 5, you ran evaluations manually from a Jupyter notebook, the *inner loop* of an AI Developer's workflow. But manual evaluations don't scale. In production, you need evaluations that run automatically, on a schedule, or as part of a CI/CD pipeline.
+モジュール 5 では、AI 開発者のワークフローの*インナーループ*である Jupyter ノートブックから手動で評価を実行しました。しかし、手動での評価はスケーラブルではありません。本番環境では、自動的に、スケジュールに基づいて、または CI/CD パイプラインの一部として実行される評価が必要です。
 
-In this module, you'll move from the inner loop to the *outer loop* by importing and running an evaluation pipeline in Red Hat OpenShift AI. The same scorers, datasets, and MLflow integration you used in Module 5 now run as an automated pipeline. No notebook required.
+このモジュールでは、Red Hat OpenShift AI に評価パイプラインをインポートして実行することで、インナーループから*アウターループ*へと移行します。モジュール 5 で使用したのと同じスコアラー、データセット、および MLflow 統合が、自動化されたパイプラインとして実行されます。ノートブックは必要ありません。
 
-TIP: In this module, you're wearing **both hats**: AI Developers define the evaluation logic, while SRE/Platform Engineers manage the pipeline infrastructure and scheduling.
+TIP: このモジュールでは、あなたは**両方の役割**を担います。AI 開発者が評価ロジックを定義し、SRE/プラットフォームエンジニアがパイプラインのインフラストラクチャとスケジュールを管理します。
 
-== Learning objectives
+== 学習目標
 
-By the end of this module, you'll be able to:
+このモジュールを修了すると、以下のことができるようになります：
 
-* Explain the difference between inner loop (notebook) and outer loop (pipeline) evaluation
-* Import an evaluation pipeline definition into OpenShift AI
-* Run an automated evaluation pipeline and configure its parameters
-* View automated evaluation results in MLflow
-* Detect prompt regressions by comparing evaluation results across prompt versions
+* インナーループ (ノートブック) とアウターループ (パイプライン) の評価の違いを説明できる
+* 評価パイプラインの定義を OpenShift AI にインポートできる
+* 自動化された評価パイプラインを実行し、そのパラメーターを構成できる
+* MLflow で自動評価結果を表示できる
+* プロンプトのバージョン間で評価結果を比較することで、プロンプトのリグレッションを検出できる
 
-== From inner loop to outer loop
+== インナーループからアウターループへ
 
-In Module 5, you evaluated the prospect agent by running cells in a Jupyter notebook. That approach works well during development, but it has limitations:
+モジュール 5 では、Jupyter ノートブックのセルを実行して、プロスペクトエージェントを評価しました。このアプローチは開発中にはうまく機能しますが、いくつかの制限があります：
 
-* **Manual**: Someone has to open the notebook and click Run
-* **Not reproducible**: Results depend on the notebook environment and who ran it
-* **Not schedulable**: You can't trigger it automatically on a model update or prompt change
+* **手動**: 誰かがノートブックを開いて「Run (実行)」をクリックする必要があります
+* **再現性がない**: 結果はノートブック環境と実行した人に依存します
+* **スケジュールできない**: モデルの更新やプロンプトの変更時に自動的にトリガーすることはできません
 
-The outer loop solves these problems by packaging the same evaluation logic into an **AI Pipeline**, a series of containerized steps that run on the OpenShift AI platform.
+アウターループは、同じ評価ロジックを **AI パイプライン** (OpenShift AI プラットフォーム上で実行される一連のコンテナ化されたステップ) にパッケージ化することで、これらの問題を解決します。
 
 [cols="1,1",options="header"]
 |===
-|Inner Loop (Module 5) |Outer Loop (Module 6)
+|インナーループ (モジュール 5) |アウターループ (モジュール 6)
 
-|Jupyter notebook
-|AI Pipeline (Kubeflow Pipelines)
+|Jupyter ノートブック
+|AI パイプライン (Kubeflow Pipelines)
 
-|Manual execution
-|Automated, scheduled, or triggered
+|手動実行
+|自動化、スケジュール設定、またはトリガー
 
-|Developer's workbench
-|Platform-managed containers
+|開発者のワークベンチ
+|プラットフォームが管理するコンテナ
 
-|Interactive exploration
-|Reproducible, auditable runs
+|インタラクティブな探索
+|再現可能で監査可能な実行
 |===
 
-Red Hat OpenShift AI includes https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.4/[Data Science Pipelines^] (based on Kubeflow Pipelines) for orchestrating multi-step ML workflows, including evaluation pipelines.
+Red Hat OpenShift AI には、評価パイプラインを含むマルチステップの ML ワークフローをオーケストレーションするための https://docs.redhat.com/ja/documentation/red_hat_openshift_ai_self-managed/3.4/[Data Science Pipelines^] (Kubeflow Pipelines ベース) が含まれています。
 
-== Exercise 1: Import an evaluation pipeline
+== 演習 1: 評価パイプラインのインポート
 
-The mortgage-ai project includes a pre-compiled evaluation pipeline that packages the same simple evaluation from Module 5 into 4 automated steps.
+mortgage-ai プロジェクトには、モジュール 5 のシンプルな評価を 4 つの自動化されたステップにパッケージ化した、コンパイル済みの評価パイプラインが含まれています。
 
-. In Red Hat OpenShift AI, navigate to **Develop & Train** > **Pipelines** > **Pipeline definitions**:
+. Red Hat OpenShift AI で、**Develop & Train** > **Pipelines** > **Pipeline definitions** に移動します：
 +
 image::eval16.png[OpenShift AI Pipeline definitions page showing no pipelines with Import pipeline button,link=self,window=blank,width=700]
 
-. Click **Import pipeline** and configure it:
+. **Import pipeline** をクリックし、設定を行います：
 +
 --
-* **Pipeline name**: `eval-simple-run`
-* Select **Import by url**
-* Paste the pipeline URL:
+* **Pipeline name (パイプライン名)**: `eval-simple-run`
+* **Import by url** を選択します
+* パイプラインの URL を貼り付けます：
 +
 [source,text]
 ----
@@ -77,34 +77,34 @@ https://raw.githubusercontent.com/rh-ai-quickstart/multi-agent-loan-origination/
 +
 image::eval17.png[Import pipeline dialog with name eval-simple-run and Import by url selected,link=self,window=blank,width=500]
 +
-Click **Import pipeline**.
+**Import pipeline** をクリックします。
 
-. The pipeline graph shows the 4 automated steps:
+. パイプライングラフには、4 つの自動化されたステップが表示されます：
 +
 image::eval18.png[Pipeline definition graph showing setup-mlflow-op then create-dataset-op then run-simple-eval-op then report-results-op,link=self,window=blank,width=700]
 +
 --
-* **setup-mlflow-op**: Configure MLflow tracking URI, workspace, and experiment
-* **create-dataset-op**: Create the evaluation dataset on the MLflow server (same 6 test cases from Module 5)
-* **run-simple-eval-op**: Run the 3 deterministic scorers (contains_expected, has_numeric_result, response_length)
-* **report-results-op**: Print the evaluation summary
+* **setup-mlflow-op**: MLflow トラッキング URI、ワークスペース、および実験を構成します
+* **create-dataset-op**: MLflow サーバー上に評価データセットを作成します (モジュール 5 と同じ 6 つのテストケース)
+* **run-simple-eval-op**: 3 つの決定論的スコアラー (`contains_expected`, `has_numeric_result`, `response_length`) を実行します
+* **report-results-op**: 評価のサマリーを出力します
 --
 
-This is the same evaluation you ran manually in Module 5, Exercise 5, but packaged as a pipeline that can run without a notebook.
+これは、モジュール 5 の演習 5 で手動で実行したのと同じ評価ですが、ノートブックなしで実行できるパイプラインとしてパッケージ化されています。
 
-== Exercise 2: Run the evaluation pipeline
+== 演習 2: 評価パイプラインの実行
 
-. Click **Actions** > **Create run**:
+. **Actions** > **Create run** をクリックします：
 +
 image::eval19.png[Actions dropdown showing Create run and Create schedule options,link=self,window=blank,width=300]
 +
-NOTE: Notice the **Create schedule** option. In production, you would schedule evaluations to run periodically (e.g., every 6 hours) to continuously monitor agent quality.
+NOTE: **Create schedule** オプションに注目してください。本番環境では、エージェントの品質を継続的に監視するために、定期的に (例: 6時間ごと) 実行するように評価をスケジュールします。
 
-. In the **Create run** form, set the run name to `eval-run-1`:
+. **Create run** フォームで、run name を `eval-run-1` に設定します：
 +
 image::eval20.png[Create run form showing run type project experiment and run name fields,link=self,window=blank,width=700]
 
-. Scroll down to **Parameters** and configure the required values:
+. 下にスクロールして **Parameters** に移動し、必要な値を設定します：
 +
 --
 * **mlflow_tracking_uri**: `pass:[https://mlflow.redhat-ods-applications.svc.cluster.local:8443]`
@@ -113,131 +113,131 @@ image::eval20.png[Create run form showing run type project experiment and run na
 +
 image::eval21.png[Create run Parameters section showing agent_name dataset_name mlflow_experiment_name mlflow_tracking_uri and mlflow_workspace,link=self,window=blank,width=500]
 +
-The other parameters (`agent_name`, `dataset_name`, `mlflow_experiment_name`) use sensible defaults. Click **Create run**.
+他のパラメーター (`agent_name`, `dataset_name`, `mlflow_experiment_name`) には適切なデフォルト値が使用されています。**Create run** をクリックします。
 
-. The pipeline starts executing. You can watch each step complete in the graph view:
+. パイプラインの実行が開始されます。グラフビューで各ステップの完了を確認できます：
 +
 image::eval22.png[Pipeline run eval-run-1 executing showing the 4-step graph with Running status,link=self,window=blank,width=700]
 +
-Each step runs in its own container on the OpenShift AI platform. The pipeline authenticates to MLflow using the pod's Kubernetes service account token, so no manual token management is needed.
+各ステップは、OpenShift AI プラットフォーム上の独自のコンテナ内で実行されます。パイプラインはポッドの Kubernetes サービスアカウントトークンを使用して MLflow に対して認証を行うため、トークンを手動で管理する必要はありません。
 
-== Exercise 3: View automated evaluation results in MLflow
+== 演習 3: MLflow で自動評価結果を表示する
 
-. Switch to the MLflow UI. Make sure you are still in the **{user_project}** workspace:
+. MLflow UI に切り替えます。引き続き **{user_project}** ワークスペースにいることを確認してください：
 +
 image::reselect-project-mlflow.png[MLflow workspace selector showing user project workspace,link=self,window=blank,width=400]
 +
-Once the pipeline completes, the evaluation results appear in MLflow just like the notebook-driven evaluations from Module 5.
+パイプラインが完了すると、モジュール 5 でのノートブック駆動の評価と同様に、評価結果が MLflow に表示されます。
 
 [start=2]
-. Navigate to the experiments tab to view the traces. The name of the new experiment is **multi-agent-loan-origination-eval**. 
+. 実験 (experiments) タブに移動してトレースを表示します。新しい実験の名前は **multi-agent-loan-origination-eval** です。
 +
 image::find-new-exp.png[]
 +
 
-. Click on `Traces` from the side bar:
+. サイドバーから `Traces` をクリックします：
 +
 image::traces-nav.png[]
 +
 
-You'll see the 6 new traces from the pipeline run with their assessment results:
+パイプライン実行からの 6 つの新しいトレースと、そのアセスメント結果が表示されます：
 +
 image::eval23.png[MLflow Traces showing 6 automated evaluation traces with assessment columns,link=self,window=blank,width=700]
 +
-The results are identical in structure to what you saw in Module 5: the same scorers, the same dataset, the same assessment columns. The only difference is that these were produced by an automated pipeline instead of a notebook.
+結果の構造はモジュール 5 で見たものとまったく同じです。同じスコアラー、同じデータセット、同じアセスメント列です。唯一の違いは、これらがノートブックではなく自動化されたパイプラインによって生成されたことだけです。
 
-. To see all assessment and expectation columns, click **Columns** and check **All Assessments** and **All Expectations**:
+. すべてのアセスメントと期待値の列を表示するには、**Columns** をクリックし、**All Assessments** と **All Expectations** にチェックを入れます：
 +
 image::eval24.png[MLflow Columns dropdown showing All Assessments and All Expectations checkboxes,link=self,window=blank,width=250]
 
-TIP: If assessment columns are not visible in the Traces view (in this module or in Module 5), use the **Columns** dropdown to enable **All Assessments**. MLflow doesn't always show them by default.
+TIP: トレースビュー (このモジュールまたはモジュール 5) にアセスメント列が表示されない場合は、**Columns** ドロップダウンを使用して **All Assessments** を有効にしてください。MLflow では、デフォルトで常にこれらが表示されるとは限りません。
 
-== Exercise 4: Catch a bad prompt before production
+== 演習 4: 本番環境の前に悪いプロンプトをキャッチする
 
-Automated pipelines ensure evaluations run continuously, but the real payoff comes when they catch a problem before it reaches users.
+自動化されたパイプラインは、評価が継続的に実行されることを保証しますが、本当の効果が発揮されるのは、問題がユーザーに届く前にキャッチできたときです。
 
-In this exercise, you'll simulate a realistic scenario: a team member proposes a prompt change to reduce latency, and you use evaluations to discover that the change would silently degrade response quality.
+この演習では、現実的なシナリオをシミュレートします。チームメンバーがレイテンシを削減するためのプロンプトの変更を提案し、あなたは評価を使用して、その変更が応答の品質を密かに低下させることを発見します。
 
-The scenario: A developer at Fed Aura Capital notices the prospect agent calls tools for questions it could answer from general knowledge. They propose a "quick optimization"—change `TOOL USE (MANDATORY)` to `TOOL USE (OPTIONAL)` in the system prompt, telling the agent to prefer its own knowledge and only call tools when truly necessary.
+シナリオ: Fed Aura Capital の開発者は、プロスペクトエージェントが、一般的な知識で答えられる質問に対してもツールを呼び出していることに気づきました。彼らは「簡単な最適化」として、システムプロンプトの `TOOL USE (MANDATORY) (ツールの使用: 必須)` を `TOOL USE (OPTIONAL) (ツールの使用: オプション)` に変更し、エージェント自身の知識を優先し、本当に必要な場合のみツールを呼び出すように指示することを提案しました。
 
-This sounds reasonable. It might reduce latency. But will the agent still provide accurate, product-specific responses? Let's find out.
+これは理にかなっているように聞こえます。レイテンシを減らすかもしれません。しかし、エージェントは引き続き正確で製品固有の応答を提供するでしょうか？確認してみましょう。
 
-=== Open the regression detection notebook
+=== リグレッション検出ノートブックを開く
 
-. In JupyterLab (from Module 5), navigate to `multi-agent-loan-origination/evaluations/` and open **evaluate_agent_v2.ipynb**:
+. JupyterLab (モジュール 5 から) で `multi-agent-loan-origination/evaluations/` に移動し、**evaluate_agent_v2.ipynb** を開きます：
 +
 image::eval25.png[JupyterLab showing evaluate_agent_v2.ipynb open with Prompt Regression Detection title and environment setup,link=self,window=blank,width=700]
 +
-This notebook is purpose-built for prompt regression detection. It registers a modified Version 2 of the system prompt, runs the same evaluation dataset from Module 5, and compares results against the Version 1 baseline.
+このノートブックは、プロンプトのリグレッション検出専用に構築されています。変更されたシステムプロンプトのバージョン 2 を登録し、モジュール 5 と同じ評価データセットを実行し、バージョン 1 のベースラインと結果を比較します。
 
-. Run the **Install Dependencies** cell. 
+. **Install Dependencies** セルを実行します。
 
-. Run the environment variables configuration cell. Copy the **LLM_API_KEY** and **MLFLOW_TRACKING_TOKEN** values from **evaluate_agent.ipynb** (same as Module 5). 
+. 環境変数の構成セルを実行します。**evaluate_agent.ipynb** (モジュール 5 と同じ) から **LLM_API_KEY** と **MLFLOW_TRACKING_TOKEN** の値をコピーします。
 
-. Run the **Setup**, **Configure MLflow** and **1. Load Existing Prompt (Version 1)** cells.
+. **Setup**、**Configure MLflow**、および **1. Load Existing Prompt (Version 1)** のセルを実行します。
 
-=== Review the modified prompt
+=== 変更されたプロンプトを確認する
 
 [start=3]
-. Run the cells under **2. Create Modified Prompt (Version 2)**. The notebook makes a single, subtle change to the system prompt:
+. **2. Create Modified Prompt (Version 2)** の下にあるセルを実行します。ノートブックはシステムプロンプトに微妙な変更を 1 つだけ加えます：
 +
 image::eval26.png[Modified system prompt Version 2 showing TOOL USE changed from MANDATORY to OPTIONAL,link=self,window=blank,width=700]
 +
-The change: `TOOL USE (MANDATORY)` becomes `TOOL USE (OPTIONAL)`. The agent is now told to _"prefer answering from your general knowledge instead of calling tools"_ and _"Only call tools if you truly cannot answer from your own knowledge."_
+変更点: `TOOL USE (MANDATORY)` が `TOOL USE (OPTIONAL)` になります。エージェントは _"ツールを呼び出す代わりに、一般的な知識から回答することを優先してください"_ および _"自身の知識から本当に回答できない場合のみ、ツールを呼び出してください"_ と指示されるようになりました。
 +
-This is a realistic scenario. Someone might "optimize" the prompt to reduce tool call latency, not realizing that tool-sourced data (specific product rates, loan limits, affordability calculations) is what makes the responses accurate.
+これは現実的なシナリオです。ツール呼び出しのレイテンシを減らすためにプロンプトを「最適化」する人は、ツールから取得したデータ (特定の製品の金利、融資限度額、支払い能力の計算) こそが応答を正確なものにしていることに気づいていないかもしれません。
 
-=== Register Version 2 in MLflow
+=== MLflow にバージョン 2 を登録する
 
 [start=4]
-. Run the cells under **3. Register Version 2 in MLflow Prompt Registry**. The notebook registers the modified prompt as Version 2 with a descriptive commit message:
+. **3. Register Version 2 in MLflow Prompt Registry** の下にあるセルを実行します。ノートブックは、説明的なコミットメッセージとともに、変更されたプロンプトをバージョン 2 として登録します：
 +
 image::eval27.png[Notebook registering Version 2 prompt in MLflow with commit message V2 Changed TOOL USE from MANDATORY to OPTIONAL,link=self,window=blank,width=500]
 +
-The output confirms `public-assistant-system-prompt (version 2)` with URI `prompts:/public-assistant-system-prompt/2`. Notice the tags include `"purpose": "regression-detection"`, making it clear this version is being tested, not deployed.
+出力は、URI `prompts:/public-assistant-system-prompt/2` を持つ `public-assistant-system-prompt (version 2)` を確認します。タグに `"purpose": "regression-detection"` が含まれており、このバージョンがデプロイされるものではなくテスト中であることが明確になっていることに注意してください。
 
-=== Compare prompt versions in MLflow
+=== MLflow でプロンプトのバージョンを比較する
 
 [start=5]
-. Navigate to the *MLflow Console* tab. Switch to the **mortgage-ai-eval** experiment:
+. **MLflow Console** タブに移動します。**mortgage-ai-eval** 実験に切り替えます：
 +
 image::nav-mortgageaieval-exp.png[]
 +
-. Navigate to **Prompts** and click on **public-assistant-system-prompt**. Click the **Compare** tab. 
+. **Prompts** に移動し、**public-assistant-system-prompt** をクリックします。**Compare** タブをクリックします。
 
 +
 image::compare-prompts.png[]
 +
 
-. MLflow shows a side-by-side diff of Version 2 (left) and Version 1 (right):
+. MLflow は、バージョン 2 (左) とバージョン 1 (右) の左右の diff (差分) を表示します：
 +
 image::eval28.png[MLflow Prompts Compare view showing side-by-side diff of Version 2 and Version 1 with red and green highlighting on the TOOL USE change,link=self,window=blank,width=700]
 +
-The diff highlighting makes the change immediately visible: the `TOOL USE` section changed from `(MANDATORY)` to `(OPTIONAL)`, and the instructions shifted from _"you MUST call the product_info tool"_ to _"you may call the product_info tool, but prefer answering from your general knowledge."_
+diff のハイライトにより、変更箇所がすぐにわかります。`TOOL USE` セクションが `(MANDATORY)` から `(OPTIONAL)` に変更され、指示が _"you MUST call the product_info tool (product_info ツールを呼び出す必要があります)"_ から _"you may call the product_info tool, but prefer answering from your general knowledge (product_info ツールを呼び出してもかまいませんが、一般的な知識から回答することを優先してください)"_ に変更されています。
 +
-This is the same experience as reviewing a code diff in a pull request, but for prompts. Before this, prompt changes at Fed Aura Capital were untracked text edits in YAML files. Now every change is versioned, diffable, and linked to evaluation results.
+これは、プルリクエストでコードの diff をレビューするのと同じ体験ですが、プロンプトに対して行われます。これまで、Fed Aura Capital でのプロンプトの変更は、YAML ファイル内の追跡されていないテキスト編集でした。今ではすべての変更がバージョン管理され、diff が可能になり、評価結果にリンクされています。
 
-=== Run evaluations against Version 2
+=== バージョン 2 に対して評価を実行する
 
 [start=6]
-. Return to the notebook. Run the cells under **#5** thru  **7. Run Evaluation with V2 Prompt**. This cell runs the same 6 test cases and 3 deterministic scorers from Module 5, but with the modified v2 prompt:
+. ノートブックに戻ります。**#5** から **7. Run Evaluation with V2 Prompt** までのセルを実行します。このセルは、モジュール 5 と同じ 6 つのテストケースと 3 つの決定論的スコアラーを実行しますが、変更された v2 プロンプトを使用します：
 +
 image::eval29.png[Notebook running V2 evaluation showing 6 examples and 3 scorers with results contains_expected 83 percent has_numeric_result 50 percent response_length 100 percent,link=self,window=blank,width=500]
 +
-The results will likely show regressions compared to your Module 5 baseline. Look for drops in `contains_expected` (the agent may no longer mention expected product keywords consistently) and changes in `has_numeric_result` (suggesting the agent is giving generic answers instead of tool-sourced specifics). Your exact percentages may vary, but the pattern of degradation should be visible.
+結果は、モジュール 5 のベースラインと比較してリグレッションを示す可能性が高いです。`contains_expected` の低下 (エージェントが期待される製品キーワードを一貫して言及しなくなる可能性がある) と `has_numeric_result` の変化 (エージェントがツールから取得した具体的な情報ではなく、一般的な回答をしていることを示唆) を探してください。正確な割合は異なる場合がありますが、劣化のパターンは目に見えるはずです。
 
-=== Compare V1 vs V2 results
+=== V1 と V2 の結果を比較する
 
 [start=7]
-. Run the cells under **9. Compare V1 vs V2 Results**. The notebook compares the v2 scores against the v1 baseline and flags regressions:
+. **9. Compare V1 vs V2 Results** の下にあるセルを実行します。ノートブックは、v2 のスコアを v1 のベースラインと比較し、リグレッションにフラグを立てます：
 +
 image::eval30.png[Notebook comparing V1 baseline vs V2 modified prompt showing contains_expected 100 percent to 83 percent REGRESSION and has_numeric_result regression,link=self,window=blank,width=500]
 +
-The comparison table will show which scorers regressed (exact percentages may vary):
+比較表には、どのスコアラーがリグレッションしたかが表示されます (正確な割合は異なる場合があります)：
 +
 [cols="2,1,1,1,1",options="header"]
 |===
-|Scorer |V1 (baseline) |V2 (modified) |Delta |Status
+|スコアラー |V1 (ベースライン) |V2 (変更後) |差分 |ステータス
 
 |contains_expected
 |100%
@@ -258,58 +258,58 @@ The comparison table will show which scorers regressed (exact percentages may va
 |OK
 |===
 +
-You'll likely see regressions in multiple scorers. The agent may still produce long-enough responses (`response_length` often stays stable), but those responses become less specific: missing expected keywords and lacking numeric values like rates and dollar amounts. The "optimization" made responses faster but less accurate.
+複数のスコアラーでリグレッションが見られる可能性が高いです。エージェントは依然として十分な長さの応答を生成しているかもしれませんが (`response_length` は安定していることが多い)、それらの応答は具体性に欠けるようになります。期待されるキーワードが欠落し、金利や金額などの数値が含まれなくなります。「最適化」により応答は速くなりましたが、正確さは低下しました。
 
-=== View per-trace results in MLflow
+=== MLflow でトレースごとの結果を表示する
 
 [start=8]
-. In the MLflow UI, from the **MLflow Console** tab, navigate to **Prompts**, click **public-assistant-system-prompt**, and select the **Traces** tab:
+. MLflow UI で、**MLflow Console** タブから **Prompts** に移動し、**public-assistant-system-prompt** をクリックして **Traces** タブを選択します：
 
 +
 image::prompt-traces.png[]
 +
 
-You can now see evaluation traces from both Version 1 and Version 2, with assessment columns showing per-trace pass/fail:
+バージョン 1 とバージョン 2 の両方からの評価トレースが表示され、アセスメント列にはトレースごとの合格/不合格が示されます：
 +
 image::eval31.png[MLflow Prompts Traces tab showing Version 1 and Version 2 traces side by side with assessment columns contains_expected has_numeric_result and mortgage_guidelines,link=self,window=blank,width=700]
 +
-The traces are grouped by prompt version. You can see exactly which test cases passed or failed for each version:
+トレースはプロンプトのバージョンごとにグループ化されます。各バージョンについて、どのテストケースが合格または失敗したかを正確に確認できます：
 +
 --
-* **Version 1** traces should show more consistent `True` values for `contains_expected` — the agent called the right tools and included the expected keywords.
-* **Version 2** traces will likely show `False` for several test cases — the agent answered from general knowledge instead of calling the `product_info` tool, missing expected keywords.
+* **Version 1** のトレースは、`contains_expected` においてより一貫した `True` 値を示すはずです。エージェントは正しいツールを呼び出し、期待されるキーワードを含めました。
+* **Version 2** のトレースは、いくつかのテストケースで `False` を示す可能性が高いです。エージェントは `product_info` ツールを呼び出す代わりに一般的な知識から回答し、期待されるキーワードが欠落しました。
 --
 +
-Click into any failing trace to understand why the response missed the expected keyword and diagnose the root cause.
+失敗したトレースをクリックして、応答で期待されたキーワードが欠落した理由を理解し、根本原因を診断します。
 
-. To compare the prompt versions side by side, navigate to **Prompts** > **public-assistant-system-prompt** and click the **Text** tab to view the differences:
+. プロンプトのバージョンを並べて比較するには、**Prompts** > **public-assistant-system-prompt** に移動し、**Text** タブをクリックして違いを表示します：
 +
 image::eval34.png[MLflow Prompt comparison showing text differences between Version 1 and Version 2,link=self,window=blank,width=700]
 +
-This lets you correlate specific prompt changes with evaluation regressions — a critical capability for prompt engineering at scale.
+これにより、特定のプロンプトの変更を評価のリグレッションと関連付けることができます。これは、大規模なプロンプトエンジニアリングにとって不可欠な機能です。
 
-=== The verdict
+=== 結論
 
-The prompt change that seemed like a harmless optimization would have caused a **measurable regression** in response accuracy. Without the evaluation framework you built in Modules 5 and 6, this change would have been deployed to production based on a quick manual test ("it still answers questions, looks good"). Fed Aura Capital's prospect agent would have started giving generic mortgage advice instead of specific product information, potentially misguiding customers and creating compliance risk.
+無害な最適化のように見えたプロンプトの変更は、応答の正確さに**測定可能なリグレッション**を引き起こしたでしょう。モジュール 5 と 6 で構築した評価フレームワークがなければ、この変更は手動での簡単なテスト (「まだ質問に答えているし、問題なさそう」) に基づいて本番環境にデプロイされていたでしょう。Fed Aura Capital のプロスペクトエージェントは、特定の製品情報の代わりに一般的な住宅ローンのアドバイスを提供し始め、顧客を誤解させ、コンプライアンスリスクを生み出していた可能性があります。
 
-The evaluation infrastructure caught the regression before it reached a single user. This is the core value of AgentOps: **visibility into quality, not just availability**.
+評価インフラストラクチャは、リグレッションが 1 人のユーザーに届く前にそれをキャッチしました。これが AgentOps の中心的な価値です。**可用性だけでなく、品質への可視性**です。
 
-== Module summary
+== モジュールのまとめ
 
-**What you accomplished:**
+**達成したこと:**
 
-* Imported a pre-compiled evaluation pipeline into OpenShift AI
-* Configured and ran an automated evaluation pipeline
-* Viewed automated evaluation results in MLflow alongside notebook-driven results
-* Detected a prompt regression before production by comparing Version 1 and Version 2 evaluation results
+* コンパイル済みの評価パイプラインを OpenShift AI にインポートしました
+* 自動化された評価パイプラインを設定して実行しました
+* ノートブック駆動の結果と並べて、MLflow で自動評価結果を表示しました
+* バージョン 1 とバージョン 2 の評価結果を比較することで、本番環境の前にプロンプトのリグレッションを検出しました
 
-**Key takeaways:**
+**重要なポイント:**
 
-* The inner loop (notebook) is for exploration and development; the outer loop (pipeline) is for automation and production
-* OpenShift AI Pipelines package the same evaluation logic into reproducible, schedulable, containerized runs
-* MLflow's Prompt Registry combined with evaluations creates a quality gate: every prompt change can be tested, diffed, and compared before deployment
-* Evaluations catch subtle regressions that manual testing would miss, preventing bad prompts from reaching production
+* インナーループ (ノートブック) は探索と開発のためのものであり、アウターループ (パイプライン) は自動化と本番環境のためのものです
+* OpenShift AI Pipelines は、同じ評価ロジックを、再現可能でスケジュール可能なコンテナ化された実行としてパッケージ化します
+* MLflow のプロンプトレジストリを評価と組み合わせることで、品質ゲート (品質の関所) が作成されます。すべてのプロンプトの変更は、デプロイ前にテストされ、差分が取得され、比較可能になります。
+* 評価は、手動テストでは見逃される微妙なリグレッションをキャッチし、悪いプロンプトが本番環境に到達するのを防ぎます
 
-**Next steps:**
+**次のステップ:**
 
-The Conclusion recaps the full observability journey—from the black box of Module 1 through metrics, traces, evaluations, and automated pipelines—and provides resources for continuing your AgentOps practice.
+まとめ (Conclusion) では、モジュール 1 のブラックボックスからメトリクス、トレース、評価、および自動化されたパイプラインに至るまでの、完全なオブザーバビリティの旅を振り返り、AgentOps の実践を継続するためのリソースを提供します。

@@ -1,41 +1,41 @@
-= Workshop overview
+= ワークショップの概要
 :imagesdir: ../assets/images
-:navtitle: Workshop Overview
+:navtitle: ワークショップの概要
 :toc:
 :toc-placement: preamble
 :icons: font
 
-== What is AgentOps?
+== AgentOpsとは？
 
-Traditional DevOps taught us to monitor, debug, and maintain software systems in production. But AI agents introduce new challenges: non-deterministic behavior, multi-agent orchestration, LLM quality variations, and distributed tool calls.
+従来のDevOpsは、本番環境でソフトウェアシステムを監視、デバッグ、保守する方法を教えてくれました。しかし、AIエージェントは、非決定的な動作、マルチエージェントのオーケストレーション、LLMの品質のばらつき、分散されたツール呼び出しといった新たな課題をもたらします。
 
-**AgentOps** extends observability practices to handle these realities. Beyond tracking request rates and latency, you need to trace agent reasoning paths, measure token consumption, validate tool call success, and continuously evaluate output quality.
+**AgentOps**は、オブザーバビリティ（可観測性）のプラクティスを拡張し、これらの現実に対処します。リクエストの割合やレイテンシを追跡するだけでなく、エージェントの推論パスをトレースし、トークンの消費量を測定し、ツール呼び出しの成功を検証し、出力の品質を継続的に評価する必要があります。
 
-This workshop shows you how.
+このワークショップでは、その方法を説明します。
 
-== Your role and mission
+== あなたの役割とミッション
 
-You're a senior engineer at Fed Aura Capital, a mortgage lending company that has deployed a sophisticated multi-agent AI system to handle the complete lending lifecycle. The system uses 5 distinct LangGraph agents, each serving a different persona: prospect inquiry, borrower application intake, loan officer pipeline management, underwriter compliance checks, and executive analytics.
+あなたは、ローン融資のライフサイクル全体を処理するために洗練されたマルチエージェントAIシステムを導入した住宅ローン融資会社、Fed Aura Capitalのシニアエンジニアです。このシステムは、見込み客からの問い合わせ、借り手の申し込み受け付け、ローン担当者のパイプライン管理、アンダーライターのコンプライアンスチェック、エグゼクティブのアナリティクスという、異なるペルソナにサービスを提供する5つの個別のLangGraphエージェントを使用しています。
 
-Your CTO has called an emergency meeting: "Our AI agents are failing in production, but we can't see where or why. Customer complaints are rising, loan processing times are unpredictable, and we have no visibility into what's happening inside these multi-agent workflows. We need end-to-end observability. Yesterday."
+CTOから緊急会議が招集されました。「本番環境でAIエージェントに障害が発生しているが、どこで、なぜ発生しているのかわからない。顧客からの苦情は増え、ローン処理時間は予測不能で、これらのマルチエージェントワークフローの内部で何が起こっているのか全く可視化されていない。エンドツーエンドのオブザーバビリティが必要だ。大至急。」
 
-**Your assignment**: Implement a comprehensive AgentOps observability strategy using Red Hat OpenShift AI to gain full visibility into your multi-agent system.
+**あなたの任務**: Red Hat OpenShift AIを使用して包括的なAgentOpsオブザーバビリティ戦略を実装し、マルチエージェントシステムの完全な可視性を獲得することです。
 
-**The objective**: Establish monitoring, tracing, and evaluation capabilities that allow your team to diagnose distributed failures, understand agent decision paths, and ensure consistent quality across all AI-powered workflows.
+**目的**: チームが分散システム障害を診断し、エージェントの意思決定パスを理解し、AIを活用したすべてのワークフロー全体で一貫した品質を確保できるようにする、監視、トレース、および評価機能を確立することです。
 
-== Fed Aura Capital's challenges
+== Fed Aura Capitalの課題
 
-**The situation**: Fed Aura Capital has deployed a multi-agent AI system handling mortgage applications, but lacks visibility into the distributed workflows spanning multiple agents and MCP (Model Context Protocol, a standard for connecting AI agents to external tools and data sources) tools.
+**状況**: Fed Aura Capitalは住宅ローンの申し込みを処理するマルチエージェントAIシステムを導入しましたが、複数のエージェントやMCP（Model Context Protocol：AIエージェントを外部ツールやデータソースに接続するための標準規格）ツールにまたがる分散ワークフローの可視性が欠如しています。
 
-**Project timeline**: The board has given the engineering team two weeks to demonstrate improved observability and reduced incident response time.
+**プロジェクトのタイムライン**: 役員会はエンジニアリングチームに対し、オブザーバビリティの向上とインシデント対応時間の短縮を実証するために2週間の猶予を与えました。
 
-**Current challenges** (operational pain points):
+**現在の課題** (運用上の問題点):
 
-* **Blind spots in agent interactions**: When a loan application fails, teams cannot trace the request path across the 5 agents, resulting in hours spent manually correlating logs
-* **Hidden latency bottlenecks**: Some agents introduce unpredictable delays, but there's no way to identify which ones. Customer complaints about slow processing continue to rise.
-* **Silent failures in MCP tools**: External tool calls (compliance checks, credit scoring) fail without alerting, and incomplete loan applications are discovered days later
-* **No quality baseline**: No systematic way to evaluate if agents are providing consistent, accurate responses, increasing the risk of compliance violations
+* **エージェントの相互作用における死角**: ローンの申し込みが失敗した場合、チームは5つのエージェントにまたがるリクエストパスを追跡できず、ログの関連付けを手作業で行うのに何時間も費やすことになります。
+* **隠れたレイテンシのボトルネック**: 一部のエージェントが予測不能な遅延を引き起こしていますが、どれが原因かを特定する方法がありません。処理が遅いという顧客からの苦情は増え続けています。
+* **MCPツールでのサイレント障害**: 外部ツール呼び出し（コンプライアンスチェック、クレジットスコアリング）がアラートなしで失敗し、数日後に不完全なローンの申し込みが発見されます。
+* **品質のベースラインがない**: エージェントが一貫性のある正確な応答を提供しているかどうかを評価する体系的な方法がなく、コンプライアンス違反のリスクが高まっています。
 
-**The opportunity**: Red Hat OpenShift AI provides an integrated observability stack that can address these challenges. You've been selected to evaluate and implement it for Fed Aura Capital's use case.
+**機会**: Red Hat OpenShift AIは、これらの課題に対処できる統合されたオブザーバビリティスタックを提供します。あなたは、Fed Aura Capitalのユースケースに合わせてそれを評価し、実装する担当者に選ばれました。
 
-**Technical perspective**: "MLflow tracing combined with RHOAI's metrics stack can give us the visibility we need, but we need to validate how it integrates with our LangGraph agents and MCP tools."
+**技術的な視点**: 「MLflowのトレース機能とRHOAIのメトリクススタックを組み合わせることで、必要な可視性を得ることができますが、LangGraphエージェントやMCPツールとどのように統合されるかを検証する必要があります。」

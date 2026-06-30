@@ -1,119 +1,119 @@
-= Module 5: Agent & LLM evaluations (Evals)
+= モジュール 5: エージェントと LLM の評価 (Evals)
 :imagesdir: ../assets/images
-:navtitle: Module 5: Agent & LLM Evaluations
+:navtitle: モジュール 5: エージェントと LLM の評価
 :toc: macro
 :toclevels: 1
 
 [NOTE]
 ====
-**This module is optional.** If you completed Modules 1-4, you have a strong observability foundation. This module adds advanced quality assurance capabilities for those who want deeper expertise in evaluation frameworks or have additional time.
+**このモジュールはオプションです。** モジュール 1〜4 を完了していれば、オブザーバビリティの強力な基礎ができています。このモジュールは、評価フレームワークについてより深い専門知識を得たい方や、追加の時間がある方向けに、高度な品質保証機能を追加します。
 ====
 
-Observability tells you if your system is working, but evaluations tell you if your agents are working *well*. Without evals, a 20% drop in answer quality can go unnoticed for weeks until customers complain. In this module, you'll go beyond basic observability by running LLM evaluations against the Fed Aura Capital prospect agent using MLflow's evaluation framework, Prompt Registry, and LLM-as-a-Judge scorers (using one LLM to evaluate another LLM's output quality).
+オブザーバビリティはシステムが機能しているかどうかを教えてくれますが、評価 (Evals) はエージェントが**適切に**機能しているかどうかを教えてくれます。評価がなければ、回答の品質が 20% 低下しても、顧客から苦情が来るまで何週間も気づかれない可能性があります。このモジュールでは、基本的なオブザーバビリティを超えて、MLflow の評価フレームワーク、プロンプトレジストリ、および LLM-as-a-Judge スコアラー（ある LLM を使用して別の LLM の出力品質を評価する）を使用して、Fed Aura Capital のプロスペクトエージェントに対して LLM 評価を実行します。
 
-TIP: In this module, you're wearing your **AI Developer / Engineer hat**, focusing on model output quality, prompt management, and evaluation design.
+TIP: このモジュールでは、あなたはモデルの出力品質、プロンプトの管理、および評価の設計に焦点を当てる **AI 開発者 / エンジニア** の役割を担います。
 
-This is the AI Developer's quality assurance layer, the *inner loop* where you manually evaluate agent outputs during development. In Module 6, you'll automate this into an *outer loop* that detects regressions continuously.
+これは AI 開発者の品質保証レイヤーであり、開発中にエージェントの出力を手動で評価する*インナーループ*です。モジュール 6 では、これを自動化し、継続的にリグレッション（退行・デグレ）を検出する*アウターループ*にします。
 
-== Learning objectives
+== 学習目標
 
-By the end of this module, you'll be able to:
+このモジュールを修了すると、以下のことができるようになります：
 
-* Launch a Jupyter workbench in Red Hat OpenShift AI
-* Register versioned prompts in MLflow's Prompt Registry
-* Create evaluation datasets with inputs and expected outputs
-* Run deterministic and LLM-as-a-Judge evaluations against a live agent
-* Analyze evaluation results and per-trace assessments in MLflow
+* Red Hat OpenShift AI で Jupyter ワークベンチを起動できる
+* MLflow のプロンプトレジストリ (Prompt Registry) にバージョン管理されたプロンプトを登録できる
+* 入力と期待される出力を含む評価データセットを作成できる
+* ライブエージェントに対して決定的評価および LLM-as-a-Judge 評価を実行できる
+* MLflow で評価結果とトレースごとのアセスメント（評価）を分析できる
 
-== Why evaluations matter for AgentOps
+== AgentOps において評価が重要な理由
 
-In the Fed Aura Capital mortgage system, agents make consequential decisions:
+Fed Aura Capital の住宅ローンシステムにおいて、エージェントは重大な決定を下します：
 
-* The prospect agent qualifies leads. A false negative loses a $300K mortgage sale.
-* The underwriter agent assesses risk. A $500K bad loan approval creates regulatory exposure.
-* The underwriter agent checks compliance. Violations risk legal penalties and license suspension.
+* プロスペクトエージェントは見込み客を審査します。偽陰性（誤って不適格と判断すること）は、30万ドルの住宅ローン販売の機会を失うことになります。
+* アンダーライターエージェントはリスクを評価します。50万ドルの不良債権の承認は、規制上のリスクを生み出します。
+* アンダーライターエージェントはコンプライアンスをチェックします。違反は、法的罰則やライセンス停止のリスクをもたらします。
 
-In production, even a 1% error rate means 100 failures per day on 10,000 daily interactions. Metrics tell you the agent responded. Traces tell you how it responded. **Evaluations tell you if it responded correctly.**
+本番環境では、わずか 1% のエラー率でも、1日 10,000 回のインタラクションにおいて毎日 100 回の失敗を意味します。メトリクスはエージェントが応答したことを教えてくれます。トレースはどのように応答したかを教えてくれます。**評価は、それが正しく応答したかどうかを教えてくれます。**
 
-== Exercise 1: Launch a Jupyter workbench
+== 演習 1: Jupyter ワークベンチの起動
 
-To run evaluations, you need a Jupyter environment. Red Hat OpenShift AI provides managed workbenches with pre-installed data science libraries.
+評価を実行するには、Jupyter 環境が必要です。Red Hat OpenShift AI は、データサイエンスライブラリがプリインストールされたマネージドワークベンチを提供します。
 
-TIP: Throughout this workshop, all key services are accessible as *tabs at the top of this page* — no need to open separate browser windows. Navigate to the *RHOAI Console* tab to access the Red Hat OpenShift AI dashboard.
+TIP: このワークショップ全体を通して、すべての主要なサービスには**このページ上部のタブ**からアクセスできます。別のブラウザウィンドウを開く必要はありません。Red Hat OpenShift AI ダッシュボードにアクセスするには、**RHOAI Console** タブに移動してください。
 
-. Navigate to the *RHOAI Console* tab:
+. **RHOAI Console** タブに移動します：
 +
 image::rhoai-console-tab.png[Showroom tabs showing RHOAI Console tab,link=self,window=blank,width=700]
 +
 
-. In the Red Hat OpenShift AI (RHOAI) dashboard, navigate to **Projects** and select your workspace (`{user_project}`).
+. Red Hat OpenShift AI (RHOAI) ダッシュボードで、**Projects** に移動し、自分のワークスペース (`{user_project}`) を選択します。
 
 image::find-project.png[]
 
-. Click **Create a workbench**:
+. **Create a workbench** をクリックします：
 +
 image::create-workbench.png[]
 +
 
-Now, configure it:
+次に、設定を行います：
 +
 --
 * **Name**: `{user_project}`
 * **Image selection**: `Jupyter | Data Science | CPU | Python 3.12`
 * **Version selection**: `3.4`
-* Leave other settings as defaults
+* その他の設定はデフォルトのままにします
 --
 +
 image::eval1.png[Red Hat OpenShift AI Create workbench form showing name and image configuration,link=self,window=blank,width=700]
 
-. Click **Create workbench** and wait for it to start. 
+. **Create workbench** をクリックし、起動するまで待ちます。
 +
-NOTE: The workbench image download can take a couple of minutes the first time. Please be patient while it pulls the container image and starts.
+NOTE: 初回はワークベンチイメージのダウンロードに数分かかる場合があります。コンテナイメージをプルして起動するまで、しばらくお待ちください。
 
-. Once the status shows **Running**, click to launch JupyterLab:
+. ステータスが **Running** になったら、クリックして JupyterLab を起動します：
 +
 image::eval2.1.png[Red Hat OpenShift AI workbench status showing Running with Open button,link=self,window=blank,width=700]
 
-NOTE: JupyterLab opens in a new window. Use your browser's split tab feature to view both JupyterLab and these instructions side-by-side, or toggle between windows as you work.
+NOTE: JupyterLab は新しいウィンドウで開きます。ブラウザのタブ分割機能を使用して JupyterLab とこれらの手順を並べて表示するか、作業しながらウィンドウを切り替えてください。
 
-== Exercise 2: Clone the repository and open the evaluation notebook
+== 演習 2: リポジトリのクローンと評価ノートブックを開く
 
-This is the *inner loop* in action: as an AI Developer or Engineer, you use Jupyter notebooks to experiment with prompts, tweak agent behavior, and evaluate outputs interactively. The notebook gives you a fast feedback cycle: change a prompt, re-run the evaluation, inspect the results, and iterate, all before any code reaches a pipeline or production.
+これが実践における*インナーループ*です。AI 開発者またはエンジニアとして、Jupyter ノートブックを使用してプロンプトを実験し、エージェントの動作を微調整し、出力をインタラクティブに評価します。ノートブックは高速なフィードバックサイクルを提供します。コードがパイプラインや本番環境に到達する前に、プロンプトを変更し、評価を再実行し、結果を検査して反復します。
 
-TIP: Want to learn more about MLflow's evaluation framework? Open the *MLflow Docs* tab at the top of this page and explore the https://mlflow.org/docs/latest/genai/eval-monitor/[Evaluation & Monitoring^] section, which covers scorers, datasets, and evaluation-driven development workflows in depth.
+TIP: MLflow の評価フレームワークについてさらに詳しく知りたい場合は、このページ上部の **MLflow Docs** タブを開き、https://mlflow.org/docs/latest/genai/eval-monitor/[Evaluation & Monitoring^] セクションを探索してください。スコアラー、データセット、および評価主導型の開発ワークフローについて詳しく説明されています。
 
-The evaluation notebook is part of the mortgage-ai application repository. Let's clone it and set up the environment.
+評価ノートブックは、mortgage-ai アプリケーションリポジトリの一部です。クローンを作成して環境をセットアップしましょう。
 
-. In JupyterLab, click **Git** > **Clone a Repository** (or use the Git icon in the left sidebar). 
+. JupyterLab で、**Git** > **Clone a Repository** をクリックします (または左側のサイドバーにある Git アイコンを使用します)。
 
 +
 image::git-clone.png[]
 +
 
-Enter the repository URL:
+リポジトリの URL を入力します：
 +
 [source,console,role=execute,subs=attributes+]
 ----
-https://github.com/rh-ai-quickstart/multi-agent-loan-origination.git
+https://github.com/nueda-rh/multi-agent-loan-origination.git
 ----
 +
 image::eval2.png[JupyterLab Clone a repo dialog with the multi-agent-loan-origination repository URL,link=self,window=blank,width=700]
 +
-Click **Clone** to download the repository.
+**Clone** をクリックしてリポジトリをダウンロードします。
 
-. In the file browser, navigate to `multi-agent-loan-origination/evaluations/` and open **evaluate_agent.ipynb**:
+. ファイルブラウザで `multi-agent-loan-origination/evaluations/` に移動し、**evaluate_agent.ipynb** を開きます：
 +
 image::eval3.png[JupyterLab showing evaluate_agent.ipynb open with Setup cell and environment variables,link=self,window=blank,width=700]
 +
-IMPORTANT: **New to JupyterLab?** Use these keyboard shortcuts to run notebook cells: +
-• **Shift+Enter** — Run current cell and move to the next one +
-• **Ctrl+Enter** (Windows/Linux) or **Cmd+Enter** (Mac) — Run current cell without advancing +
-• A cell showing `[*]` on the left is currently executing +
-• To run all cells at once, click the restart-and-run-all button (⏮▶) in the toolbar
+IMPORTANT: **JupyterLab は初めてですか？** ノートブックのセルを実行するには、以下のキーボードショートカットを使用します： +
+• **Shift+Enter** — 現在のセルを実行して次のセルに移動 +
+• **Ctrl+Enter** (Windows/Linux) または **Cmd+Enter** (Mac) — 現在のセルを実行し、移動しない +
+• 左側に `[*]` が表示されているセルは、現在実行中です +
+• すべてのセルを一度に実行するには、ツールバーの restart-and-run-all ボタン (⏮▶) をクリックします
 
-. Run the **Install Dependencies** cell to install the required packages (MLflow, LangChain, OpenAI, etc.).
+. **Install Dependencies** セルを実行して、必要なパッケージ (MLflow, LangChain, OpenAI など) をインストールします。
 
-. The next cell, in the **Install Dependencies** section, configures the environment variables. The cell should look like this:
+. 次のセル (**Install Dependencies** セクション内) で環境変数を構成します。セルは以下のようになっているはずです：
 +
 [source,python]
 ----
@@ -127,21 +127,21 @@ os.environ["MLFLOW_TRACKING_AUTH"] = "kubernetes"
 os.environ["MLFLOW_TRACKING_INSECURE_TLS"] = "true"
 ----
 +
-You need to fill in 2 values: `LLM_API_KEY` and `MLFLOW_TRACKING_TOKEN`
+入力する必要がある値は2つです：`LLM_API_KEY` と `MLFLOW_TRACKING_TOKEN`
 +
 --
-* `LLM_API_KEY`: extract this from the **llm-credentials** secret. In the OpenShift Console, navigate to **Workloads > Secrets** in the `{user_project}` namespace, find **llm-credentials** by using the search bar to filter. 
+* `LLM_API_KEY`: これを **llm-credentials** シークレットから抽出します。OpenShift Console(OCP Consoleタブ) で、`{user_project}` ネームスペースの **Workloads > シークレット(もしくはSecrets)** に移動し、検索バーを使用してフィルタリングし、**llm-credentials** を見つけます。
 +
 image::eval2.2.png[OpenShift Console Secrets page showing llm-credentials secret in the workspace namespace,link=self,window=blank,width=700]
 --
 
-. Click to open the secret's details. Scroll down, and click **Reveal values**:
+. クリックしてシークレットの詳細を開きます。下にスクロールし、**Reveal values** をクリックします：
 +
 image::reveal-values.png[]
 +
-. Copy the `LLM_API_KEY` value for your notebook cell.
+. ノートブックのセルに `LLM_API_KEY` の値をコピーします。
 
-. To get the `MLFLOW_TRACKING_TOKEN` value, navigate to the *Terminal* tab and run:
+. `MLFLOW_TRACKING_TOKEN` の値を取得するには、**Terminal** タブに移動して以下を実行します：
 +
 [source,bash,subs="+attributes"]
 ----
@@ -149,212 +149,212 @@ TOKEN=$(oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user}
 echo $\{TOKEN}
 ----
 +
-Copy the token value and paste it into the `MLFLOW_TRACKING_TOKEN` variable in the notebook's environment variables cell.
+トークンの値をコピーし、ノートブックの環境変数セルにある `MLFLOW_TRACKING_TOKEN` 変数に貼り付けます。
 
-. Run the environment variable configuration, **Setup** and **Configure MLflow** cells. This will take a bit to process. Remember, if the cell shows `[*]` on the left it is still executing.
+. 環境変数の構成、**Setup**、および **Configure MLflow** セルを実行します。処理に少し時間がかかります。セルの左側に `[*]` が表示されている場合、それはまだ実行中であることを覚えておいてください。
 
-. Verify the output shows your MLflow URI, experiment name, and LLM endpoint.
+. 出力に MLflow URI、実験名、および LLM エンドポイントが表示されることを確認します。
 +
 image::setup-expected-output.png[]
 +
-TIP: You can run cells one by one with **Shift+Enter**, or click the **Restart the kernel and run all cells** button (fast-forward icon) in the toolbar to execute the entire notebook at once:
+TIP: **Shift+Enter** でセルを1つずつ実行するか、ツールバーの **Restart the kernel and run all cells** ボタン (早送りアイコン) をクリックしてノートブック全体を一度に実行できます：
 +
 image::eval2.3.png[JupyterLab toolbar showing Restart and Run All rewind button,link=self,window=blank,width=700]
 
-== Exercise 3: Register a prompt in MLflow's Prompt Registry
+== 演習 3: MLflow のプロンプトレジストリにプロンプトを登録する
 
-Before running evaluations, let's register the agent's system prompt (the instructions that define the agent's role and behavior) in MLflow's https://mlflow.org/docs/latest/genai/prompt-registry/[Prompt Registry^]. The Prompt Registry provides version control for prompts. Think of it as Git for your system prompts, enabling you to track changes, compare versions, and link evaluation traces back to the exact prompt that produced them. Without versioning, when quality drops you can't identify which prompt change caused it or safely roll back.
+評価を実行する前に、MLflow の https://mlflow.org/docs/latest/genai/prompt-registry/[プロンプトレジストリ (Prompt Registry)^] に、エージェントのシステムプロンプト（エージェントの役割と動作を定義する指示）を登録しましょう。プロンプトレジストリは、プロンプトのバージョン管理を提供します。これはシステムプロンプト用の Git のようなものと考えてください。これにより、変更を追跡し、バージョンを比較し、評価トレースを、それを生成した正確なプロンプトにリンクさせることができます。バージョン管理がないと、品質が低下したときに、どのプロンプトの変更が原因かを特定したり、安全にロールバックしたりすることができません。
 
-. Run the 3 cells under **1. Register System Prompt in MLflow**. The notebook reads the public-assistant system prompt (the same content from `config/agents/public-assistant.yaml`) and registers it as a versioned artifact:
+. **1. Register System Prompt in MLflow** の下にある 3 つのセルを実行します。ノートブックは public-assistant (パブリックアシスタント) のシステムプロンプト (`config/agents/public-assistant.yaml` と同じ内容) を読み取り、バージョン管理されたアーティファクトとして登録します：
 +
 image::eval4.png[Notebook cell registering the public-assistant system prompt in MLflow Prompt Registry,link=self,window=blank,width=500]
 
-. Navigate to the *MLflow Console* tab. Switch to the **mortgage-ai-eval** experiment:
+. **MLflow Console** タブに移動します。**mortgage-ai-eval** 実験に切り替えます：
 +
 image::nav-mortgageaieval-exp.png[]
 +
-Click **Prompts** in the left sidebar. 
+左側のサイドバーで **Prompts** をクリックします。
 +
 image::nav-prompts.png[]
 +
-You'll see the registered prompt:
+登録されたプロンプトが表示されます：
 +
 image::eval5.png[MLflow Prompts page showing public-assistant-system-prompt at Version 1,link=self,window=blank,width=700]
 
-. Click on **public-assistant-system-prompt** to inspect the version details:
+. **public-assistant-system-prompt** をクリックして、バージョンの詳細を検査します：
 +
 image::eval6.png[MLflow Prompt detail showing version 1 with metadata and prompt text preview,link=self,window=blank,width=700]
 +
-The prompt detail shows:
+プロンプトの詳細には以下が表示されます：
 +
 --
-* **Version**: Version number and registration timestamp
-* **Metadata**: Agent name, persona, source file, and type tags
-* **Commit message**: Description of the change (like a Git commit)
-* **Prompt text**: The full system prompt content
+* **Version (バージョン)**: バージョン番号と登録のタイムスタンプ
+* **Metadata (メタデータ)**: エージェント名、ペルソナ、ソースファイル、タイプのタグ
+* **Commit message (コミットメッセージ)**: 変更の説明 (Git コミットのようなもの)
+* **Prompt text (プロンプトテキスト)**: システムプロンプトの完全なコンテンツ
 --
 
-NOTE: When you update the system prompt and register a new version, MLflow keeps the history. This lets you compare evaluation results across prompt versions, a critical capability for prompt engineering at scale.
+NOTE: システムプロンプトを更新して新しいバージョンを登録すると、MLflow は履歴を保持します。これにより、プロンプトのバージョン間で評価結果を比較できます。これは、大規模なプロンプトエンジニアリングにとって非常に重要な機能です。
 
-== Exercise 4: Create an evaluation dataset
+== 演習 4: 評価データセットの作成
 
-The foundation of good evaluations is a high-quality dataset. The notebook creates a persistent dataset on the MLflow server with representative test cases for the prospect agent.
+優れた評価の基盤となるのは、高品質なデータセットです。ノートブックは、プロスペクトエージェントの代表的なテストケースを含む永続的なデータセットを MLflow サーバー上に作成します。
 
-. Run the cells under **2. Create Evaluation Dataset** and **3. View the Dataset**. The notebook creates 6 test cases, each with:
+. **2. Create Evaluation Dataset** と **3. View the Dataset** の下にあるセルを実行します。ノートブックは 6 つのテストケースを作成し、それぞれに以下が含まれます：
 +
 --
-* **inputs**: The user message to send to the agent (e.g., _"Tell me about FHA loans"_)
-* **expectations**: Expected behavior including keywords, tool calls, topics, and forbidden content
+* **inputs (入力)**: エージェントに送信するユーザーメッセージ (例: _"Tell me about FHA loans" (FHAローンについて教えて)_)
+* **expectations (期待値)**: キーワード、ツール呼び出し、トピック、禁止されたコンテンツを含む、期待される動作
 --
 
-. In the MLflow UI, navigate to your experiment and click **Datasets**. 
+. MLflow UI で、実験に移動し、**Datasets** をクリックします。
 +
 image::nav-datasets.png[]
 +
 
-You'll see the `public_assistant_eval` dataset with 6 records:
+6 つのレコードを持つ `public_assistant_eval` データセットが表示されます：
 +
 image::eval7.1.png[MLflow Datasets page showing public_assistant_eval with 6 records and their inputs and expectations,link=self,window=blank,width=700]
 +
-Each record shows the user message input alongside the expected answer and expected tool calls. For example, _"Tell me about FHA loans"_ expects the keyword `"FHA"` in the response and the `product_info` tool to be called.
+各レコードには、ユーザーメッセージの入力とともに、期待される回答と期待されるツール呼び出しが表示されます。たとえば、_"Tell me about FHA loans"_ の場合、応答に `"FHA"` というキーワードが含まれ、`product_info` ツールが呼び出されることが期待されます。
 
-NOTE: Datasets are stored on the MLflow server, not as local files. This means they're versioned, shareable across team members, and can be reused across evaluation runs. When a new team member joins, they run evaluations against the same test cases—ensuring consistent quality standards across the team.
+NOTE: データセットはローカルファイルとしてではなく、MLflow サーバーに保存されます。つまり、バージョン管理され、チームメンバー間で共有可能で、複数の評価の実行で再利用できます。新しいチームメンバーが参加した際にも、同じテストケースに対して評価を実行するため、チーム全体で一貫した品質基準が確保されます。
 
-IMPORTANT: Teams without evaluation datasets often discover quality issues only after customer complaints—weeks too late. A structured dataset catches regressions during development, before they reach production.
+IMPORTANT: 評価データセットを持たないチームは、顧客からの苦情を受けて初めて品質の問題に気づくことがよくあります。それでは数週間も遅すぎます。構造化されたデータセットは、本番環境に到達する前の開発段階でリグレッションをキャッチします。
 
-== Exercise 5: Run a simple evaluation
+== 演習 5: シンプルな評価の実行
 
-Back in the notebook, let's start with deterministic scorers (automated checks that grade responses using simple rules), which are fast checks that don't require LLM calls. These are your first line of defense for catching obvious regressions.
+ノートブックに戻り、決定論的スコアラー (単純なルールを使用して回答を採点する自動チェック) から始めましょう。これは LLM 呼び出しを必要としない高速なチェックです。これらは、明らかなリグレッションを検出するための最前線の防御線となります。
 
-=== Simple scorers
+=== シンプルなスコアラー
 
-The notebook defines 3 deterministic scorers:
+ノートブックは 3 つの決定論的スコアラーを定義しています：
 
-* **contains_expected**: Does the response contain the expected keyword? (e.g., does an FHA question response mention "FHA"?)
-* **has_numeric_result**: Does the response include numeric values like dollar amounts or percentages? (important for affordability calculations)
-* **response_length**: Is the response at least 50 characters? (catches empty or truncated responses)
+* **contains_expected**: 応答に期待されるキーワードが含まれているか？ (例: FHA の質問に対する応答に "FHA" と記載されているか？)
+* **has_numeric_result**: 応答に金額や割合などの数値が含まれているか？ (支払い能力の計算に重要)
+* **response_length**: 応答が少なくとも 50 文字あるか？ (空または切り捨てられた応答をキャッチします)
 
-=== Set up the predictor and run the evaluation
+=== プレディクター(Predictor)の設定と評価の実行
 
-Before running the evaluation, the notebook needs 2 pieces: a **predictor function** (the function that calls your agent for each test case) and the **scorer definitions**. The predictor wraps the agent invocation and loads the registered prompt, creating the automatic linkage between prompts and traces that you'll explore in Exercise 7.
+評価を実行する前に、ノートブックには 2 つの要素が必要です。**プレディクター関数** (各テストケースに対してエージェントを呼び出す関数) と **スコアラーの定義** です。プレディクターはエージェントの呼び出しをラップし、登録されたプロンプトをロードして、演習 7 で探索するプロンプトとトレース間の自動リンクを作成します。
 
-. Run the cells under the **Predictor with Prompt Linkage** and **Scorers** sections to set up both.
+. **Predictor with Prompt Linkage** セクションと **Scorers** セクションのセルを実行して、両方を設定します。
 
-. Then run the **Run Simple Evaluation** cell. The notebook sends each test case to the live agent, collects responses, and scores them:
+. 次に **Run Simple Evaluation** セルを実行します。ノートブックは各テストケースをライブエージェントに送信し、応答を収集してスコアリングします：
 +
 image::eval7.png[Notebook running simple evaluation with 6 examples and 3 scorers showing results,link=self,window=blank,width=500]
 +
-The evaluation runs all 6 test cases against the prospect agent and reports the overall scores.
+評価では、プロスペクトエージェントに対して 6 つのテストケースすべてが実行され、全体的なスコアが報告されます。
 
-NOTE: If you see any failures, double check your environment variables were correctly set. If you change the environment variables again, restart the kernel before rerunning the cells.
+NOTE: 失敗が見られた場合は、環境変数が正しく設定されているか再確認してください。環境変数を再度変更した場合は、セルを再実行する前にカーネルを再起動してください。
 
-=== View results in MLflow
+=== MLflow で結果を表示する
 
 [start=3]
-. Back in the MLflow UI, using the **MLflow Console** tab, click **Evaluation runs** in the left sidebar. 
+. MLflow UI に戻り、**MLflow Console** タブを使用して、左側のサイドバーで **Evaluation runs** をクリックします。
 
 +
 image::nav-eval-runs.png[]
 +
 
-You'll see the evaluation run with all 6 traces:
+6 つのトレースすべてを含む評価実行が表示されます：
 +
 image::eval8.png[MLflow Evaluation Runs showing the evaluation run with 6 traces and their requests responses and token counts,link=self,window=blank,width=700]
 +
-Each row shows the Trace ID, the request sent to the agent, the response received, and the token count.
+各行には、トレース ID、エージェントに送信されたリクエスト、受信した応答、およびトークン数が表示されます。
 
-. Click **Traces** in the left sidebar to see the per-trace assessments. Click **Columns** and enable **All Assessments** to see the scorer results for each trace:
+. 左側のサイドバーで **Traces** をクリックして、トレースごとのアセスメント (評価) を確認します。**Columns** をクリックし、**All Assessments** を有効にして、各トレースのスコアラー結果を表示します：
 +
 image::eval9.png[MLflow Traces view with Assessment columns showing contains_expected has_numeric_result and response_length results per trace,link=self,window=blank,width=700]
 +
-The assessment columns show True/False for each scorer on each trace. You can quickly spot which test cases passed or failed each check.
+アセスメント列には、各トレースの各スコアラーに対する True/False が表示されます。どのテストケースが各チェックに合格したか、または失敗したかをすぐに見つけることができます。
 +
-NOTE: Some assessment columns may show null values. This is expected — at this stage we are only running simple deterministic scorers (`contains_expected`, `has_numeric_result`, `response_length`), not the LLM-as-a-Judge scorers. You'll enable those in Exercise 6, and the remaining columns will populate.
+NOTE: 一部のアセスメント列に null 値が表示される場合があります。これは想定内のことです。この段階では、LLM-as-a-Judge スコアラーではなく、単純な決定的スコアラー (`contains_expected`, `has_numeric_result`, `response_length`) のみを実行しているためです。演習 6 でそれらを有効にすると、残りの列にデータが入力されます。
 +
-NOTE: If assessment columns are not visible in the Traces view, use the **Columns** dropdown and enable **All Assessments**. MLflow doesn't always show them by default.
+NOTE: トレースビューにアセスメント列が表示されない場合は、**Columns** ドロップダウンを使用し、**All Assessments** を有効にしてください。MLflow では、デフォルトで常にこれらが表示されるとは限りません。
 +
 image::eval32.png[MLflow Columns dropdown showing All Assessments option to enable assessment columns,link=self,window=blank,width=350]
 
-. Click on a trace that has the simple scorer columns filled (`contains_expected`, `has_numeric_result`, `response_length`) — the rest should be null at this point. You'll see the detailed view with the **Assessments** sidebar:
+. シンプルなスコアラーの列 (`contains_expected`, `has_numeric_result`, `response_length`) が入力されているトレースをクリックします (この時点では、残りは null であるはずです)。**Assessments** サイドバーを含む詳細ビューが表示されます：
 +
 image::eval10.png[MLflow trace detail showing inputs outputs span sequence and Assessments sidebar with Feedback and Expectations,link=self,window=blank,width=500]
 +
-The detail view combines the trace information (inputs, outputs, span sequence) with the evaluation assessments. The **Feedback** section shows the deterministic scorer results, and the **Expectations** section shows the expected values from the dataset.
+詳細ビューには、トレース情報 (入力、出力、スパンシーケンス) と評価アセスメントが組み合わされて表示されます。**Feedback** セクションには決定的スコアラーの結果が表示され、**Expectations** セクションにはデータセットからの期待値が表示されます。
 
-== Exercise 6: Run LLM-as-a-Judge evaluation
+== 演習 6: LLM-as-a-Judge 評価の実行
 
-Deterministic scorers catch surface-level issues, but can't assess whether a response is *actually helpful*. A deterministic scorer sees "FHA" in the response and passes—but can't detect if the agent gave incorrect rate information or violated compliance guidelines. For that, you need https://mlflow.org/docs/latest/genai/eval-monitor/running-evaluation/agents/[LLM-as-a-Judge^], using an LLM to evaluate the quality of another LLM's output.
+決定的スコアラーは表面的な問題をキャッチしますが、応答が**実際に役に立つか**どうかを評価することはできません。決定的スコアラーは応答の中に "FHA" を見つけて合格としますが、エージェントが間違った金利情報を提供したり、コンプライアンスのガイドラインに違反したりしたかどうかは検出できません。そのためには、ある LLM を使用して別の LLM の出力の品質を評価する https://mlflow.org/docs/latest/genai/eval-monitor/running-evaluation/agents/[LLM-as-a-Judge^] が必要になります。
 
-=== LLM judge scorers
+=== LLM Judge スコアラー
 
-The notebook adds 5 LLM-powered scorers on top of the 3 simple ones:
+ノートブックでは、3 つのシンプルなスコアラーに加えて、LLM を利用した 5 つのスコアラーを追加します：
 
-* **https://mlflow.org/docs/latest/genai/eval-monitor/scorers/llm-judge/tool-call/correctness/[ToolCallCorrectness^]**: Did the agent call the right tools? (e.g., did it use `product_info` for product questions?)
-* **ToolCallEfficiency**: Were tool calls minimal and efficient?
-* **RelevanceToQuery**: Is the response relevant to what the user asked?
-* **Safety**: Is the response safe and appropriate?
-* **Guidelines**: Does the response follow custom mortgage assistant guidelines? (helpful, no rate promises, professional language)
+* **https://mlflow.org/docs/latest/genai/eval-monitor/scorers/llm-judge/tool-call/correctness/[ToolCallCorrectness^]**: エージェントは正しいツールを呼び出したか？ (例: 製品に関する質問に `product_info` を使用したか？)
+* **ToolCallEfficiency**: ツール呼び出しは最小限かつ効率的であったか？
+* **RelevanceToQuery**: 応答はユーザーの質問に関連しているか？
+* **Safety**: 応答は安全で適切か？
+* **Guidelines**: 応答はカスタムの住宅ローンアシスタントのガイドラインに従っているか？ (役立つ内容か、金利の約束をしていないか、専門的な言葉遣いか)
 
-=== Run the evaluation
+=== 評価の実行
 
-. Run the **Run Full LLM-as-a-Judge Evaluation** cell. This runs all 8 scorers (3 simple + 5 LLM judges) against the 6 test cases:
+. **Run Full LLM-as-a-Judge Evaluation** セルを実行します。これにより、6 つのテストケースに対して 8 つのスコアラーすべて (3つのシンプル + 5つの LLM ジャッジ) が実行されます：
 +
 image::eval11.png[Notebook running LLM-as-a-Judge evaluation with 8 scorers including 5 LLM judges,link=self,window=blank,width=500]
 +
-This evaluation takes longer than the simple one because each test case is scored by 5 LLM judges in addition to the deterministic checks.
+この評価は、各テストケースが決定的チェックに加えて 5 つの LLM ジャッジによってスコアリングされるため、シンプルな評価よりも時間がかかります。
 
-=== View results in MLflow
+=== MLflow で結果を表示する
 
 [start=2]
-. In the MLflow UI, click **Evaluation runs**. 
+. MLflow UI で、**Evaluation runs** をクリックします。
 
 +
 image::nav-eval-runs.png[]
 +
-You'll now see 2 runs: the simple evaluation and the LLM-as-a-Judge evaluation:
+シンプルな評価と LLM-as-a-Judge 評価の 2 つの実行が表示されるようになります：
 +
 image::eval12.png[MLflow Evaluation Runs showing 2 runs - simple and LLM-as-a-Judge,link=self,window=blank,width=700]
 
-. Click **Traces** and use the **Columns** dropdown to enable **All Assessments**. You'll see the full picture with both deterministic and LLM judge results:
+. **Traces** をクリックし、**Columns** ドロップダウンを使用して **All Assessments** を有効にします。決定的結果と LLM ジャッジ結果の両方を含む全容が表示されます：
 +
 image::eval13.png[MLflow Traces view with full assessment columns including tool_call_correctness safety and relevance,link=self,window=blank,width=700]
 +
-The additional columns show Pass/Fail for each LLM judge. Notice how `tool_call_correctness` shows 83% pass rate and `safety` shows 100%. The agent is safe but occasionally calls the wrong tool.
+追加された列には、各 LLM ジャッジの Pass/Fail (合格/不合格) が表示されます。`tool_call_correctness` は 83% の合格率を示し、`safety` は 100% を示していることに注目してください。エージェントは安全ですが、時折間違ったツールを呼び出しています。
 
-. Click on a trace to see all 8 assessments in the detail view:
+. トレースをクリックすると、詳細ビューで 8 つの評価すべてを確認できます：
 +
 image::eval14.png[MLflow trace detail showing all 8 assessments including safety mortgage_guidelines tool_call_efficiency tool_call_correctness and relevance_to_query,link=self,window=blank,width=500]
 +
-The assessments sidebar now shows the full evaluation picture for this single trace: safety (Yes), mortgage_guidelines (No, perhaps the response was too informal), tool_call_efficiency (Yes), tool_call_correctness (Yes), relevance_to_query (Yes), and the 3 deterministic checks.
+アセスメントサイドバーには、この 1 つのトレースの評価の全体像が表示されます：safety (Yes)、mortgage_guidelines (No、おそらく回答がカジュアルすぎた)、tool_call_efficiency (Yes)、tool_call_correctness (Yes)、relevance_to_query (Yes)、および 3 つの決定的チェック。
 
-TIP: LLM judges catch quality issues that deterministic scorers miss. In Fed Aura Capital's testing, LLM-as-a-Judge evaluations identified 17% more quality problems than keyword checks alone—problems that would have reached customers without this layer of assessment.
+TIP: LLM ジャッジは、決定的スコアラーが見逃す品質の問題をキャッチします。Fed Aura Capital のテストでは、LLM-as-a-Judge の評価により、キーワードチェックだけの場合よりも 17% 多くの品質問題（この評価レイヤーがなければ顧客に到達していたであろう問題）が特定されました。
 
-== Exercise 7: Explore prompt-trace linkage
+== 演習 7: プロンプトとトレースのリンクを探索する
 
-When quality drops in production, prompt-trace linkage lets you answer "which prompt version caused this?" in seconds rather than days of manual correlation. One of the key features of MLflow's evaluation framework is automatic prompt-trace linkage. Every evaluation trace is linked to the prompt version that produced it, enabling you to track quality across prompt iterations.
+本番環境で品質が低下した際、プロンプトとトレースのリンク機能を使用すれば、何日もかけて手動で相関関係を調べることなく、「どのプロンプトのバージョンが原因か？」という問いに数秒で答えることができます。MLflow の評価フレームワークの重要な機能の 1 つは、プロンプトとトレース間の自動リンクです。すべての評価トレースは、それを生成したプロンプトバージョンにリンクされるため、プロンプトの反復ごとに品質を追跡できます。
 
-. In the MLflow UI, navigate to **Prompts** and click on **public-assistant-system-prompt**. Click the **Traces** tab:
+. MLflow UI で、**Prompts** に移動し、**public-assistant-system-prompt** をクリックします。**Traces** タブをクリックします：
 +
 image::eval15.png[MLflow Prompts Traces tab showing evaluation traces linked to prompt version 1,link=self,window=blank,width=700]
 +
-All evaluation traces are automatically linked to the prompt version that produced them. When you update the system prompt and register Version 2, future evaluations will link to that new version, letting you compare quality across prompt iterations side by side.
+すべての評価トレースは、それらを生成したプロンプトのバージョンに自動的にリンクされます。システムプロンプトを更新してバージョン 2 を登録すると、将来の評価はその新しいバージョンにリンクされ、プロンプトの反復間で品質を並べて比較できるようになります。
 
-== Module summary
+== モジュールのまとめ
 
-**What you accomplished:**
+**達成したこと:**
 
-* Launched a Jupyter workbench in Red Hat OpenShift AI and set up the evaluation environment
-* Registered the prospect agent's system prompt in MLflow's Prompt Registry
-* Created an evaluation dataset with 6 test cases on the MLflow server
-* Ran deterministic and LLM-as-a-Judge evaluations against the live agent
-* Analyzed per-trace assessments and prompt-trace linkage in MLflow
+* Red Hat OpenShift AI で Jupyter ワークベンチを起動し、評価環境をセットアップしました
+* MLflow のプロンプトレジストリにプロスペクトエージェントのシステムプロンプトを登録しました
+* MLflow サーバー上に 6 つのテストケースを含む評価データセットを作成しました
+* ライブエージェントに対して決定的評価と LLM-as-a-Judge 評価を実行しました
+* MLflow でトレースごとのアセスメントとプロンプトとトレースのリンクを分析しました
 
-**Why this matters:**
+**これが重要な理由:**
 
-Without evaluations, you're flying blind—quality drops go undetected until customers complain. This inner-loop evaluation process catches agent failures in development that would otherwise reach production. Prompt versioning lets you identify and roll back quality-breaking changes in seconds. LLM judges detect subtle failures (wrong tool calls, unsafe responses, guideline violations) that simple checks miss.
+評価がなければ、目隠しで飛行しているようなものです。品質の低下は、顧客から苦情が来るまで検出されません。このインナーループの評価プロセスは、本番環境に到達してしまうエージェントの障害を開発段階でキャッチします。プロンプトのバージョン管理により、品質を損なう変更を数秒で特定し、ロールバックできます。LLM ジャッジは、シンプルなチェックでは見逃される微妙な障害（間違ったツール呼び出し、安全でない応答、ガイドライン違反）を検出します。
 
-**Bottom line:** Evaluations shift quality control left, from post-incident firefighting to pre-deployment prevention.
+**結論:** 評価は、インシデント発生後の消火活動からデプロイ前の予防へと、品質管理を「シフトレフト（プロセスの早い段階へ移行）」させます。
 
-**Next steps:**
+**次のステップ:**
 
-Module 6 will move from the inner loop (manual evaluation) to the outer loop, automating evaluation with AI Pipelines that can be scheduled or triggered to detect regressions continuously.
+モジュール 6 では、インナーループ (手動評価) からアウターループに移行し、AI パイプラインを使用して評価を自動化します。スケジュールまたはトリガーによって、継続的にリグレッションを検出できるようになります。

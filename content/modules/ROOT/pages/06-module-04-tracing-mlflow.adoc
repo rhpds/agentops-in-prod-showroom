@@ -1,53 +1,53 @@
-= Module 4: Tracing and MLflow
+= モジュール 4: トレースと MLflow
 :imagesdir: ../assets/images
-:navtitle: Module 4: Tracing & MLflow
+:navtitle: モジュール 4: トレースと MLflow
 :toc: macro
 :toclevels: 1
 
-Metrics tell you *what* is happening, but traces tell you *why*. In this module, you'll explore MLflow tracing to gain end-to-end visibility into the Fed Aura Capital multi-agent mortgage system. You'll trace the requests you made in Module 1 across LangGraph agents and tool calls, closing the observability gap you experienced firsthand.
+メトリクスは**何が**起きているかを教えてくれますが、トレースは**なぜ**起きているのかを教えてくれます。このモジュールでは、MLflow のトレース機能を使用して、Fed Aura Capital のマルチエージェント住宅ローンシステムにおけるエンドツーエンドの可視性を獲得します。モジュール 1 で行ったリクエストが LangGraph エージェントとツール呼び出しの間でどのように処理されたかをトレースし、あなたが直接体験したオブザーバビリティのギャップを埋めます。
 
-TIP: In this module, you're wearing **both hats**: SREs use traces to diagnose latency and failures, while AI Developers use them to understand agent reasoning and tool behavior.
+TIP: このモジュールでは、あなたは**両方の役割**を担います：SRE はレイテンシや障害を診断するためにトレースを使用し、AI 開発者はエージェントの推論やツールの動作を理解するためにトレースを使用します。
 
-== Learning objectives
+== 学習目標
 
-By the end of this module, you'll be able to:
+このモジュールを修了すると、以下のことができるようになります：
 
-* Navigate the MLflow UI to find and analyze request traces
-* Correlate traces back to user interactions from Module 1
-* Analyze multi-agent execution timelines, tool calls, and LLM invocations
-* Understand how MLflow captures user identity, inputs, outputs, and latency
+* MLflow UI を操作して、リクエストのトレースを見つけ、分析できる
+* トレースをモジュール 1 でのユーザーインタラクションに関連付けることができる
+* マルチエージェントの実行タイムライン、ツール呼び出し、および LLM 呼び出しを分析できる
+* MLflow がユーザーの ID、入力、出力、およびレイテンシをどのようにキャプチャするかを理解できる
 
-== Introduction to MLflow tracing
+== MLflow トレースの紹介
 
-MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that captures inputs, outputs, and metadata for each step of a request. For Fed Aura Capital, this means visibility into the complete path of loan applications across agents, every LLM call with its prompt and response, all tool invocations, and agent decision points. Each request creates a **trace** (the complete request flow) composed of **spans** (individual operations like LLM calls or tool invocations) organized in a parent-child tree showing what called what.
+MLflow トレースは、リクエストの各ステップの入力、出力、およびメタデータをキャプチャする、OpenTelemetry 互換の LLM オブザーバビリティソリューションです。Fed Aura Capital にとって、これはエージェント間のローン申し込みの完全な経路、すべての LLM 呼び出し（プロンプトと応答を含む）、すべてのツール呼び出し、およびエージェントの意思決定ポイントの可視性を意味します。各リクエストは、**スパン**（LLM 呼び出しやツール呼び出しなどの個々の操作）で構成される**トレース**（完全なリクエストフロー）を作成します。これらは、何が何を呼び出したかを示す親子ツリー構造で編成されます。
 
-== Exercise 1: Access the MLflow tracking server
+== 演習 1: MLflow トラッキングサーバーへのアクセス
 
-Red Hat OpenShift AI includes MLflow as part of the platform.
+Red Hat OpenShift AI には、プラットフォームの一部として MLflow が含まれています。
 
-. Navigate to the *MLflow Console* tab. If prompted, log in with username `{user}`, password `{password}`. Then select `{user_project}` from the **Select workspace** dropdown in the top-left corner:
+. **MLflow Console** タブに移動します。プロンプトが表示されたら、ユーザー名 `{user}`、パスワード `{password}` でログインします。次に、左上隅の **Select workspace** ドロップダウンから `{user_project}` を選択します：
 +
 image::select-mlflow-wksp.png[MLflow UI welcome page showing workspace selection and core features,link=self,window=blank,width=700]
 +
-NOTE: Red Hat OpenShift AI (RHOAI) deploys a single shared MLflow instance that provides namespace-based isolation through **workspaces**. Each data science project (OpenShift namespace) maps to its own MLflow workspace, giving teams logically separated experiments, traces, registered models, and prompts, all while sharing a single tracking server.
+NOTE: Red Hat OpenShift AI (RHOAI) は、**ワークスペース**を通じてネームスペースベースの分離を提供する、単一の共有 MLflow インスタンスをデプロイします。各データサイエンスプロジェクト（OpenShift ネームスペース）は独自の MLflow ワークスペースにマッピングされ、単一のトラッキングサーバーを共有しながらも、チームごとに論理的に分離された実験、トレース、登録済みモデル、およびプロンプトを提供します。
 
-. MLflow provides three main capabilities. For this module, you'll focus on **Tracing** to analyze the agent workflows from Module 1:
+. MLflow は主に 3 つの機能を提供します。このモジュールでは、モジュール 1 のエージェントワークフローを分析するために **Tracing（トレース）** に焦点を当てます：
 +
 --
-* **Tracing**: Capture and debug LLM interactions and agent workflows
-* **Evaluation**: Measure and compare LLM quality with built-in and custom scorers (Module 5)
-* **Prompts**: Version control and manage prompts with aliases across teams (Module 5)
+* **Tracing (トレース)**: LLM のインタラクションとエージェントワークフローをキャプチャし、デバッグします
+* **Evaluation (評価)**: 組み込みおよびカスタムのスコアラーを使用して、LLM の品質を測定および比較します (モジュール 5)
+* **Prompts (プロンプト)**: チーム間でエイリアスを使用してプロンプトをバージョン管理および管理します (モジュール 5)
 --
 
-== How does tracing work?
+== トレースはどのように機能するのか？
 
-When you deployed the mortgage-ai application in Module 1, tracing was already enabled. You never had to configure it manually. Every LLM call, tool invocation, and agent decision was recorded automatically. Here's how.
+モジュール 1 で mortgage-ai アプリケーションをデプロイした際、トレースはすでに有効になっていました。手動で設定する必要はありませんでした。すべての LLM 呼び出し、ツール呼び出し、およびエージェントの決定は自動的に記録されました。その仕組みは以下の通りです。
 
-=== MLflow autolog: one-line tracing
+=== MLflow autolog: 1行で設定できるトレース
 
-MLflow Tracing integrates with https://mlflow.org/docs/latest/genai/tracing/integrations/#agent-frameworks-python[40+ popular LLM and AI agent frameworks^], offering a **one-line automatic tracing** experience. Call `autolog()` once at application startup, and all your LangChain operations (LLM calls, tool invocations, agent decisions) are automatically captured—no changes needed to your agent logic.
+MLflow トレースは、https://mlflow.org/docs/latest/genai/tracing/integrations/#agent-frameworks-python[40 以上の人気のある LLM および AI エージェントフレームワーク^]と統合されており、**1 行での自動トレース**体験を提供します。アプリケーションの起動時に一度 `autolog()` を呼び出すだけで、すべての LangChain 操作（LLM 呼び出し、ツール呼び出し、エージェントの決定）が自動的にキャプチャされます。エージェントのロジックを変更する必要はありません。
 
-The mortgage-ai application uses https://mlflow.org/docs/latest/genai/tracing/integrations/listing/langchain/[LangChain autologging^]. In https://github.com/rh-ai-quickstart/multi-agent-loan-origination/blob/main/packages/api/src/observability.py#L105[observability.py^], the entire tracing setup is:
+mortgage-ai アプリケーションは https://mlflow.org/docs/latest/genai/tracing/integrations/listing/langchain/[LangChain の自動ログ記録^] を使用しています。https://github.com/rh-ai-quickstart/multi-agent-loan-origination/blob/main/packages/api/src/observability.py#L105[observability.py^] には、トレース設定のすべてが記載されています：
 
 [source,python]
 ----
@@ -58,199 +58,199 @@ mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
 mlflow.set_experiment(settings.MLFLOW_EXPERIMENT_NAME)
 mlflow.langchain.autolog()  # <1>
 ----
-<1> This single line enables automatic tracing for all LangChain and LangGraph operations: every LLM call, tool invocation, and agent decision is captured as spans without any code changes to the agents themselves.
+<1> この 1 行により、すべての LangChain および LangGraph 操作の自動トレースが有効になります。エージェント自体のコードを変更することなく、すべての LLM 呼び出し、ツール呼び出し、およびエージェントの決定がスパンとしてキャプチャされます。
 
-MLflow's automatic tracing provides:
+MLflow の自動トレースが提供するもの：
 
-* **Zero code changes** for basic observability: autolog hooks into the framework at the library level
-* **Unified traces across multi-framework apps**: LangChain, LangGraph, and custom tools all appear in a single trace
-* **Rich metadata** including inputs, outputs, token counts, model names, and latency
-* **Production-ready scaling**: traces are sent asynchronously to avoid blocking the application
+* 基本的なオブザーバビリティのための**コード変更はゼロ**: autolog はライブラリレベルでフレームワークにフックします
+* **マルチフレームワークアプリ全体での統合されたトレース**: LangChain、LangGraph、およびカスタムツールがすべて 1 つのトレースに表示されます
+* 入力、出力、トークン数、モデル名、レイテンシを含む**豊富なメタデータ**
+* **本番環境対応のスケーリング**: アプリケーションのブロックを避けるため、トレースは非同期で送信されます
 
-=== OpenTelemetry compatibility
+=== OpenTelemetry との互換性
 
-MLflow Tracing is built on https://opentelemetry.io/[OpenTelemetry^], the industry standard for distributed tracing. This means you can also export traces to other backends (Jaeger, Zipkin, Grafana Tempo) alongside MLflow.
+MLflow トレースは、分散トレースの業界標準である https://opentelemetry.io/[OpenTelemetry^] 上に構築されています。つまり、MLflow と並行して、他のバックエンド (Jaeger、Zipkin、Grafana Tempo) にトレースをエクスポートすることもできます。
 
-== Exercise 2: Find your first trace
+== 演習 2: 最初のトレースを見つける
 
-In Module 1, you clicked **Explore Products** and chatted with the Prospect Agent. That conversation looked like a simple exchange, but MLflow captured every step. Let's find that trace.
+モジュール 1 で、あなたは **Explore Products** をクリックし、Prospect Agent (プロスペクトエージェント) とチャットしました。その会話は単純なやり取りに見えましたが、MLflow はすべてのステップをキャプチャしていました。そのトレースを見つけてみましょう。
 
-. In MLflow, click **Experiments** in the left sidebar, then select the **mortgage-ai** experiment. This is the experiment configured by the mortgage-ai application where all traces are recorded.
+. MLflow の左側のサイドバーで **Experiments** をクリックし、**mortgage-ai** 実験を選択します。これは mortgage-ai アプリケーションによって構成された、すべてのトレースが記録される実験です。
 
-. Click **Traces** in the left sidebar. You'll see a list of all traced requests, sorted by most recent:
+. 左側のサイドバーで **Traces** をクリックします。キャプチャされたすべてのリクエストのトレースのリストが、最新順に表示されます：
 +
 image::mlflow2.png[MLflow Traces list showing captured requests including Explore Products and portfolio health queries,link=self,window=blank,width=700]
 +
-Each row shows the **Trace ID**, the **Request** (what the user asked), the **Response** (what the agent returned), **Execution time**, and **State**. Notice the trace at the bottom, _"What mortgage products do you offer? I'd like..."_, this is the Explore Products conversation from Module 1.
+各行には、**Trace ID**、**Request** (ユーザーが尋ねたこと)、**Response** (エージェントが返したもの)、**Execution time** (実行時間)、および **State** (状態) が表示されます。一番下のトレースに注目してください。"What mortgage products do you offer? I'd like..." (どのような住宅ローン製品を提供していますか？ 私は...) というのは、モジュール 1 の Explore Products の会話です。
 
-. Click on that trace to open its **Summary** view:
+. そのトレースをクリックして、**Summary** ビューを開きます：
 +
 image::mlflow3.png[MLflow trace summary showing inputs with user identity and the span sequence of ChatOpenAI and tool calls,link=self,window=blank,width=700]
 +
-The Summary tab reveals what was invisible in Module 1:
+Summary タブには、モジュール 1 では見えなかったものが表示されます：
 +
 --
-* **Inputs**: The user context passed to the agent
-* **Span sequence**: The operations that executed (`ChatOpenAI was called`, tool invocations, and follow-up LLM calls)
-* **Outputs**: The complete response returned to the user, including metadata
+* **Inputs (入力)**: エージェントに渡されたユーザーコンテキスト
+* **Span sequence (スパンシーケンス)**: 実行された操作 (`ChatOpenAI` の呼び出し、ツール呼び出し、それに続く LLM 呼び出し)
+* **Outputs (出力)**: メタデータを含む、ユーザーに返された完全な応答
 --
 
-== Exercise 3: Analyze the CEO trace end-to-end
+== 演習 3: CEO のトレースをエンドツーエンドで分析する
 
-Remember Module 1, Exercise 3? You signed in as CEO David Park, asked _"What is my portfolio health?"_, and got a detailed response. We pointed out the observability gap: you had no way of knowing which agents processed your question, which tools were invoked, or how long each step took.
+モジュール 1 の演習 3 を覚えていますか？あなたは CEO の David Park としてサインインし、「ポートフォリオの健全性は？」と尋ね、詳細な応答を得ました。その際、オブザーバビリティのギャップを指摘しました。どのエージェントが質問を処理し、どのツールが呼び出され、各ステップにどれくらいの時間がかかったかを知る術はありませんでした。
 
-Now let's close that gap.
+今こそ、そのギャップを埋めましょう。
 
 image::mlflow4.png[CEO Executive Dashboard showing the portfolio health question and agent response from Module 1,link=self,window=blank,width=700]
 
-=== Find the CEO trace
+=== CEO のトレースを見つける
 
-. Return to the MLflow **Traces** list and locate the trace for _"Show me the current pipeline status"_:
+. MLflow の **Traces** リストに戻り、_"Show me the current pipeline status"_ ("現在のパイプラインのステータスを表示して") のトレースを見つけます：
 +
 image::find-trace.png[MLflow Traces list with the pipeline status trace highlighted,link=self,window=blank,width=700]
 +
-Notice the execution time. That's the total end-to-end latency for a question that seemed to be answered instantly in the chat UI.
+実行時間に注目してください。チャット UI では即座に回答されたように見えた質問の、エンドツーエンドの合計レイテンシです。
 
-=== Examine user identity tracking
+=== ユーザー ID のトラッキングを調べる
 
 [start=2]
-. Click on the trace to open the **Summary** tab.
+. トレースをクリックして **Summary** タブを開きます。
 +
 image::trace-summary.png[MLflow trace summary showing David Park user identity and the span sequence with ChatOpenAI and ceo_pipeline_summary calls,link=self,window=blank,width=700]
 +
-MLflow captures the full user context with every trace:
+MLflow は、すべてのトレースで完全なユーザーコンテキストをキャプチャします：
 +
 --
-* **user_id**: `d1a2b3c4-e5f6-7890-abcd-ef1234567804`, the authenticated user's UUID
-* **user_email**: `david.park@example.com`, traceable identity
-* **user_name**: `David Park`, the CEO persona
+* **user_id**: `d1a2b3c4-e5f6-7890-abcd-ef1234567804`, 認証されたユーザーの UUID
+* **user_email**: `david.park@example.com`, 追跡可能な ID
+* **user_name**: `David Park`, CEO のペルソナ
 --
 +
-Below the inputs, the span sequence shows the agent's execution plan: `ChatOpenAI` was called (the LLM decides what to do), then `ceo_pipeline_summary` was called (the tool fetches data), then `ChatOpenAI` was called again (the LLM formulates the response).
+入力の下にあるスパンシーケンスには、エージェントの実行計画が示されています。`ChatOpenAI` が呼び出され (LLM が何をすべきか決定)、次に `ceo_pipeline_summary` が呼び出され (ツールがデータをフェッチ)、その後再び `ChatOpenAI` が呼び出されました (LLM が応答を作成)。
 +
-NOTE: If you don't see a tool call (e.g., `ceo_pipeline_summary`) in the span sequence, go back to the Mortgage AI App and ask the same question again. LLMs are non-deterministic: even with an optimized system prompt, the model may occasionally answer from its training data without invoking the tool. Repeat until you see a trace that includes the tool call, then continue with the next steps.
+NOTE: スパンシーケンスにツール呼び出し (例: `ceo_pipeline_summary`) が表示されない場合は、Mortgage AI App に戻り、同じ質問をもう一度してください。LLM は非決定的です。最適化されたシステムプロンプトを使用しても、モデルがツールを呼び出さずにトレーニングデータから回答することがあります。ツール呼び出しを含むトレースが表示されるまで繰り返し、その後次のステップに進んでください。
 
-=== Explore the execution timeline
+=== 実行タイムラインの探索
 
 [start=3]
-. Click the **Details & Timeline** tab, then click **Show execution timeline** to see the full trace breakdown:
+. **Details & Timeline** タブをクリックし、**Show execution timeline** をクリックして、トレースの完全な内訳を確認します：
 +
 image::nav-execution-timeline.png[MLflow Details and Timeline view showing the full execution tree from LangGraph through input shield agent ChatOpenAI tool calls and output shield,link=self,window=blank,width=700]
 +
-The trace tree shows the complete execution path: `LangGraph` → `input_shield` → `agent` → `ChatOpenAI` (1.26s, decides to call a tool) → `tool_auth` → `ceo_pipeline_summary` (17ms, fetches pipeline data) → `agent` → `ChatOpenAI` (6.44s, composes the response) → `output_shield`. Now you can answer every question from Module 1's observability challenge.
+トレースツリーは完全な実行パスを示しています：`LangGraph` → `input_shield` → `agent` → `ChatOpenAI` (1.26秒、ツールを呼び出すことを決定) → `tool_auth` → `ceo_pipeline_summary` (17ms、パイプラインデータをフェッチ) → `agent` → `ChatOpenAI` (6.44秒、応答を作成) → `output_shield`。これで、モジュール 1 のオブザーバビリティの課題からのすべての質問に答えることができます。
 +
 [%collapsible]
-.Full span breakdown (click to expand)
+.スパンの完全な内訳 (クリックして展開)
 ====
 [cols="1,2",options="header"]
 |===
-|Span |What It Does
+|スパン |機能
 
 |`LangGraph`
-|Root orchestrator: manages the full agent workflow
+|ルートオーケストレーター: エージェントワークフロー全体を管理します
 
 |`input_shield`
-|Safety filter: checks the input for harmful content
+|安全フィルター: 入力に有害なコンテンツがないかチェックします
 
-|`agent` (first)
-|LangGraph agent node: routes to the LLM
+|`agent` (1回目)
+|LangGraph エージェントノード: LLM にルーティングします
 
-|`ChatOpenAI` (first)
-|LLM call: decides to call the `ceo_pipeline_summary` tool
+|`ChatOpenAI` (1回目)
+|LLM 呼び出し: `ceo_pipeline_summary` ツールを呼び出すことを決定します
 
 |`should_continue`
-|Decision point: should the agent keep processing?
+|意思決定ポイント: エージェントは処理を継続すべきか？
 
 |`tool_auth`
-|Authorization check: does the CEO role have access to this tool?
+|承認チェック: CEO ロールはこのツールへのアクセス権を持っているか？
 
 |`tools` → `ceo_pipeline_summary`
-|Tool execution: queries the database for pipeline data
+|ツール実行: データベースにクエリを実行してパイプラインデータを取得します
 
-|`agent` (second)
-|LangGraph agent node: routes the tool result back to the LLM
+|`agent` (2回目)
+|LangGraph エージェントノード: ツールの結果を LLM にルーティングします
 
-|`ChatOpenAI` (second)
-|LLM call: formulates a natural-language response from the raw pipeline data
+|`ChatOpenAI` (2回目)
+|LLM 呼び出し: 生のパイプラインデータから自然言語の応答を作成します
 
 |`output_shield`
-|Safety filter: checks the output before returning to the user
+|安全フィルター: ユーザーに返す前に出力をチェックします
 |===
 ====
 
-=== Inspect the tool call
+=== ツール呼び出しを検査する
 
 [start=4]
-. In the trace tree, click on the **ceo_pipeline_summary** span to see the tool's inputs and outputs:
+. トレースツリーで、**ceo_pipeline_summary** スパンをクリックして、ツールの入力と出力を確認します：
 +
 image::mlflow7.png[MLflow span detail for ceo_pipeline_summary showing input days=90 and output with pipeline summary data,link=self,window=blank,width=700]
 +
 --
-* **Inputs**: `days: 90`, the tool queries a 90-day window of pipeline data
-* **Outputs**: `"Pipeline Summary (90-day window): Total active applications: 38..."`, the raw data the LLM used to compose its response
+* **Inputs (入力)**: `days: 90`, ツールは 90 日間のパイプラインデータをクエリします
+* **Outputs (出力)**: `"Pipeline Summary (90-day window): Total active applications: 38..."`, LLM が応答を作成するために使用した生のデータ
 --
 +
-This is where the agent got its numbers. If the CEO's response ever contains incorrect data, you can trace it directly to this tool's output and verify whether the issue is in the tool logic or the LLM's interpretation.
+これがエージェントが数字を取得した場所です。CEO の応答に不正確なデータが含まれていた場合、このツールの出力まで直接トレースし、問題がツールのロジックにあるのか LLM の解釈にあるのかを検証できます。
 
-=== Inspect the LLM call
+=== LLM 呼び出しを検査する
 
 [start=5]
-. Click on the final **ChatOpenAI** span to see the actual LLM invocation:
+. 最後の **ChatOpenAI** スパンをクリックして、実際の LLM 呼び出しを確認します：
 +
 image::mlflow8.png[MLflow span detail for ChatOpenAI showing model gpt-oss-120b with system prompt and completion,link=self,window=blank,width=700]
 +
 --
-* **Model**: `gpt-oss-120b`, the exact model serving this request
-* **Inputs → messages**: The system prompt (_"You are the Fed Aura Capital executive assistant"_) and the conversation context including the tool result
-* **Outputs → choices**: The complete LLM response before any post-processing
+* **Model (モデル)**: `gpt-oss-120b`, このリクエストを処理している正確なモデル
+* **Inputs → messages**: システムプロンプト (_"あなたは Fed Aura Capital のエグゼクティブアシスタントです"_) と、ツールの結果を含む会話のコンテキスト
+* **Outputs → choices**: 安全フィルターやフォーマット処理前の、完全な LLM の応答
 --
 +
-This level of detail is essential for debugging: you can see the exact prompt the model received, which model version handled it, and the raw completion before safety filters and formatting.
+このレベルの詳細はデバッグに不可欠です。モデルが受け取った正確なプロンプト、それを処理したモデルのバージョン、安全フィルターやフォーマット処理の前の生のコンプリーション (生成結果) を確認できます。
 
-=== Keep exploring
+=== 探索を続ける
 
-Try signing in as other personas (Borrower, Loan Officer, Underwriter) and chatting with them. Then return to MLflow. Every conversation appears automatically as a new trace. Compare how different personas use different tools and models.
+他のペルソナ (借り手、ローン担当者、アンダーライター) としてサインインし、チャットを試してみてください。その後、MLflow に戻ります。すべての会話は新しいトレースとして自動的に表示されます。異なるペルソナが異なるツールやモデルをどのように使用しているかを比較してみてください。
 
-== Exercise 4: Explore user sessions
+== 演習 4: ユーザーセッションの探索
 
-Many real-world AI applications use sessions to maintain multi-turn user interactions. https://mlflow.org/docs/latest/genai/tracing/track-users-sessions/[MLflow Tracing provides built-in support^] for associating traces with users and grouping them into sessions. Tracking users and sessions in your LLM application or AI agent provides essential context for understanding user behavior, analyzing conversation flows, and improving personalization.
+実際の多くの AI アプリケーションは、複数回のユーザーインタラクションを維持するためにセッションを使用します。https://mlflow.org/docs/latest/genai/tracing/track-users-sessions/[MLflow トレースは、トレースをユーザーに関連付け、それらをセッションにグループ化するための組み込みのサポート^]を提供します。LLM アプリケーションまたは AI エージェントでユーザーとセッションを追跡することは、ユーザーの行動を理解し、会話フローを分析し、パーソナライゼーションを改善するための重要なコンテキストを提供します。
 
-. In MLflow, click **Sessions** in the left sidebar under **Observability**:
+. MLflow の左側のサイドバーで、**Observability** の配下にある **Sessions** をクリックします：
 +
 image::sessions0.png[MLflow left sidebar showing Sessions under Observability,link=self,window=blank,width=700]
 
-. In the mortgage-ai application, each chat conversation is tracked as a session. MLflow groups all turns within a session together, letting you see the full conversation flow:
+. mortgage-ai アプリケーションでは、各チャット会話が 1 つのセッションとして追跡されます。MLflow はセッション内のすべてのターンをグループ化し、完全な会話フローを確認できるようにします：
 
 image::sessions1.png[MLflow Chat Sessions view showing a session with 7 turns grouped by user and agent,link=self,window=blank,width=700]
 
-Clicking into a session reveals each turn with its inputs and outputs. You can click **View full trace** on any turn to jump directly to the detailed trace view:
+セッションをクリックすると、入力と出力を含む各ターンが表示されます。任意のターンで **View full trace** をクリックすると、詳細なトレースビューに直接ジャンプできます：
 
 image::sessions2.png[MLflow session detail showing Turn 1 with inputs outputs and View full trace link,link=self,window=blank,width=700]
 
-This is especially valuable for debugging multi-turn conversations where agent behavior degrades over time. You can see the full context the agent had at each step.
+これは、時間の経過とともにエージェントの動作が劣化するような複数ターンの会話をデバッグする際に特に役立ちます。エージェントが各ステップで持っていた完全なコンテキストを確認できます。
 
-== Module summary
+== モジュールのまとめ
 
-**What you accomplished:**
+**達成したこと:**
 
-* Accessed MLflow and found traces from your Module 1 interactions
-* Analyzed the CEO trace end-to-end: input shields, LLM calls, tool authorization, tool execution, and output shields
-* Inspected individual spans to see tool inputs/outputs and LLM prompts/completions
+* MLflow にアクセスし、モジュール 1 のインタラクションからのトレースを見つけました
+* CEO のトレースをエンドツーエンドで分析しました（入力シールド、LLM 呼び出し、ツール承認、ツール実行、および出力シールド）
+* 個々のスパンを検査して、ツールの入力/出力と LLM のプロンプト/コンプリーションを確認しました
 
-**Key takeaways:**
+**重要なポイント:**
 
-* MLflow autolog provides end-to-end tracing with zero code changes: one line enables it
-* Traces capture user identity, execution timelines, and tool/LLM details, closing the observability gap for multi-agent systems
-* Individual span inspection lets you pinpoint issues to specific components: tool logic, LLM prompts, or safety filters
+* MLflow autolog は、コードの変更なしでエンドツーエンドのトレースを提供します (1 行で有効になります)
+* トレースはユーザー ID、実行タイムライン、ツール/LLM の詳細をキャプチャし、マルチエージェントシステムのオブザーバビリティのギャップを埋めます
+* 個々のスパンを検査することで、問題の原因を特定のコンポーネント（ツールのロジック、LLM のプロンプト、または安全フィルター）に特定できます
 
-**Next steps:**
+**次のステップ:**
 
-You've completed the core observability modules! You now have metrics, traces, and logs working together to monitor your multi-agent system.
+これでコアとなるオブザーバビリティモジュールは完了です！メトリクス、トレース、およびログが連携して、マルチエージェントシステムを監視するようになりました。
 
-**Option 1 - Continue to Advanced Topics (recommended if time permits):**
+**オプション 1 - 高度なトピックへ進む (時間が許せば推奨):**
 
-link:07-module-05-evals.html[Module 5: Agent & LLM Evaluations] introduces quality assessment frameworks, combining tracing with evaluations to catch regressions before production. link:08-module-06-dev-to-production.html[Module 6] automates these evaluations into CI/CD pipelines.
+link:07-module-05-evals.html[モジュール 5: エージェントと LLM の評価] では、品質評価フレームワークを紹介し、トレースと評価を組み合わせて本番環境の前にリグレッションを検出します。link:08-module-06-dev-to-production.html[モジュール 6] では、これらの評価を CI/CD パイプラインに自動化します。
 
-**Option 2 - Skip to Conclusion:**
+**オプション 2 - まとめへスキップ:**
 
-If you're short on time, skip to the link:09-conclusion.html[Conclusion], which recaps your observability journey and provides resources for continuing your learning.
+時間がない場合は、オブザーバビリティの学習を振り返り、学習を続けるためのリソースを提供する link:09-conclusion.html[まとめ (Conclusion)] にスキップしてください。

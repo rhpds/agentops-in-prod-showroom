@@ -1,194 +1,196 @@
-= Module 3: Metrics and logs for agentic applications
+= モジュール 3: エージェント型アプリケーションのメトリクスとログ
 :imagesdir: ../assets/images
-:navtitle: Module 3: Metrics & Logs
+:navtitle: モジュール 3: メトリクスとログ
 :toc: macro
 :toclevels: 1
 
-Metrics tell you *what* is happening in your system. Logs tell you *what exactly happened and when*. In this module, you'll explore a pre-deployed Grafana dashboard that monitors the mortgage-ai multi-agent system, then investigate application logs using LokiStack in the OpenShift Console.
+メトリクスは、システムで**何が**起きているかを教えてくれます。ログは、**正確に何が、いつ起きたか**を教えてくれます。このモジュールでは、mortgage-ai マルチエージェントシステムを監視する事前にデプロイされた Grafana ダッシュボードを探索し、次に OpenShift Console の LokiStack を使用してアプリケーションのログを調査します。
 
-TIP: In this module, you're wearing your **SRE / Platform Engineering hat**, focusing on system health, request rates, error rates, and operational logs.
+TIP: このモジュールでは、あなたはシステムの健全性、リクエスト率、エラー率、および運用ログに焦点を当てる **SRE / プラットフォームエンジニア** の役割を担います。
 
-== Learning objectives
+== 学習目標
 
-By the end of this module, you'll be able to:
+このモジュールを修了すると、以下のことができるようになります：
 
-* Identify the key metrics that matter for multi-agent AI systems
-* Navigate the pre-deployed Mortgage-AI Grafana dashboard
-* Explore and filter application logs using LokiStack and Log Query Language (LogQL)
-* Explain how metrics and logs work together for agentic observability
+* マルチエージェント AI システムにとって重要な主要メトリクスを特定できる
+* 事前にデプロイされた Mortgage-AI Grafana ダッシュボードを操作できる
+* LokiStack と LogQL (Log Query Language) を使用してアプリケーションログを探索およびフィルタリングできる
+* エージェント型のオブザーバビリティにおいて、メトリクスとログがどのように連携するかを説明できる
 
-== What makes agentic metrics different?
+== エージェント型のメトリクスは何が違うのか？
 
-Traditional applications need request rate, error rate, and latency. Agentic applications need all of that *plus* metrics that capture LLM behavior, agent routing, and tool execution. Here are the 6 metrics that matter most:
+従来のアプリケーションでは、リクエスト率、エラー率、レイテンシが必要です。エージェント型のアプリケーションでは、それらすべてに**加えて**、LLMの動作、エージェントのルーティング、およびツールの実行をキャプチャするメトリクスが必要です。以下は、最も重要な6つのメトリクスです：
 
 [cols="2,2,3",options="header"]
 |===
-|Metric |Prometheus Name |What It Tells You
+|メトリクス |Prometheus での名前 |わかること
 
-|Request Rate & Errors
+|リクエスト率とエラー
 |`http_requests_total`
-|How much traffic are we getting? How many requests are failing?
+|どのくらいのトラフィックが来ているか？ いくつのリクエストが失敗しているか？
 
-|Latency Percentiles
+|レイテンシのパーセンタイル
 |`http_request_duration_seconds`
-|How fast are we responding? Are there outliers?
+|どのくらい速く応答しているか？ 外れ値はあるか？
 
-|LLM Token Usage
+|LLM トークン使用量
 |`llm_tokens_total`
-|How many tokens are we burning? What's the cost per conversation?
+|いくつのトークンを消費しているか？ 1回の会話あたりのコストはいくらか？
 
-|LLM Inference Latency
+|LLM 推論のレイテンシ
 |`llm_inference_duration_seconds`
-|How long does the model take to respond? Is it the bottleneck?
+|モデルの応答にどれくらいの時間がかかるか？ それがボトルネックになっているか？
 
-|Tool Call Success Rate
+|ツール呼び出しの成功率
 |`tool_calls_total`
-|Are agent tools working? Which ones are failing?
+|エージェントのツールは機能しているか？ どのツールが失敗しているか？
 
-|Agent Routing
+|エージェントのルーティング
 |`agent_routing_total`
-|Are queries routing to the fast or capable model? Is the classifier working?
+|クエリは高速なモデルにルーティングされているか、それとも高性能なモデルにルーティングされているか？ 分類器は機能しているか？
 |===
 
 image::agentic-app-pre4.png[Agentic Metrics - The 6 That Matter showing traditional metrics plus agentic additions with model routing and Prometheus scraping by OpenShift UWM,link=self,window=blank,width=700]
 
-The mortgage-ai API exposes all these at `GET /metrics` in Prometheus format. **OpenShift User Workload Monitoring** (a built-in Prometheus instance that comes with Red Hat OpenShift AI) scrapes them automatically every 30 seconds and stores them in a time-series database.
+mortgage-ai の API は、これらすべてを `GET /metrics` で Prometheus 形式にて公開しています。**OpenShift User Workload Monitoring**（Red Hat OpenShift AI に付属する組み込みの Prometheus インスタンス）は、30秒ごとに自動的にそれらをスクレイピングし、時系列データベースに保存します。
 
-This means you don't need to set up Prometheus yourself—the platform handles collection and storage. You just need to:
+つまり、Prometheus を自分でセットアップする必要はありません。プラットフォームが収集と保存を処理します。あなたが行う必要があるのは以下のことだけです：
 
-1. Expose metrics from your application (mortgage-ai already does this)
-2. Configure a visualization platform (we're using Grafana in this workshop) to query the OpenShift Prometheus data source (already configured)
-3. Build dashboards to visualize the metrics (you'll explore this next)
+1. アプリケーションからメトリクスを公開する（mortgage-ai はすでにこれを行っています）
+2. 視覚化プラットフォーム（このワークショップでは Grafana を使用）を設定して、OpenShift の Prometheus データソース（設定済み）にクエリを実行する
+3. メトリクスを視覚化するためのダッシュボードを構築する（これについては次で探索します）
 
 [%collapsible]
-.Complete metrics reference (click to expand)
+.完全なメトリクスリファレンス (クリックして展開)
 ====
-The mortgage-ai backend exposes 10 custom metrics defined in `packages/api/src/core/metrics.py`:
+mortgage-ai のバックエンドは、`packages/api/src/core/metrics.py` で定義された 10 個のカスタムメトリクスを公開しています：
 
 [cols="2,1,2",options="header"]
 |===
-|Prometheus Name |Type |Labels
+|Prometheus での名前 |タイプ |ラベル
 
 |`llm_tokens_total`
-|Counter
-|`model`, `direction` (input/output), `persona`
+|カウンター
+|`model`, `direction` (入力/出力), `persona`
 
 |`llm_inference_duration_seconds`
-|Histogram
+|ヒストグラム
 |`model`, `persona`
 
 |`agent_routing_total`
-|Counter
-|`persona`, `complexity` (simple/complex)
+|カウンター
+|`persona`, `complexity` (単純/複雑)
 
 |`agent_escalation_total`
-|Counter
+|カウンター
 |`persona`, `reason`
 
 |`tool_calls_total`
-|Counter
-|`tool_name`, `persona`, `status` (success/error)
+|カウンター
+|`tool_name`, `persona`, `status` (成功/エラー)
 
 |`tool_call_duration_seconds`
-|Histogram
+|ヒストグラム
 |`tool_name`, `persona`
 
 |`active_chat_sessions`
-|Gauge
+|ゲージ
 |`persona`
 
 |`chat_messages_total`
-|Counter
-|`persona`, `direction` (inbound/outbound)
+|カウンター
+|`persona`, `direction` (受信/送信)
 
 |`loan_applications_total`
-|Counter
-|`status`, `loan_type` (not yet instrumented)
+|カウンター
+|`status`, `loan_type` (まだ計装されていません)
 
 |`compliance_checks_total`
-|Counter
-|`check_type`, `result` (not yet instrumented)
+|カウンター
+|`check_type`, `result` (まだ計装されていません)
 |===
 
-Additionally, `prometheus-fastapi-instrumentator` provides automatic HTTP metrics (`http_requests_total`, `http_request_duration_seconds_bucket`).
+さらに、`prometheus-fastapi-instrumentator` は自動の HTTP メトリクス (`http_requests_total`, `http_request_duration_seconds_bucket`) を提供します。
 ====
 
-== Exercise 1: Explore the Mortgage-AI Grafana dashboard
+== 演習 1: Mortgage-AI Grafana ダッシュボードの探索
 
-Navigate to the *Grafana* tab to access the dashboard.
+ダッシュボードにアクセスするには、**Grafana** タブに移動します。
 
 image::grafana-tab.png[]
 
-If prompted, login again with your credentials:
+プロンプトが表示されたら、資格情報を使用して再度ログインします：
 
 * **Username**: {user}
 * **Password**: {password}
 
-The Grafana instance is pre-deployed in your workspace namespace with a **Mortgage-AI Backend Metrics** dashboard already configured. It connects to 2 Prometheus datasources:
+この時、"Authorize Access"という画面が表示されることがありますが、必要なアクセス権の付与のため、画面下部のボタンの左側、"Allow selected permissions"をクリックして下さい。
 
-* **User Workload Monitoring**: scrapes the mortgage-ai application metrics (default)
-* **Red Hat OpenShift AI (RHOAI) Prometheus**: provides model serving metrics from OpenShift AI
+Grafana インスタンスは、ワークスペースのネームスペースに事前デプロイされており、**Mortgage-AI Backend Metrics** ダッシュボードがすでに設定されています。これは 2 つの Prometheus データソースに接続します：
 
-Let's open it and see what's there.
+* **User Workload Monitoring**: mortgage-ai アプリケーションのメトリクスをスクレイピングします (デフォルト)
+* **Red Hat OpenShift AI (RHOAI) Prometheus**: OpenShift AI からのモデルサービングメトリクスを提供します
 
-. Open the *Grafana* tab.
+開いて、何があるか見てみましょう。
 
-. Navigate to the **Mortgage-AI Backend Metrics** dashboard.
+. **Grafana** タブを開きます。
+
+. **Mortgage-AI Backend Metrics** ダッシュボードに移動します。
 
 image::open-grafana-sidebar.png[]
 image::open-metrics-dashboard.png[]
 
-=== Overview and HTTP panels
+=== 概要(Overview)と HTTP パネル
 
-The top of the dashboard gives you an at-a-glance view of system health:
+ダッシュボードの上部では、システムの健全性を一目で確認できます：
 
 image::grafana2.png[Grafana Overview and HTTP panels showing request rate and latency,link=self,window=blank,width=700]
 
-What you're seeing:
+表示されている内容は以下の通りです：
 
-* **Total Requests (Last Hour)**: how many requests hit the API. In the screenshot, ~983 requests.
-* **Request Rate**: current throughput in requests per second.
-* **Error Rate (%)**: percentage of 5xx responses. Green means healthy.
-* **P95 Latency**: 95% of requests complete faster than this value. Under 100ms is excellent.
+* **Total Requests (Last Hour)**: API にヒットしたリクエスト数。スクリーンショットでは約 983 リクエスト。
+* **Request Rate**: 現在の1秒あたりのリクエスト数（スループット）。
+* **Error Rate (%)**: 5xx 応答の割合。緑色は健全であることを意味します。
+* **P95 Latency**: 95% のリクエストがこの値よりも速く完了します。100ms 以下であれば素晴らしいです。
 
-Below the overview, the HTTP panels break down traffic by endpoint and status code. Look for:
+概要の下にある HTTP パネルでは、トラフィックをエンドポイントとステータスコード別に分類しています。以下に注目してください：
 
-* Which endpoint gets the most traffic (likely `/api/prospect/chat`)
-* Any yellow (4xx) or red (5xx) bars in the HTTP Status Distribution
-* Which endpoints have the highest P95 latency
+* 最もトラフィックが多いエンドポイントはどれか (おそらく `/api/prospect/chat`)
+* HTTP Status Distribution に黄色 (4xx) または赤色 (5xx) のバーがあるか
+* 最も P95 レイテンシが高いエンドポイントはどれか
 
 [%collapsible]
-.Prometheus Query Language (PromQL) details for Overview panels (click to expand)
+.Overview パネルの PromQL (Prometheus Query Language) の詳細 (クリックして展開)
 ====
 * **Request Rate**: `sum(rate(http_requests_total{namespace=~"$namespace"}[5m]))`
 * **Error Rate**: `(sum(rate(http_requests_total{namespace=~"$namespace", status=~"5.."}[5m])) / sum(rate(http_requests_total{namespace=~"$namespace"}[5m])) * 100) or vector(0)`
 * **P95 Latency**: `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=~"$namespace"}[5m])) by (le))`
 
-`rate()` calculates per-second averages over a time window. `histogram_quantile()` computes percentiles from histogram buckets.
+`rate()` は、特定の時間枠における1秒あたりの平均値を計算します。`histogram_quantile()` は、ヒストグラムのバケットからパーセンタイルを計算します。
 ====
 
-=== AI agent metrics
+=== AI エージェントメトリクス
 
-Scroll down to the **AI Agent Metrics** row. This is where it gets interesting. These metrics are unique to agentic applications:
+下にスクロールして **AI Agent Metrics** の行を表示します。ここからが面白くなります。これらのメトリクスは、エージェント型のアプリケーションに固有のものです：
 
 image::grafana1.png[Grafana AI Agent Metrics showing token usage and tool call success rate,link=self,window=blank,width=700]
 
-The 4 stat panels at the top of this section show:
+このセクションの上部にある 4 つの統計パネルには、以下が表示されます：
 
-* **Active Chat Sessions**: live WebSocket connections. How many users are chatting right now?
-* **Total LLM Tokens**: cumulative tokens consumed since the API started. This is your cost proxy, in the screenshot, 18.5K tokens.
-* **Tool Call Success Rate**: are agent tools working? 100% means everything is healthy.
-* **Avg LLM Latency**: median time for an LLM inference call. 1.75s in the screenshot.
+* **Active Chat Sessions**: ライブの WebSocket 接続数。現在何人のユーザーがチャットしているか？
+* **Total LLM Tokens**: API が開始されてから消費されたトークンの累積数。これはコストの指標となります。スクリーンショットでは 18.5K トークンです。
+* **Tool Call Success Rate**: エージェントのツールは機能しているか？ 100% はすべてが健全であることを意味します。
+* **Avg LLM Latency**: LLM 推論呼び出しの中央値（レイテンシ）。スクリーンショットでは 1.75秒です。
 
-Below the stats, the detail panels show:
+統計の下にある詳細パネルには、以下が表示されます：
 
-* **LLM Token Usage by Model**: which model burns the most tokens? Is input or output dominant?
-* **LLM Inference Latency by Persona**: which agent persona is slowest? A slow underwriter agent might indicate complex compliance tool calls.
-* **Agent Routing Distribution**: pie chart of simple vs complex routing. A high ratio of complex queries means the capable model is doing most of the work.
-* **Tool Calls by Status**: green for success, red for failures. A spike in red means tool integrations are breaking.
+* **LLM Token Usage by Model**: 最もトークンを消費しているモデルはどれか？ 入力と出力のどちらが支配的か？
+* **LLM Inference Latency by Persona**: 最も遅いエージェントのペルソナはどれか？ アンダーライターエージェントが遅い場合、複雑なコンプライアンスツールの呼び出しを示している可能性があります。
+* **Agent Routing Distribution**: 単純なルーティングと複雑なルーティングの円グラフ。複雑なクエリの比率が高い場合、高性能なモデルが作業の大部分を行っていることを意味します。
+* **Tool Calls by Status**: 成功は緑、失敗は赤。赤のスパイクは、ツールの統合が壊れていることを意味します。
 
 [%collapsible]
-.PromQL details for AI Agent Metrics (click to expand)
+.AI Agent Metrics の PromQL の詳細 (クリックして展開)
 ====
 * **LLM Tokens**: `sum(increase(llm_tokens_total{namespace=~"$namespace"}[1h]))`
 * **Tool Success Rate**: `(sum(tool_calls_total{namespace=~"$namespace", status="success"}) / sum(tool_calls_total{namespace=~"$namespace"}) * 100) or vector(100)`
@@ -196,60 +198,60 @@ Below the stats, the detail panels show:
 * **Routing Distribution**: `sum(agent_routing_total{namespace=~"$namespace"}) by (complexity)`
 ====
 
-TIP: The dashboard is managed as a `GrafanaDashboard` custom resource and version-controlled via GitOps. Run `oc get grafanadashboard -n {user_project}` to see it.
+TIP: このダッシュボードは `GrafanaDashboard` カスタムリソースとして管理され、GitOps を通じてバージョン管理されています。これを確認するには、`oc get grafanadashboard -n {user_project}` を実行してください。
 
-The traffic you generated in Module 1 (Explore Products, CEO portfolio health) is already reflected in these panels. Set the time range to **Last 1 hour** to see it.
+モジュール 1 で生成したトラフィック (製品の探索、CEOのポートフォリオの健全性) は、すでにこれらのパネルに反映されています。時間範囲を **Last 1 hour** (過去1時間) に設定して確認してください。
 
-== Exercise 2: Explore application logs with LokiStack
+== 演習 2: LokiStack によるアプリケーションログの探索
 
-Metrics show aggregated health, but when something goes wrong you need the actual log events. Red Hat AI includes **LokiStack**, a high-performance log aggregation system that automatically collects everything your application writes to STDOUT or STDERR—no code changes needed. Let's explore the mortgage-ai logs.
+メトリクスは集約された健全性を示しますが、問題が発生した場合は実際のログイベントが必要です。Red Hat AI には、アプリケーションが STDOUT または STDERR に書き込んだすべてを自動的に収集する高性能なログ集約システムである **LokiStack** が含まれています。コードの変更は必要ありません。mortgage-ai のログを探索してみましょう。
 
-=== Navigate to the log viewer
+=== ログビューアへの移動
 
-. Navigate to the *OCP Console* tab. Then navigate to **Observe** → **Logs**.
+. **OCP Console** タブに移動します。次に **モニタリング(もしくはObserve)** → **Logs** に移動します。
 +
 image::observe-logs.png[]
 +
-You'll see a **Forbidden — Missing permissions to get logs** error:
+**Forbidden — Missing permissions to get logs (禁止されています — ログを取得する権限がありません)** というエラーが表示されます：
 +
 image::logging4.png[OpenShift Console Observe Logs showing Forbidden error for regular user,link=self,window=blank,width=700]
 +
-This is expected. Because you're logged in as a regular user (`{user}`), OpenShift restricts log access to only your namespace for security. Cluster-wide log access is reserved for cluster administrators.
+これは想定通りの動作です。あなたは一般ユーザー (`{user}`) としてログインしているため、セキュリティ上の理由から、OpenShift はログへのアクセスをあなたのネームスペースのみに制限します。クラスター全体のログへのアクセスは、クラスター管理者に予約されています。
 
-=== Scope logs to your namespace
+=== ログをネームスペースにスコープする
 
 [start=2]
-. Click **Show Query** to open the query editor:
+. **Show Query** をクリックしてクエリエディタを開きます：
 +
 image::logging5.png[OpenShift Console Logs Show Query button,link=self,window=blank,width=700]
 +
-Enter this LogQL query to scope the logs to your namespace:
+この LogQL クエリを入力して、ログのスコープをあなたのネームスペースに絞り込みます：
 +
 [source,logql,role=execute,subs=attributes+]
 ----
 { log_type="application", kubernetes_namespace_name="{user_project}" }
 ----
 +
-Click **Run Query**. You should now see logs from the mortgage-ai pods.
+**Run Query** をクリックします。これで、mortgage-ai ポッドからのログが表示されるはずです。
 +
-TIP: `log_type="application"` filters out infrastructure logs (kubelet, CRI-O). The `kubernetes_namespace_name` label is injected automatically by the log collector.
+TIP: `log_type="application"` は、インフラストラクチャログ (kubelet, CRI-O) を除外します。`kubernetes_namespace_name` ラベルは、ログコレクターによって自動的に挿入されます。
 
-=== Understanding the log format
+=== ログフォーマットの理解
 
-What you see is structured JSON. Each log entry contains:
+表示されているのは構造化された JSON です。各ログエントリには以下が含まれています：
 
-* **Kubernetes metadata**: Pod IDs, container names, namespace labels, network configs
-* **Application message**: The actual log event from your application (in the `message` field)
-* **Timestamps**: When the event occurred
+* **Kubernetes メタデータ**: ポッドID、コンテナ名、ネームスペースラベル、ネットワーク設定
+* **アプリケーションメッセージ**: アプリケーションからの実際のログイベント (`message` フィールド内)
+* **タイムスタンプ**: イベントが発生した日時
 
-Scroll through a log entry to find the `message` field—that's where the useful application data lives. The metadata helps correlate logs across containers and filter by pod, namespace, or container.
+ログエントリをスクロールして `message` フィールドを見つけます。そこに有用なアプリケーションデータが存在します。メタデータは、コンテナ間でログを関連付けたり、ポッド、ネームスペース、またはコンテナでフィルタリングしたりするのに役立ちます。
 
-TIP: To quickly locate the `message` field in a log entry, use your browser's find feature: **Cmd+F** (Mac) or **Ctrl+F** (Windows/Linux), then search for `"message"`. This helps you skip past the Kubernetes metadata and jump straight to the application log content.
+TIP: ログエントリ内の `message` フィールドをすばやく見つけるには、ブラウザの検索機能（Macの場合は **Cmd+F**、Windows/Linuxの場合は **Ctrl+F**）を使用して `"message"` を検索します。これにより、Kubernetes のメタデータをスキップして、アプリケーションのログコンテンツに直接ジャンプできます。
 
-=== Extract application messages
+=== アプリケーションメッセージの抽出
 
 [start=3]
-. Use LogQL to extract just the application messages and filter to API container logs:
+. LogQL を使用してアプリケーションメッセージのみを抽出し、API コンテナのログにフィルタリングします：
 +
 [source,logql,role=execute,subs=attributes+]
 ----
@@ -258,63 +260,63 @@ TIP: To quickly locate the `message` field in a log entry, use your browser's fi
 | line_format "{{.message}}"
 ----
 +
-This strips the Kubernetes metadata and shows only what the application wrote to its logs.
+これにより、Kubernetes のメタデータが取り除かれ、アプリケーションがログに書き込んだ内容のみが表示されます。
 
-=== How AI helps with log analysis
+=== ログ分析において AI がどのように役立つか
 
-Raw logs contain rich data, but parsing JSON manually is tedious. In production, teams can use AI-powered observability tools to extract insights:
+生のログには豊富なデータが含まれていますが、JSON を手動で解析するのは面倒です。本番環境では、チームは AI を搭載したオブザーバビリティツールを使用して洞察を抽出できます：
 
-**What AI assistants can do with these logs:**
+**AIアシスタントがこれらのログでできること:**
 
-* "Show me all errors from the CEO agent in the last hour"
-* "What caused the latency spike at 2pm?"
-* "Summarize today's failed tool calls"
+* 「過去1時間の CEO エージェントからのすべてのエラーを表示して」
+* 「午後2時のレイテンシの急増の原因は何でしたか？」
+* 「今日の失敗したツール呼び出しを要約して」
 
-**Example AI-generated insight:**
+**AI が生成した洞察の例:**
 
 [source,text]
 ----
-Analysis of mortgage-ai logs (last hour):
-• 42 tool calls: 40 succeeded, 2 failed
-• Failures: get_credit_score timeout (30s)
-• Slowest tool: get_pipeline_summary (avg 2.3s)
-• Most active agent: Prospect (27 requests)
+mortgage-ai ログの分析 (過去1時間):
+• 42回のツール呼び出し: 40回成功、2回失敗
+• 失敗: get_credit_score タイムアウト (30秒)
+• 最も遅いツール: get_pipeline_summary (平均 2.3秒)
+• 最もアクティブなエージェント: Prospect (27リクエスト)
 ----
 
-The raw data exists in LokiStack—AI makes it accessible without manual JSON parsing or complex queries.
+生データは LokiStack に存在します。AI は、手動での JSON 解析や複雑なクエリなしに、そのデータへのアクセスを可能にします。
 
-=== Logs and traces are complementary
+=== ログとトレースは補完し合う関係にある
 
-Logs capture detailed events: errors, warnings, debug output, tool results. They're essential for:
+ログは、エラー、警告、デバッグ出力、ツールの結果など、詳細なイベントをキャプチャします。これらは以下に不可欠です：
 
-* Debugging specific failures ("What was the error message?")
-* Auditing compliance events ("Who accessed this PII?")
-* Investigating unexpected behavior ("Why did this calculation return zero?")
+* 特定の障害のデバッグ (「エラーメッセージは何だったか？」)
+* コンプライアンスイベントの監査 (「誰がこの PII にアクセスしたか？」)
+* 予期しない動作の調査 (「なぜこの計算がゼロを返したのか？」)
 
-**Module 4 introduces tracing**, which complements logs by providing:
+**モジュール 4 ではトレースを紹介します。** トレースは以下の機能を提供することでログを補完します：
 
-* Hierarchical request flow across agents and tools
-* Timing breakdowns for each step
-* Parent-child relationships showing what called what
+* エージェントとツールにまたがる階層的なリクエストフロー
+* 各ステップの所要時間の内訳
+* 何が何を呼び出したかを示す親子関係
 
-Together, logs and traces give you complete visibility: logs for detailed events, traces for request flow.
+ログとトレースを組み合わせることで、完全な可視性が得られます。詳細なイベントにはログを、リクエストフローにはトレースを使用します。
 
-IMPORTANT: **LokiStack is a supported feature of Red Hat AI.** Logs persist beyond pod lifetime—when a container restarts or gets redeployed, LokiStack retains the historical logs, making post-incident investigation possible. For multi-agent systems, this persistent log storage is essential for correlating events across API, UI, and database containers.
+IMPORTANT: **LokiStack は Red Hat AI のサポート対象機能です。** ログはポッドの寿命を超えて保持されます。コンテナが再起動または再デプロイされた場合でも、LokiStack は履歴ログを保持するため、インシデント発生後の調査が可能になります。マルチエージェントシステムの場合、API、UI、およびデータベースコンテナ間のイベントを関連付けるために、この永続的なログストレージが不可欠です。
 
-== Module summary
+== モジュールのまとめ
 
-**What you accomplished:**
+**達成したこと:**
 
-* Explored the Grafana dashboard with HTTP and AI-specific agent metrics
-* Filtered application logs with LokiStack and LogQL queries
-* Correlated log entries across API and UI containers
+* HTTP と AI 固有のエージェントメトリクスを備えた Grafana ダッシュボードを探索しました
+* LokiStack と LogQL クエリを使用してアプリケーションログをフィルタリングしました
+* API コンテナと UI コンテナ間でログエントリを関連付けました
 
-**Key takeaways:**
+**重要なポイント:**
 
-* Agentic apps need metrics beyond HTTP: token usage, inference latency, routing decisions, and tool success rates
-* Logs provide the detail that metrics aggregate away. This detail is essential for debugging ephemeral containers.
-* Metrics answer "how much?" and "how fast?". Logs answer "what exactly happened?"
+* エージェント型のアプリには、HTTP 以外にもトークン使用量、推論のレイテンシ、ルーティングの決定、ツールの成功率などのメトリクスが必要です
+* ログはメトリクスでは集約されて見えなくなる詳細を提供します。この詳細は、エフェメラル(短命)なコンテナのデバッグに不可欠です。
+* メトリクスは「どれくらい？」「どれくらい速い？」に答えます。ログは「正確に何が起きたか？」に答えます。
 
-**Next steps:**
+**次のステップ:**
 
-Module 4 will introduce MLflow tracing, the key to understanding *why* things happen, not just *what* is happening.
+モジュール 4 では MLflow のトレースについて紹介します。これは、**何が**起きているかだけでなく、**なぜ**それが起きるのかを理解するための鍵となります。

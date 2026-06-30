@@ -1,235 +1,235 @@
-= Module 2: Observability pillars, concepts, and personas
+= モジュール 2: オブザーバビリティの柱、概念、およびペルソナ
 :imagesdir: ../assets/images
-:navtitle: Module 2: Observability Pillars
+:navtitle: モジュール 2: オブザーバビリティの柱
 :toc: macro
 :toclevels: 1
 
-== Revisiting your CEO conversation
+== CEOの会話を振り返る
 
-Remember when you asked the CEO Assistant "What's the portfolio health?" in Module 1? That single question generated a polished response with pipeline statistics and metrics. But what actually happened behind the scenes?
+モジュール 1 で、あなたが CEO アシスタントに「ポートフォリオの健全性は？」と尋ねたときのことを覚えていますか？ そのたった 1 つの質問から、パイプラインの統計とメトリクスを含む洗練された応答が生成されました。しかし、裏では実際に何が起こっていたのでしょうか？
 
-**Your question triggered:**
+**あなたの質問は以下をトリガーしました：**
 
-* **30+ metrics**: Token counts, LLM latency, database query times, tool call durations
-* **15+ log events**: Agent decisions, tool parameters, prompt/completion pairs, database results
-* **1 distributed trace**: Spanning 5+ LLM calls and 3+ tool invocations across the CEO agent workflow
+* **30 以上のメトリクス**: トークン数、LLMのレイテンシ、データベースのクエリ時間、ツール呼び出しの所要時間
+* **15 以上のログイベント**: エージェントの意思決定、ツールのパラメーター、プロンプト/コンプリーションのペア、データベースの結果
+* **1 つの分散トレース**: CEO エージェントのワークフロー全体で、5 回以上の LLM 呼び出しと 3 回以上のツール呼び出しにまたがるもの
 
-All you saw was the final answer. The decision-making process—which tools were called, how long each step took, whether any calls failed—remained completely invisible.
+あなたが見たのは最終的な答えだけでした。どのツールが呼び出されたのか、各ステップにどれくらいの時間がかかったのか、呼び出しが失敗したかどうかなどの意思決定プロセスは、完全に目に見えないままでした。
 
-**This is the observability gap in action.**
+**これが、実際に起きているオブザーバビリティのギャップです。**
 
-In this module, you'll learn the 3 pillars of observability (metrics, logs, traces) that make that invisible decision-making process visible. You'll understand what Fed Aura Capital needs to capture from your CEO conversation to debug issues, optimize performance, and ensure quality.
+このモジュールでは、目に見えない意思決定プロセスを可視化する、オブザーバビリティの 3 本柱（メトリクス、ログ、トレース）について学びます。Fed Aura Capital が、問題をデバッグし、パフォーマンスを最適化し、品質を確保するために、CEO の会話から何をキャプチャする必要があるのかを理解します。
 
-NOTE: This is a conceptual module: no terminal or cluster work required. The goal is to build a shared vocabulary before diving into hands-on tooling in Modules 3-6.
+NOTE: これは概念的なモジュールであり、ターミナルやクラスターでの作業は必要ありません。モジュール 3〜6 で実践的なツールについて深く掘り下げる前に、共通の語彙を構築することが目的です。
 
-== Learning objectives
+== 学習目標
 
-By the end of this module, you'll be able to:
+このモジュールを修了すると、以下のことができるようになります：
 
-* Define the 3 pillars of observability: metrics, logs, and traces
-* Explain how each pillar applies specifically to multi-agent AI systems
-* Distinguish between the observability needs of SRE/Platform Engineers and AI Developers/Engineers
-* Map observability tools to persona-specific use cases in Fed Aura Capital
+* オブザーバビリティの 3 本柱であるメトリクス、ログ、トレースを定義できる
+* それぞれの柱がマルチエージェント AI システムにどのように特有の形で適用されるかを説明できる
+* SRE/プラットフォームエンジニアとAI開発者/エンジニアのオブザーバビリティのニーズの違いを区別できる
+* Fed Aura Capital において、オブザーバビリティツールをペルソナ固有のユースケースにマッピングできる
 
-== The 3 pillars of observability
+== オブザーバビリティの 3 本柱
 
-Before diving into tools and implementation, let's establish a shared vocabulary for observability in the context of agentic AI systems.
+ツールや実装について詳しく説明する前に、エージェント型 AI システムのコンテキストにおけるオブザーバビリティの共通語彙を確立しましょう。
 
-=== Pillar 1: Metrics
+=== 柱 1: メトリクス (Metrics)
 
-**Definition**: Numeric measurements collected at regular intervals that represent the state of a system.
+**定義**: システムの状態を表すために一定間隔で収集される数値による測定値。
 
-**For traditional systems**:
+**従来のシステムの場合**:
 
-* CPU utilization, memory usage, request rate
-* Error rates, latency percentiles
-* Queue depths, connection counts
+* CPU 使用率、メモリ使用量、リクエスト率
+* エラー率、レイテンシのパーセンタイル
+* キューの深さ、接続数
 
-**For agentic AI systems**:
+**エージェント型 AI システムの場合**:
 
-* Token usage per agent per request
-* LLM inference latency
-* Agent decision confidence scores
-* MCP tool call success/failure rates
-* Agent handoff frequencies
-* Model response quality scores
+* リクエストごとのエージェントあたりのトークン使用量
+* LLM 推論のレイテンシ
+* エージェントの意思決定の信頼度スコア
+* MCP ツール呼び出しの成功/失敗率
+* エージェントのハンドオフ（引き継ぎ）の頻度
+* モデル応答の品質スコア
 
-=== Pillar 2: Logs
+=== 柱 2: ログ (Logs)
 
-**Definition**: Timestamped, immutable records of discrete events.
+**定義**: タイムスタンプが付与された、不連続なイベントの不変の記録。
 
-**For traditional systems**:
+**従来のシステムの場合**:
 
-* Application errors and exceptions
-* Access logs, audit trails
-* Debug information
+* アプリケーションのエラーと例外
+* アクセスログ、監査証跡
+* デバッグ情報
 
-**For agentic AI systems**:
+**エージェント型 AI システムの場合**:
 
-* Agent reasoning chains and decision rationale
-* Prompt/completion pairs for debugging
-* Tool invocation parameters and responses
-* Compliance audit events (critical for Fed Aura Capital!)
-* Agent state transitions
+* エージェントの推論チェーンと意思決定の根拠
+* デバッグ用のプロンプト/コンプリーションのペア
+* ツールの呼び出しパラメーターと応答
+* コンプライアンス監査イベント (Fed Aura Capital にとって非常に重要！)
+* エージェントの状態遷移
 
-=== Pillar 3: Traces
+=== 柱 3: トレース (Traces)
 
-**Definition**: Records of the path of a request as it propagates through a distributed system.
+**定義**: リクエストが分散システムを通過する際の経路の記録。
 
-**For traditional systems**:
+**従来のシステムの場合**:
 
-* Service-to-service call chains
-* Database query execution paths
-* External API integrations
+* サービス間の呼び出しチェーン
+* データベースクエリの実行パス
+* 外部 API との統合
 
-**For agentic AI systems**:
+**エージェント型 AI システムの場合**:
 
-* Multi-agent workflow execution paths
-* LLM inference spans with prompt/completion
-* MCP tool call chains
-* Agent-to-agent handoff sequences
-* Complete decision paths from input to output
+* マルチエージェントワークフローの実行パス
+* プロンプト/コンプリーションを含む LLM 推論のスパン
+* MCP ツール呼び出しチェーン
+* エージェント間のハンドオフシーケンス
+* 入力から出力までの完全な意思決定パス
 
 image::arch1.png[Observability for Agentic AI Systems: 3 pillars with metrics logs and traces flowing into observability backends,link=self,window=blank,width=700]
 
-== Exercise 1: Map pillars to Fed Aura Capital needs
+== 演習 1: 柱を Fed Aura Capital のニーズにマッピングする
 
-Let's apply these concepts to Fed Aura Capital's multi-agent mortgage system.
+これらの概念を Fed Aura Capital のマルチエージェント住宅ローンシステムに適用してみましょう。
 
-. Review this mapping of observability needs:
+. オブザーバビリティのニーズのマッピングを確認します：
 +
 [cols="1,1,2",options="header"]
 |===
-|Pillar |Traditional Need |Fed Aura Capital AI Need
+|柱 |従来のニーズ |Fed Aura Capital の AI のニーズ
 
-|Metrics
-|Request rate, error rate
-|Agent token consumption, model latency, compliance check pass rate
+|メトリクス (Metrics)
+|リクエスト率、エラー率
+|エージェントのトークン消費量、モデルのレイテンシ、コンプライアンスチェックの合格率
 
-|Logs
-|Error messages
-|Agent reasoning chains, compliance audit trail, PII access logs
+|ログ (Logs)
+|エラーメッセージ
+|エージェントの推論チェーン、コンプライアンス監査証跡、PII（個人情報）アクセスログ
 
-|Traces
-|Service call graph
-|Loan application flow across 5 agents, MCP tool execution path
+|トレース (Traces)
+|サービスコールグラフ
+|5つのエージェントにまたがるローン申し込みフロー、MCPツールの実行パス
 |===
 
-. Identify which pillar helps answer each question. Try to answer before revealing the solution:
+. 各質問に答えるためにどの柱が役立つかを特定します。答えを見る前に考えてみてください：
 
-* "How many tokens did we consume processing loan applications today?"
+* 「今日、ローン申し込みの処理でトークンをいくつ消費しましたか？」
 +
 [%collapsible]
 ====
-*Metrics*: token usage counters track consumption over time.
+*メトリクス*: トークン使用量カウンターにより、時間の経過に伴う消費量を追跡します。
 ====
 
-* "Why is the API failing after we upgraded the model configuration?"
+* 「モデルの設定をアップグレードした後、API が失敗しているのはなぜですか？」
 +
 [%collapsible]
 ====
-*Logs*: error details and config mismatches are captured in log events.
+*ログ*: エラーの詳細と設定の不一致は、ログイベントに記録されます。
 ====
 
-* "Where is the bottleneck in our loan processing pipeline?"
+* 「ローン処理パイプラインのボトルネックはどこですか？」
 +
 [%collapsible]
 ====
-*Traces*: end-to-end request traces reveal which agent or tool call is slowest.
+*トレース*: エンドツーエンドのリクエストトレースにより、どのエージェントまたはツール呼び出しが最も遅いかが明らかになります。
 ====
 
-* "Is our compliance check service degrading?"
+* 「コンプライアンスチェックサービスは劣化していますか？」
 +
 [%collapsible]
 ====
-*Metrics*: latency percentiles and error rate trends show degradation over time.
+*メトリクス*: レイテンシのパーセンタイルとエラー率の傾向により、時間の経過に伴う劣化が示されます。
 ====
 
-* "What was the complete path of application #12345?"
+* 「申し込み番号 #12345 の完全な経路はどうでしたか？」
 +
 [%collapsible]
 ====
-*Traces*: distributed traces reconstruct the full request flow across all agents.
+*トレース*: 分散トレースにより、すべてのエージェントにまたがる完全なリクエストフローが再構築されます。
 ====
 
-== Exercise 2: 2 personas, one observability stack
+== 演習 2: 2つのペルソナ、1つのオブザーバビリティスタック
 
-At Fed Aura Capital, 2 primary teams need observability but focus on different things. Let's identify who owns what in the AgentOps observability stack.
+Fed Aura Capital では、2つの主要なチームがオブザーバビリティを必要としていますが、注目するポイントが異なります。AgentOps オブザーバビリティスタックにおいて、誰が何を所有しているかを特定しましょう。
 
 image::arch2.png[AgentOps Observability Stack showing SRE and AI Developer personas,link=self,window=blank,width=700]
 
-The stack serves both personas:
+このスタックは両方のペルソナにサービスを提供します：
 
-* **SRE / Platform Engineering**: system health, SLOs, capacity. Uses Red Hat OpenShift AI (RHOAI) Observability Stack, OpenShift Logging, and Grafana dashboards.
-* **AI Developer / Engineer**: model behavior, decision quality, agent performance. Uses MLflow Tracing, MLflow Evaluations, and Grafana dashboards.
-* **Grafana / Perses Dashboards**: shared by both personas for metrics and KPI visualization.
+* **SRE / プラットフォームエンジニアリング**: システムの健全性、SLO、キャパシティ。Red Hat OpenShift AI (RHOAI) Observability Stack、OpenShift Logging、および Grafana ダッシュボードを使用します。
+* **AI 開発者 / エンジニア**: モデルの動作、意思決定の品質、エージェントのパフォーマンス。MLflow Tracing、MLflow Evaluations、および Grafana ダッシュボードを使用します。
+* **Grafana / Perses ダッシュボード**: メトリクスと KPI の可視化のために、両方のペルソナによって共有されます。
 
-For each scenario below, decide which persona is responsible. Click to reveal the answer:
+以下の各シナリオについて、どちらのペルソナが責任を持つかを決定してください。クリックすると答えが表示されます：
 
-* "MLflow tracking server is running out of disk space"
+* 「MLflow トラッキングサーバーのディスク容量が不足しています」
 +
 [%collapsible]
 ====
-*SRE/Platform Engineering*: infrastructure and storage management.
+*SRE/プラットフォームエンジニアリング*: インフラストラクチャとストレージの管理。
 ====
 
-* "Loan approval rate dropped 15% after a model update"
+* 「モデルの更新後、ローンの承認率が 15% 低下しました」
 +
 [%collapsible]
 ====
-*AI Developer/Engineer*: model behavior change requires investigation of outputs and traces.
+*AI 開発者/エンジニア*: モデルの動作の変化には、出力とトレースの調査が必要です。
 ====
 
-* "P99 latency for the underwriter agent exceeded SLO"
+* 「アンダーライターエージェントの P99 レイテンシが SLO を超過しました」
 +
 [%collapsible]
 ====
-*SRE/Platform Engineering*: SLO tracking and performance monitoring.
+*SRE/プラットフォームエンジニアリング*: SLO の追跡とパフォーマンスの監視。
 ====
 
-* "Agent is providing inconsistent advice to similar inquiries"
+* 「エージェントが、似たような問い合わせに対して一貫性のないアドバイスを提供しています」
 +
 [%collapsible]
 ====
-*AI Developer/Engineer*: output quality and prompt debugging.
+*AI 開発者/エンジニア*: 出力品質とプロンプトのデバッグ。
 ====
 
-* "Kubernetes pods for the MCP server keep restarting"
+* 「MCP サーバーの Kubernetes ポッドが再起動を繰り返しています」
 +
 [%collapsible]
 ====
-*SRE/Platform Engineering*: pod health and infrastructure troubleshooting.
+*SRE/プラットフォームエンジニアリング*: ポッドの健全性とインフラストラクチャのトラブルシューティング。
 ====
 
-* "Compliance check agent is flagging too many false positives"
+* 「コンプライアンスチェックのエージェントが、誤検知（フォールスポジティブ）を多く出しすぎています」
 +
 [%collapsible]
 ====
-*AI Developer/Engineer*: agent decision logic and evaluation tuning.
+*AI 開発者/エンジニア*: エージェントの意思決定ロジックと評価のチューニング。
 ====
 
-Some issues require collaboration between both personas:
+一部の問題では、両方のペルソナのコラボレーションが必要です：
 
 --
-* **Latency spikes**: SRE identifies the symptom (high latency), AI Developer investigates the cause (complex prompt, model issue)
-* **Error rate increases**: SRE sees the metric, AI Developer analyzes the failed traces
-* **Resource exhaustion**: SRE manages capacity, AI Developer optimizes token usage
+* **レイテンシの急増**: SRE が症状（高いレイテンシ）を特定し、AI 開発者が原因（複雑なプロンプト、モデルの問題）を調査します。
+* **エラー率の増加**: SRE がメトリクスを確認し、AI 開発者が失敗したトレースを分析します。
+* **リソースの枯渇**: SRE がキャパシティを管理し、AI 開発者がトークン使用量を最適化します。
 --
 
-== Module summary
+== モジュールのまとめ
 
-**What you accomplished:**
+**達成したこと:**
 
-* Mapped the 3 pillars of observability (metrics, logs, traces) to agentic AI needs
-* Identified SRE vs AI Developer responsibilities in the observability stack
-* Recognized where both personas must collaborate
+* オブザーバビリティの 3 本柱（メトリクス、ログ、トレース）を、エージェント型 AI のニーズにマッピングしました
+* オブザーバビリティスタックにおける SRE と AI 開発者の責任の違いを特定しました
+* 両方のペルソナがコラボレーションすべき領域を認識しました
 
-**Key takeaways:**
+**重要なポイント:**
 
-* Metrics, logs, and traces each serve unique purposes. Agentic apps add token usage, agent reasoning, and multi-agent workflow paths.
-* SRE/Platform Engineers focus on system health; AI Developers focus on model behavior
-* Effective AgentOps requires collaboration between both personas
+* メトリクス、ログ、トレースはそれぞれ固有の目的を持っています。エージェント型アプリでは、トークン使用量、エージェントの推論、およびマルチエージェントワークフローのパスが追加されます。
+* SRE/プラットフォームエンジニアはシステムの健全性に焦点を当て、AI 開発者はモデルの動作に焦点を当てます。
+* 効果的な AgentOps には、両方のペルソナ間のコラボレーションが必要です。
 
-**Next steps:**
+**次のステップ:**
 
-Module 3 will explore metrics and logs hands-on using pre-deployed Grafana dashboards and LokiStack.
+モジュール 3 では、事前にデプロイされた Grafana ダッシュボードと LokiStack を使用して、メトリクスとログを実践的に探索します。

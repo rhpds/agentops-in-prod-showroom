@@ -1,126 +1,126 @@
-= Conclusion and next steps
+= まとめと次のステップ
 :imagesdir: ../assets/images
-:navtitle: Conclusion
+:navtitle: まとめ
 :toc:
 :toc-placement: preamble
 :icons: font
 
-Congratulations! You've completed the AgentOps Observability with Red Hat AI workshop.
+おめでとうございます！Red Hat AI を使用した AgentOps オブザーバビリティのワークショップを完了しました。
 
-== What you've learned
+== 学習したこと
 
-**Core observability (Modules 1-4):**
+**コア・オブザーバビリティ (モジュール 1-4):**
 
-* Explored a production-grade multi-agent mortgage lending system built with LangGraph
-* Understood the 3 pillars of observability and how they apply to agentic AI
-* Explored Grafana dashboards with agent-specific metrics and KPIs
-* Configured MLflow tracing for multi-agent workflows and MCP tool calls
+* LangGraph で構築された本番環境レベルのマルチエージェント住宅ローン融資システムを探索しました
+* オブザーバビリティの3本柱と、それらがエージェント型 AI にどのように適用されるかを理解しました
+* エージェント固有のメトリクスと KPI を備えた Grafana ダッシュボードを探索しました
+* マルチエージェントワークフローと MCP ツール呼び出しのための MLflow トレースを設定しました
 
-**Advanced quality assurance (Modules 5-6, if completed):**
+**高度な品質保証 (モジュール 5-6、完了した場合):**
 
-* Implemented LLM evaluations for quality assurance
-* Automated evaluations with AI Pipelines for continuous quality monitoring
-* Caught a prompt regression before production by comparing evaluation results across prompt versions
+* 品質保証のために LLM の評価を実装しました
+* 継続的な品質監視のために AI パイプラインを使用して評価を自動化しました
+* プロンプトのバージョン間で評価結果を比較することにより、本番環境の前にプロンプトのリグレッションをキャッチしました
 
-You now have the practical skills to implement AgentOps observability at your organization.
+これで、あなたは組織で AgentOps オブザーバビリティを実装するための実践的なスキルを身につけました。
 
-== Key takeaways
+== 重要なポイント
 
-The most important concepts to remember:
+覚えておくべき最も重要な概念：
 
-. **Agentic AI apps fail distributedly**: Multi-agent systems require observability across the entire workflow, not just individual components. Traditional monitoring falls short.
+. **エージェント型 AI アプリは静かに失敗するのではなく、分散して失敗する**: マルチエージェントシステムでは、個々のコンポーネントだけでなく、ワークフロー全体にわたるオブザーバビリティが必要です。従来の監視では不十分です。
 
-. **The 3 pillars work together**: Metrics detect anomalies, traces locate problems, and logs explain root causes. Effective AgentOps requires all 3.
+. **3本柱は連携して機能する**: メトリクスは異常を検出し、トレースは問題の場所を特定し、ログは根本原因を説明します。効果的な AgentOps には 3 つすべてが必要です。
 
-. **Different personas, different needs**: SRE/Platform Engineers focus on system health and SLOs; AI Developers focus on model quality and behavior. Both perspectives are essential for production AI.
+. **異なるペルソナ、異なるニーズ**: SRE/プラットフォームエンジニアはシステムの健全性と SLO に焦点を当て、AI 開発者はモデルの品質と動作に焦点を当てます。本番環境の AI には両方の視点が不可欠です。
 
-. **Tracing is the cornerstone**: MLflow tracing provides the end-to-end visibility needed to understand multi-agent decision paths and diagnose distributed failures.
+. **トレースが礎（いしずえ）である**: MLflow トレースは、マルチエージェントの意思決定パスを理解し、分散された障害を診断するために必要なエンドツーエンドの可視性を提供します。
 
-. **Evaluations ensure quality**: Observability tells you if systems work; evaluations tell you if they work *well*. Continuous evaluation prevents quality regression.
+. **評価が品質を保証する**: オブザーバビリティはシステムが機能しているかを教えてくれますが、評価はシステムが*適切に*機能しているかを教えてくれます。継続的な評価により品質の低下（リグレッション）を防ぎます。
 
-== Fed Aura Capital's transformation
+== Fed Aura Capital の変革
 
-Remember where we started? Fed Aura Capital was facing:
+どこから始まったか覚えていますか？Fed Aura Capital は以下の問題に直面していました：
 
-* Blind spots in agent interactions
-* Hidden latency bottlenecks
-* Silent failures in MCP tools
-* No quality baseline
+* エージェントの相互作用における死角
+* 隠れたレイテンシのボトルネック
+* MCP ツールでのサイレント障害
+* 品質のベースラインがない
 
-With the AgentOps observability stack you implemented, they now have:
+あなたが実装した AgentOps オブザーバビリティスタックにより、彼らは以下のものを得ました：
 
 [cols="1,2",options="header"]
 |===
-|Before |After
+|以前 |現在
 
-|Hours to diagnose issues
-|Minutes to pinpoint root cause
+|問題の診断に数時間
+|根本原因の特定に数分
 
-|No visibility into agent decisions
-|Complete trace of every request
+|エージェントの決定に対する可視性がない
+|すべてのリクエストの完全なトレース
 
-|Reactive incident response
-|Proactive alerting and monitoring
+|受動的なインシデント対応
+|プロアクティブなアラートと監視
 
-|Unknown quality levels
-|Baseline metrics with regression detection
+|不明な品質レベル
+|リグレッション検出を備えたベースラインメトリクス
 |===
 
-== Next steps
+== 次のステップ
 
-Ready to continue your AgentOps journey? Here are some recommended paths:
+AgentOps の旅を続ける準備はできましたか？推奨されるパスは次のとおりです：
 
-=== Apply to your own systems
+=== 自身のシステムへの適用
 
-. **Start with tracing**: If you only implement one thing, make it MLflow tracing—it provides the most value for debugging agent failures.
+. **トレースから始める**: もし1つだけ実装するのであれば、MLflow のトレースにしてください。エージェントの障害をデバッグする上で最大の価値を提供します。
 
-. **Define your personas**: Identify who needs observability data (SREs, AI developers) and what questions they need answered.
+. **ペルソナを定義する**: 誰がオブザーバビリティデータを必要としているか (SRE、AI 開発者)、そして彼らがどのような質問に答える必要があるかを特定します。
 
-. **Build incrementally**: Start with basic metrics, add tracing, then implement evaluations. Don't try to do everything at once.
+. **段階的に構築する**: 基本的なメトリクスから始め、トレースを追加し、次に評価を実装します。一度にすべてをやろうとしないでください。
 
-. **Practice incident response**: Run game days with simulated failures to validate your observability stack before real incidents occur.
+. **インシデント対応を練習する**: 実際のインシデントが発生する前に、シミュレートされた障害を使用するゲームデー（Game Day）を実施して、オブザーバビリティスタックを検証します。
 
-=== Recommended resources
+=== 推奨リソース
 
-Deepen your knowledge with these resources:
+これらのリソースで知識を深めてください：
 
-==== MLflow and tracing
+==== MLflow とトレース
 
-* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow Tracing Documentation^]: Comprehensive guide to MLflow tracing
-* link:https://mlflow.org/docs/latest/llms/index.html[MLflow LLMs^]: LLM tracking and deployment
+* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow トレースドキュメント^]: MLflow トレースの包括的なガイド
+* link:https://mlflow.org/docs/latest/llms/index.html[MLflow LLMs^]: LLM のトラッキングとデプロイメント
 
 ==== Red Hat OpenShift AI
 
-* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/[Red Hat OpenShift AI Documentation^]: Official product documentation
-* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.18/html/managing_openshift_ai/managing-observability_managing-rhoai[Red Hat OpenShift AI (RHOAI) Observability Guide^]: Managing observability in RHOAI
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/[Red Hat OpenShift AI ドキュメント^]: 公式の製品ドキュメント
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.18/html/managing_openshift_ai/managing-observability_managing-rhoai[Red Hat OpenShift AI (RHOAI) オブザーバビリティガイド^]: RHOAI におけるオブザーバビリティの管理
 
-==== Multi-agent frameworks
+==== マルチエージェントフレームワーク
 
-* link:https://langchain-ai.github.io/langgraph/[LangGraph Documentation^]: Build stateful multi-agent applications
-* link:https://modelcontextprotocol.io/[Model Context Protocol^]: MCP specification and tools
+* link:https://langchain-ai.github.io/langgraph/[LangGraph ドキュメント^]: ステートフルなマルチエージェントアプリケーションの構築
+* link:https://modelcontextprotocol.io/[Model Context Protocol^]: MCP の仕様とツール
 
-==== Observability
+==== オブザーバビリティ
 
-* link:https://opentelemetry.io/docs/[OpenTelemetry Documentation^]: Industry standard for observability
-* link:https://grafana.com/docs/grafana/latest/[Grafana Documentation^]: Dashboard and visualization
+* link:https://opentelemetry.io/docs/[OpenTelemetry ドキュメント^]: オブザーバビリティの業界標準
+* link:https://grafana.com/docs/grafana/latest/[Grafana ドキュメント^]: ダッシュボードと視覚化
 
-=== Get certified
+=== 認定を取得する
 
-Validate your expertise with Red Hat certifications:
+Red Hat の認定資格で専門知識を証明しましょう：
 
-* link:https://www.redhat.com/en/services/certification[Red Hat Certification Program^]
-* link:https://www.redhat.com/en/services/training/do316-managing-virtual-machines-red-hat-openshift-ai[Red Hat OpenShift AI Training^]
+* link:https://www.redhat.com/en/services/certification[Red Hat 認定プログラム^]
+* link:https://www.redhat.com/en/services/training/do316-managing-virtual-machines-red-hat-openshift-ai[Red Hat OpenShift AI トレーニング^]
 
-== Share your feedback
+== フィードバックの共有
 
-Help us improve this workshop. Tell us what worked, what didn't, and what topics you'd like to see covered next.
+このワークショップを改善するためにご協力ください。何が良かったか、何が良くなかったか、そして次にどのようなトピックを扱ってほしいかをお知らせください。
 
-Contact us with your feedback!
+フィードバックをお待ちしております！
 
-== Thank you!
+== ありがとうございました！
 
-You've taken an important step toward making your multi-agent AI systems observable, reliable, and maintainable.
+あなたは、自社のマルチエージェント AI システムを監視可能、信頼性が高く、保守可能なものにするための重要な一歩を踏み出しました。
 
-Remember: **Agentic AI apps don't fail silently. They fail distributedly.** But with proper observability, you can see everything, diagnose quickly, and maintain quality.
+覚えておいてください：**エージェント型 AI アプリは静かに失敗するのではなく、分散して失敗します。** しかし、適切なオブザーバビリティがあれば、すべてを把握し、迅速に診断し、品質を維持することができます。
 
-Keep building, keep learning, keep observing!
+構築を続け、学びを続け、そして観察し続けましょう！

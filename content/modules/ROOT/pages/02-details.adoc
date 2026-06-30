@@ -1,129 +1,129 @@
-= Workshop details
+= ワークショップの詳細
 :imagesdir: ../assets/images
-:navtitle: Workshop Details
+:navtitle: ワークショップの詳細
 :toc:
 :toc-placement: preamble
 :icons: font
 
-== How to approach this workshop
+== このワークショップの進め方
 
-This workshop builds incrementally. Each module depends on concepts from previous ones:
+このワークショップは段階的に構築されています。各モジュールは、前のモジュールの概念に基づいています。
 
-**Foundation (Modules 1-2)**: Understand the multi-agent application and core observability concepts. These modules set the stage for everything that follows.
+**基礎 (モジュール 1-2)**: マルチエージェントアプリケーションと中核となるオブザーバビリティの概念を理解します。これらのモジュールは、その後に続くすべての土台となります。
 
-**Core Practice (Modules 3-4)**: Work directly with metrics, logs, and tracing. You'll explore Grafana dashboards and configure MLflow tracing for the multi-agent system.
+**中核的な実践 (モジュール 3-4)**: メトリクス、ログ、トレースを直接操作します。Grafanaダッシュボードを探索し、マルチエージェントシステム用にMLflowトレースを設定します。
 
-**Optional Advanced Topics (Modules 5-6)**: For those with more advanced knowledge or who finish more quickly, implement LLM evaluations and automated quality monitoring. These modules require additional time but provide deeper expertise in quality assurance.
+**高度なトピック (オプション) (モジュール 5-6)**: より高度な知識を持つ方や早く終わった方向けに、LLMの評価と自動化された品質モニタリングを実装します。これらのモジュールには追加の時間が必要ですが、品質保証に関するより深い専門知識を得ることができます。
 
-Feel free to revisit earlier modules as needed. The concepts build on each other, so if something isn't clear later, go back and review.
+必要に応じて前のモジュールを見直してください。概念は互いに積み重なっているため、後で不明な点が出てきた場合は戻って復習してください。
 
-== Understanding and navigating the workshop UI
+== ワークショップUIの理解と操作
 
-The workshop interface is designed to let you read instructions while working in your environment.
+ワークショップのインターフェースは、自分の環境で作業しながら手順を読めるように設計されています。
 
-**Left panel**: Workshop instructions and content
+**左パネル**: ワークショップの手順とコンテンツ
 
-**Right panel**: Environment tabs for hands-on exercises
+**右パネル**: 実践演習用の環境タブ
 
-* **OCP Console**: OpenShift web console for managing your cluster
-* **Terminal**: Command-line access to run CLI commands
-* **MLflow Console**: MLflow UI for viewing traces and experiments
-* **Mortgage AI App**: The multi-agent application you'll observe
-* **Grafana**: Dashboards for metrics and logs
-* **RHOAI Console**: Dashboard for Red Hat OpenShift AI
+* **OCP Console**: クラスターを管理するためのOpenShift Webコンソール
+* **Terminal**: CLIコマンドを実行するためのコマンドラインアクセス
+* **MLflow Console**: トレースと実験を表示するためのMLflow UI
+* **Mortgage AI App**: 観察対象のマルチエージェントアプリケーション
+* **Grafana**: メトリクスとログのダッシュボード
+* **RHOAI Console**: Red Hat OpenShift AIのダッシュボード
 
-**View modes** (top navigation):
+**表示モード** (トップナビゲーション):
 
 image::view-modes.png[]
 
-* **Instructions**: Full-page instructions (hide environment tabs)
-* **Split**: Side-by-side view (current default) - see both instructions and environment
-* **Tabs**: Full-page environment (hide instructions)
+* **Instructions**: 手順の全画面表示 (環境タブを非表示)
+* **Split**: 左右分割表示 (現在のデフォルト) - 手順と環境の両方を表示
+* **Tabs**: 環境の全画面表示 (手順を非表示)
 
-**Adjusting the layout**: In Split mode, drag the middle divider left or right to resize the panels.
+**レイアウトの調整**: 分割（Split）モードでは、中央の境界線を左右にドラッグしてパネルのサイズを変更できます。
 
-TIP: Most exercises work best in Split mode so you can reference instructions while working in the environment tabs.
+TIP: ほとんどの演習は、環境タブで作業しながら手順を参照できる分割表示モードで行うのが最適です。
 
-== Technical requirements
+== 技術要件
 
-=== Software versions
+=== ソフトウェアバージョン
 
 * Red Hat OpenShift Container Platform {ocp_version}
 * Red Hat OpenShift AI {rhoai_version}
 * MLflow {mlflow_version}
-* LangGraph/LangChain (latest stable)
-* Grafana/Perses for dashboards
-* Web browser (Chrome, Firefox, Safari, Edge)
+* LangGraph/LangChain (最新の安定版)
+* ダッシュボード用 Grafana/Perses
+* Webブラウザ (Chrome、Firefox、Safari、Edge)
 
-== Need help?
+== ヘルプが必要な場合
 
-If you get stuck during the workshop:
+ワークショップ中に行き詰まった場合は：
 
-* **Check the glossary below**: Key terms and concepts are defined in the collapsible glossary section
-* **Review previous modules**: Concepts build on each other, so revisiting earlier content often clarifies later material
-* **Consult the documentation links**: Each module includes links to official documentation for deeper exploration
-* **Try the exercises again**: Hands-on practice often reveals details you might have missed the first time
-* **Refer to the conclusion**: The "Recommended resources" section has additional learning materials organized by topic
+* **以下の用語集を確認する**: 重要な用語や概念は、折りたたみ式の用語集セクションで定義されています
+* **前のモジュールを見直す**: 概念は積み重なっていくため、以前のコンテンツを見直すことで、その後の内容が明確になることがよくあります
+* **ドキュメントのリンクを参照する**: 各モジュールには、より深く探求するための公式ドキュメントへのリンクが含まれています
+* **演習をもう一度試す**: 実践的な演習を行うことで、最初に見落としていた詳細が明らかになることがよくあります
+* **まとめを参照する**: 「推奨リソース」セクションには、トピックごとに整理された追加の学習資料があります
 
-== Glossary
+== 用語集
 
 [%collapsible]
-.Key terms used in this workshop (click to expand)
+.このワークショップで使用される重要な用語 (クリックして展開)
 ====
 [cols="1,3",options="header"]
 |===
-|Term |Definition
+|用語 |定義
 
 |AgentOps
-|Agent Operations, the discipline of monitoring, tracing, evaluating, and maintaining AI agent systems in production
+|エージェントオペレーション。本番環境でAIエージェントシステムを監視、トレース、評価、および保守するための原則
 
-|AI Agent
-|A system that uses an LLM to reason about tasks, decide which tools to call, and take autonomous actions
+|AIエージェント
+|タスクについて推論し、どのツールを呼び出すかを決定し、自律的なアクションを実行するためにLLMを使用するシステム
 
 |LLM
-|Large Language Model, an AI model trained on large text datasets that can generate and understand natural language
+|大規模言語モデル。大量のテキストデータセットでトレーニングされ、自然言語を生成および理解できるAIモデル
 
 |MCP
-|Model Context Protocol, a standard for connecting AI agents to external tools and data sources
+|Model Context Protocol。AIエージェントを外部ツールやデータソースに接続するための標準規格
 
 |LangGraph
-|A framework for building stateful, multi-agent AI workflows, built on top of LangChain
+|LangChainの上に構築された、ステートフルなマルチエージェントAIワークフローを構築するためのフレームワーク
 
 |RAG
-|Retrieval-Augmented Generation, a pattern that enhances LLM responses by retrieving relevant documents before generating answers
+|Retrieval-Augmented Generation (検索拡張生成)。回答を生成する前に関連するドキュメントを検索することで、LLMの応答を強化するパターン
 
-|Trace
-|A complete record of a request's journey through a distributed system, composed of spans
+|トレース
+|スパンで構成される、分散システムを通過するリクエストの完全な記録
 
-|Span
-|A single operation within a trace (e.g., 1 LLM call, 1 tool invocation)
+|スパン
+|トレース内の単一の操作 (例: 1回のLLM呼び出し、1回のツール呼び出し)
 
-|Scorer
-|A function that evaluates the quality of an agent's response (deterministic or LLM-powered)
+|スコアラー
+|エージェントの応答の品質を評価する関数 (決定論的またはLLM駆動)
 
-|Inner Loop
-|Manual, developer-driven evaluation workflow (e.g., running evaluations from a Jupyter notebook)
+|インナーループ
+|手動で開発者主導の評価ワークフロー (例: Jupyterノートブックから評価を実行する)
 
-|Outer Loop
-|Automated, platform-driven evaluation workflow (e.g., scheduled AI Pipelines)
+|アウターループ
+|自動化されたプラットフォーム主導の評価ワークフロー (例: スケジュールされたAIパイプライン)
 
 |RBAC
-|Role-Based Access Control, restricting system access based on user roles
+|Role-Based Access Control (ロールベースのアクセス制御)。ユーザーのロールに基づいてシステムアクセスを制限する
 
 |pgvector
-|A PostgreSQL extension that enables vector similarity search for embeddings
+|埋め込み(Embeddings)のベクトル類似度検索を可能にするPostgreSQL拡張機能
 
 |PromQL
-|Prometheus Query Language, used to query metrics in Grafana dashboards
+|Prometheus Query Language。Grafanaダッシュボードでメトリクスをクエリするために使用される
 
 |LogQL
-|Log Query Language, used to query logs in LokiStack/Grafana Loki
+|Log Query Language。LokiStack/Grafana Lokiでログをクエリするために使用される
 |===
 ====
 
-== Authors and contributors
+== 著者および貢献者
 
-**Primary Author**: Red Hat AI AI Business Unit +
-**Authors**: Roberto Carratalá, Taylor Smith +
-**Last Updated**: April 2026 +
-**Workshop Version**: 1.0
+**主著者**: Red Hat AI ビジネスユニット +
+**著者**: Roberto Carratalá、Taylor Smith +
+**最終更新日**: 2026年4月 +
+**ワークショップのバージョン**: 1.0
