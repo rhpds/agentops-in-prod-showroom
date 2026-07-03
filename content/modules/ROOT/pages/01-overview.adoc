@@ -1,4 +1,4 @@
-= Workshop overview
+= 工作坊总览
 :imagesdir: ../assets/images
 :navtitle: 工作坊总览
 :toc:
@@ -12,12 +12,6 @@
 **AgentOps** 将可观测性能力延伸适配 AI 智能体场景。除了常规的请求量、延迟指标监控外，你还需要追踪智能体的推理链路、统计 Token 消耗、校验工具调用成功率，并持续评估模型输出质量。
 
 本次工作坊将带你完整落地这套能力。
-
-Traditional DevOps taught us to monitor, debug, and maintain software systems in production. But AI agents introduce new challenges: non-deterministic behavior, multi-agent orchestration, LLM quality variations, and distributed tool calls.
-
-**AgentOps** extends observability practices to handle these realities. Beyond tracking request rates and latency, you need to trace agent reasoning paths, measure token consumption, validate tool call success, and continuously evaluate output quality.
-
-This workshop shows you how.
 
 == 你的身份与任务背景
 
