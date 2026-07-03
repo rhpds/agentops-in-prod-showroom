@@ -1,52 +1,52 @@
-= Workshop details
+= 工作坊详情
 :imagesdir: ../assets/images
 :navtitle: Workshop Details
 :toc:
 :toc-placement: preamble
 :icons: font
 
-== How to approach this workshop
+== 工作坊学习流程说明
 
-This workshop builds incrementally. Each module depends on concepts from previous ones:
+本工作坊采用阶梯式学习设计，每个模块均会用到前序模块的知识点：
 
-**Foundation (Modules 1-2)**: Understand the multi-agent application and core observability concepts. These modules set the stage for everything that follows.
+**基础模块（模块 1、2）**: 了解多智能体应用架构与可观测性核心概念，是后续所有实操内容的铺垫。
 
-**Core Practice (Modules 3-4)**: Work directly with metrics, logs, and tracing. You'll explore Grafana dashboards and configure MLflow tracing for the multi-agent system.
+**核心实操模块（模块 3、4）**: 实操指标、日志、链路追踪相关功能；熟悉 Grafana 可视化面板，并为多智能体系统配置 MLflow 链路追踪。
 
-**Optional Advanced Topics (Modules 5-6)**: For those with more advanced knowledge or who finish more quickly, implement LLM evaluations and automated quality monitoring. These modules require additional time but provide deeper expertise in quality assurance.
+**可选学进阶模块（模块 5、6）*: 适合基础较好、完成速度较快的学员，内容包含大模型效果评估、自动化质量监控落地。这两个模块需要额外耗时学习，但能帮助你深入掌握 AI 质量保障专业能力。
 
-Feel free to revisit earlier modules as needed. The concepts build on each other, so if something isn't clear later, go back and review.
+学习过程中可随时回看前面模块内容。整套知识点层层递进，若后续内容理解受阻，建议返回复习前置章节。
 
-== Understanding and navigating the workshop UI
+== 工作坊界面介绍与操作方法
 
-The workshop interface is designed to let you read instructions while working in your environment.
+工作坊界面支持一边阅读操作指引，一边在实验环境实操。
 
-**Left panel**: Workshop instructions and content
+**左侧面板**: 工作坊教程与文档内容
 
-**Right panel**: Environment tabs for hands-on exercises
+**右侧面板**: 实操环境多标签页
 
-* **OCP Console**: OpenShift web console for managing your cluster
-* **Terminal**: Command-line access to run CLI commands
-* **MLflow Console**: MLflow UI for viewing traces and experiments
-* **Mortgage AI App**: The multi-agent application you'll observe
-* **Grafana**: Dashboards for metrics and logs
-* **RHOAI Console**: Dashboard for Red Hat OpenShift AI
+* **OCP Console**: OpenShift 集群网页管理后台
+* **Terminal**: 命令行终端，执行各类 CLI 指令
+* **MLflow Console**: MLflow 可视化页面，查看链路追踪与实验记录
+* **Mortgage AI App**: 本次待观测的多智能体业务系统
+* **Grafana**: 指标与日志可视化大盘
+* **RHOAI Console**: 红帽 OpenShift AI 管理面板
 
-**View modes** (top navigation):
+**View modes** (顶部导航栏 —— 三种视图切换模式):
 
 image::view-modes.png[]
 
-* **Instructions**: Full-page instructions (hide environment tabs)
-* **Split**: Side-by-side view (current default) - see both instructions and environment
-* **Tabs**: Full-page environment (hide instructions)
+* **Instructions**: 指引全屏模式：仅展示教程文档，隐藏环境标签页
+* **Split**: 分屏模式（当前默认）：左右分栏，同时查看教程与实验环境
+* **Tabs**: 环境全屏模式：仅展示实操环境，隐藏教程文档
 
-**Adjusting the layout**: In Split mode, drag the middle divider left or right to resize the panels.
+**Adjusting the layout**: 分屏模式下，拖动中间分隔线左右滑动，即可调整左右面板宽度。
 
-TIP: Most exercises work best in Split mode so you can reference instructions while working in the environment tabs.
+TIP: 绝大多数实操任务推荐使用分屏模式，方便对照教程同步操作环境。
 
-== Technical requirements
+== 技术环境要求
 
-=== Software versions
+=== 软件版本
 
 * Red Hat OpenShift Container Platform {ocp_version}
 * Red Hat OpenShift AI {rhoai_version}
@@ -55,75 +55,75 @@ TIP: Most exercises work best in Split mode so you can reference instructions wh
 * Grafana/Perses for dashboards
 * Web browser (Chrome, Firefox, Safari, Edge)
 
-== Need help?
+== 遇到问题如何解决?
 
-If you get stuck during the workshop:
+实操过程中如果卡住，可按以下方式排查：
 
-* **Check the glossary below**: Key terms and concepts are defined in the collapsible glossary section
-* **Review previous modules**: Concepts build on each other, so revisiting earlier content often clarifies later material
-* **Consult the documentation links**: Each module includes links to official documentation for deeper exploration
-* **Try the exercises again**: Hands-on practice often reveals details you might have missed the first time
-* **Refer to the conclusion**: The "Recommended resources" section has additional learning materials organized by topic
+* **查阅下方术语表**: 可折叠术语板块收录所有核心名词释义
+* **回看前置模块**: 知识点环环相扣，复习前文通常能理清疑问
+* **参考文档链接**: 每个模块附带官方文档地址，可供深度查阅
+* **重新实操练习**: 动手复现流程常会发现初次遗漏的细节
+* **查看文末总结**: 「推荐学习资源」板块按主题整理了拓展学习资料
 
-== Glossary
+== 术语表
 
 [%collapsible]
-.Key terms used in this workshop (click to expand)
+.本次工作坊核心专业名词（点击展开查看释义）
 ====
 [cols="1,3",options="header"]
 |===
 |Term |Definition
 
 |AgentOps
-|Agent Operations, the discipline of monitoring, tracing, evaluating, and maintaining AI agent systems in production
+|智能体运维，一套面向生产环境 AI 智能体系统，涵盖监控、链路追踪、效果评估与运维管理的专业体系
 
 |AI Agent
-|A system that uses an LLM to reason about tasks, decide which tools to call, and take autonomous actions
+|AI 智能体，依托大语言模型完成任务推理、自主选择调用工具并自动执行操作的 AI 程序
 
 |LLM
-|Large Language Model, an AI model trained on large text datasets that can generate and understand natural language
+|大语言模型，基于海量文本数据集训练、具备自然语言理解与文本生成能力的人工智能模型
 
 |MCP
-|Model Context Protocol, a standard for connecting AI agents to external tools and data sources
+|模型上下文协议，用于打通 AI 智能体与外部工具、数据源的标准化接口协议
 
 |LangGraph
-|A framework for building stateful, multi-agent AI workflows, built on top of LangChain
+|基于 LangChain 开发、用于构建带状态多智能体业务流程的编排框架
 
 |RAG
-|Retrieval-Augmented Generation, a pattern that enhances LLM responses by retrieving relevant documents before generating answers
+|检索增强生成技术，生成回答前先检索相关文档素材，以此优化大模型输出内容的技术方案
 
 |Trace
-|A complete record of a request's journey through a distributed system, composed of spans
+|链路追踪，记录一次请求在分布式系统中完整流转全过程的数据，由多个跨度单元（Span）组成
 
 |Span
-|A single operation within a trace (e.g., 1 LLM call, 1 tool invocation)
+|跨度，一条追踪链路内的单次操作（例如单次大模型调用、单次工具调用）
 
 |Scorer
-|A function that evaluates the quality of an agent's response (deterministic or LLM-powered)
+|评分器，用于判定智能体输出质量的评估函数，分为固定规则型、大模型驱动型两类
 
 |Inner Loop
-|Manual, developer-driven evaluation workflow (e.g., running evaluations from a Jupyter notebook)
+|内循环，开发者手动执行的评估流程（如在 Jupyter Notebook 中运行评测脚本）
 
 |Outer Loop
-|Automated, platform-driven evaluation workflow (e.g., scheduled AI Pipelines)
+|外循环，平台自动化调度的评估流程（如定时运行 AI 流水线评测任务）
 
 |RBAC
-|Role-Based Access Control, restricting system access based on user roles
+|基于角色的访问控制，根据用户角色划分系统资源操作权限的权限管控机制
 
 |pgvector
-|A PostgreSQL extension that enables vector similarity search for embeddings
+|PostgreSQL 数据库扩展插件，支持向量嵌入数据的相似度检索
 
 |PromQL
-|Prometheus Query Language, used to query metrics in Grafana dashboards
+|Prometheus 查询语言，Grafana 监控面板中用于查询指标数据的专用语法
 
 |LogQL
-|Log Query Language, used to query logs in LokiStack/Grafana Loki
+|日志查询语言，在 LokiStack/Grafana Loki 组件中检索日志的专用语法
 |===
 ====
 
-== Authors and contributors
+== 作者与贡献人员
 
 **Primary Author**: Red Hat AI AI Business Unit +
-**Authors**: Roberto Carratalá, Taylor Smith +
-**Last Updated**: April 2026 +
+**Authors**: Roberto Carratalá, Taylor Smith , Hongtao Wang +
+**Last Updated**: July 2026 +
 **Workshop Version**: 1.0
