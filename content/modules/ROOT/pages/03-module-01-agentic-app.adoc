@@ -43,7 +43,7 @@ image::workloads-pods.png[]
 image::select-project.png[]
 image::agentic-app0.png[OpenShift Console Pods view showing mortgage-ai components running,link=self,window=blank,width=700]
 +
-You will explore these components in Exercise 2.
+你会在练习2中，浏览这些组件.
 
 . Navigate to the *Mortgage AI App* tab:
 
