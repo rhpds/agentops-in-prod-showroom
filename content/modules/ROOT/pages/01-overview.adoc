@@ -1,11 +1,17 @@
 = Workshop overview
 :imagesdir: ../assets/images
-:navtitle: Workshop Overview
+:navtitle: 工作坊总览
 :toc:
 :toc-placement: preamble
 :icons: font
 
-== What is AgentOps?
+== 什么是 AgentOps（智能体运维）？
+
+传统 DevOps 体系教会我们如何对生产环境软件系统进行监控、排障与运维。但 AI 智能体带来了全新难题：行为不可确定性、多智能体协同调度、大模型输出质量波动、分布式工具调用链路复杂等问题。
+
+**AgentOps** 将可观测性能力延伸适配 AI 智能体场景。除了常规的请求量、延迟指标监控外，你还需要追踪智能体的推理链路、统计 Token 消耗、校验工具调用成功率，并持续评估模型输出质量。
+
+本次工作坊将带你完整落地这套能力。
 
 Traditional DevOps taught us to monitor, debug, and maintain software systems in production. But AI agents introduce new challenges: non-deterministic behavior, multi-agent orchestration, LLM quality variations, and distributed tool calls.
 
@@ -13,29 +19,30 @@ Traditional DevOps taught us to monitor, debug, and maintain software systems in
 
 This workshop shows you how.
 
-== Your role and mission
+== 你的身份与任务背景
 
-You're a senior engineer at Fed Aura Capital, a mortgage lending company that has deployed a sophisticated multi-agent AI system to handle the complete lending lifecycle. The system uses 5 distinct LangGraph agents, each serving a different persona: prospect inquiry, borrower application intake, loan officer pipeline management, underwriter compliance checks, and executive analytics.
+你是联邦奥若资本（Fed Aura Capital）的高级工程师。这是一家抵押贷款企业，已上线一套成熟的多智能体 AI 系统，覆盖完整贷款业务全流程。系统包含 5 个独立 LangGraph 智能体，分别承担不同业务角色：客户咨询接待、借款人申请录入、信贷专员流程管理、风控合规审核、高管数据分析。
 
-Your CTO has called an emergency meeting: "Our AI agents are failing in production, but we can't see where or why. Customer complaints are rising, loan processing times are unpredictable, and we have no visibility into what's happening inside these multi-agent workflows. We need end-to-end observability. Yesterday."
+公司 CTO 紧急召开会议提出诉求：
+“我们生产环境的 AI 智能体频繁异常，但我们完全无法定位故障节点与根因。客户投诉量持续上涨，贷款处理时长波动极大，整套多智能体工作流内部运行状态完全不可见。我们急需端到端全链路可观测能力，且需要尽快落地。”
 
-**Your assignment**: Implement a comprehensive AgentOps observability strategy using Red Hat OpenShift AI to gain full visibility into your multi-agent system.
+**你的工作任务**: 基于红帽 OpenShift AI 搭建一套完整的 AgentOps 可观测体系，实现多智能体系统全链路可视化。
 
-**The objective**: Establish monitoring, tracing, and evaluation capabilities that allow your team to diagnose distributed failures, understand agent decision paths, and ensure consistent quality across all AI-powered workflows.
+**核心目标**: 搭建监控、链路追踪、模型评估一体化能力，让团队能够快速定位分布式故障、理清智能体决策逻辑、保障全 AI 业务流程输出质量稳定合规。
 
-== Fed Aura Capital's challenges
+== 联邦奥若资本现存业务痛点
 
-**The situation**: Fed Aura Capital has deployed a multi-agent AI system handling mortgage applications, but lacks visibility into the distributed workflows spanning multiple agents and MCP (Model Context Protocol, a standard for connecting AI agents to external tools and data sources) tools.
+**现状说明**: 公司已部署处理抵押贷款申请的多智能体 AI 系统，但跨智能体、跨 MCP（模型上下文协议，用于连接 AI 智能体与外部工具、数据源的标准协议）工具的分布式工作流完全缺乏可视化能力。
 
-**Project timeline**: The board has given the engineering team two weeks to demonstrate improved observability and reduced incident response time.
+**项目时限**: 董事会要求工程团队两周内完成可观测能力落地演示，并实现故障响应时效优化。
 
-**Current challenges** (operational pain points):
+**当前运营痛点** :
 
-* **Blind spots in agent interactions**: When a loan application fails, teams cannot trace the request path across the 5 agents, resulting in hours spent manually correlating logs
-* **Hidden latency bottlenecks**: Some agents introduce unpredictable delays, but there's no way to identify which ones. Customer complaints about slow processing continue to rise.
-* **Silent failures in MCP tools**: External tool calls (compliance checks, credit scoring) fail without alerting, and incomplete loan applications are discovered days later
-* **No quality baseline**: No systematic way to evaluate if agents are providing consistent, accurate responses, increasing the risk of compliance violations
+* **智能体交互链路完全黑盒**: 贷款申请流程异常时，团队无法追溯 5 个智能体之间完整请求流转路径，只能耗费数小时人工拼凑日志排查问题。
+* **隐性延迟瓶颈无法定位**: 部分智能体处理耗时波动极大，但没有任何手段定位延迟来源，客户持续反馈审批流程卡顿
+* **MCP 工具调用静默失效**: 合规校验、信用评分等外部工具调用失败时无告警，大量不完整贷款申请往往延迟数天才被发现。
+* **无统一输出质量基准**: 缺少标准化手段评估智能体回复的一致性与准确性，大幅提升合规违规风险。
 
-**The opportunity**: Red Hat OpenShift AI provides an integrated observability stack that can address these challenges. You've been selected to evaluate and implement it for Fed Aura Capital's use case.
+**解决方案契机**: 红帽 OpenShift AI 内置一体化可观测组件栈，可一站式解决上述全部痛点。本次由你负责完成方案验证并落地适配公司抵押贷款业务场景。
 
-**Technical perspective**: "MLflow tracing combined with RHOAI's metrics stack can give us the visibility we need, but we need to validate how it integrates with our LangGraph agents and MCP tools."
+**技术侧思路**: “MLflow 链路追踪搭配 RHOAI 指标监控套件，能够补齐我们缺失的可视化能力，但我们需要验证该方案与 LangGraph 智能体、MCP 工具的集成适配效果。”
