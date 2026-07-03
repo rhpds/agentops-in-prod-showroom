@@ -1,44 +1,44 @@
-= Module 1: The agentic app and why observability matters
+= 模块 1：智能体应用与可观测性的必要性
 :imagesdir: ../assets/images
 :navtitle: Module 1: The Agentic App
 :toc: macro
 :toclevels: 1
 
-Agentic AI apps don't fail silently; they fail distributedly. In this module, you'll explore the pre-deployed mortgage-ai multi-agent application and understand why traditional monitoring approaches fall short for these complex systems.
+AI 智能体应用不会简单直接报错，故障往往分散在整个分布式链路中。本模块将带你体验已部署完成的抵押贷款多智能体应用，并理解传统监控手段为何无法适配这类复杂 AI 系统。
 
-But first, what exactly is an AI agent? An *AI agent* is a system that uses a Large Language Model (LLM) to reason about a task, decide which tools to call, and take autonomous actions, going beyond simple request/response patterns like traditional APIs or basic chatbots. When multiple agents collaborate, each with its own tools and responsibilities, you get a *multi-agent system*, which is capable but significantly harder to observe and debug.
+首先明确：什么是 AI 智能体？AI 智能体依托大语言模型（LLM）完成任务推理、自主选择调用工具并执行自主操作，区别于传统接口、基础聊天机器人这类简单一问一答模式。当多个智能体协同工作，各自配备专属工具、承担独立业务职责时，就构成多智能体系统。这类系统业务能力强大，但内部链路复杂，排障与可视化难度大幅提升。
 
-Fed Aura Capital needs end-to-end visibility into their multi-agent workflows, and you've been tasked with evaluating how observability can help. Before implementing solutions, you need to understand what you're working with.
+联邦奥若资本需要多智能体全流程可视化能力，本次由你负责验证可观测体系的落地价值。在搭建解决方案前，你需要先熟悉整套应用架构。
 
-== Learning objectives
+== 学习目标
 
-By the end of this module, you'll be able to:
+完成本模块学习后，你将具备以下能力：
 
-* Describe the architecture of the multi-agent mortgage lending system
-* Identify the 5 distinct agent personas and their responsibilities
-* Explain why distributed AI systems require specialized observability approaches
-* Recognize the key failure modes (ways the system can fail or degrade) in multi-agent architectures
+* 描述抵押贷款多智能体系统整体架构
+* 区分 5 类业务智能体角色，并掌握各自职责
+* 说明分布式 AI 系统需要专用可观测方案的原因
+* 识别多智能体架构中常见的故障模式（系统异常、性能衰减场景）
 
-== Exercise 1: Access the application UI
+== 实操练习 1：访问应用前端界面
 
-TIP: Throughout this workshop, all key services are accessible as *tabs* — no need to open separate browser windows.
+TIP: 本工作坊所有核心服务均通过标签页*tabs*打开，无需额外新开浏览器窗口。 
 
-. First, log in to the OpenShift cluster from the **Terminal** tab:
+. 切换至**Terminal**标签页，登录 OpenShift 集群： 
 +
 [source,console,role=execute,subs=attributes+]
 ----
 oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password}
 ----
 
-. Navigate to the *OCP Console* tab. Log in with the same credentials you just used: username `{user}`, password `{password}`:
+. 切换至*OCP Console*标签页，使用刚才登录的账号密码登录：用户名`{user}`，密码`{password}` : 
 +
 image::agentic-app-pre1.png[OpenShift SSO login page,link=self,window=blank,width=500]
 
-. Once logged in, you will see the `Projects` page and a single project: `{user_project}`. Navigate to **Workloads > Pods** to see the mortgage-ai components running in your namespace:
+. 登录成功后进入项目列表页面，仅存在一个项目：`{user_project}`。依次进入**Workloads > Pods**，即可查看命名空间内运行的抵押贷款 AI 服务组件:
 +
 image::workloads-pods.png[]
 +
-If you do not see pods, make sure you select your project:
+若未显示 Pod 资源，请先确保选择你的项目:
 +
 image::select-project.png[]
 image::agentic-app0.png[OpenShift Console Pods view showing mortgage-ai components running,link=self,window=blank,width=700]
