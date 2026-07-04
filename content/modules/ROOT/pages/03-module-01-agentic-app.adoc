@@ -163,26 +163,26 @@ image::agentic-app-pre3.png[The 5 agent personas showing Prospect and Borrower a
 重点: **多智能体架构常见故障模式** +
 理解系统故障形式，是搭建有效可观测体系的前提: +
  +
-• **工具静默失效**: MCP 工具返回空数据，但智能体继续基于残缺信息生成回复，无任何报错提示 +
+• **工具调用静默性失败**: MCP 工具返回空数据，但智能体继续基于残缺信息生成回复，无任何报错提示 +
 • **延迟连锁叠加**: 数据库查询缓慢拖慢大模型调用，最终整体响应超时，无法定位耗时瓶颈步骤 +
 • **上下文溢出**: 智能体向大模型传入数据量超限，调用失败仅返回模糊报错，用户仅看到通用超时提示 +
 • **非确定性故障**: 相同提问因大模型输出随机性得到不同结果，问题难以复现 +
 • **分布式连锁故障**: 某一个智能体工具调用失败，影响下游智能体流程，且错误无法清晰传递
 
-=== Verify the deployment
+=== 校验服务部署状态
 
-Before exploring the application, let's confirm all components are running and healthy. We'll check two things: that the OpenShift pods are ready, and that the API can successfully connect to its database.
+正式实操应用前，先确认所有组件正常运行，校验两项内容：OpenShift 容器就绪状态、API 服务数据库连通性
 
-. Navigate to the **Terminal** tab. View the pods and their status:
+. 切换至 **Terminal** tab. 查看 Pod 运行状态:
 +
 [source,bash,role=execute,subs=attributes+]
 ----
 oc get pods -n {user_project}
 ----
 +
-This command shows all pods in your namespace and their readiness status. All pods should show `Running` with `1/1` or `2/2` containers ready. If any pod shows `CrashLoopBackOff`, `Error`, or `0/1`, the deployment has not completed successfully.
+该命令展示当前命名空间下所有容器就绪状态。正常状态为Running，就绪数1/1或2/2；若显示CrashLoopBackOff、Error、0/1，代表部署未完成。.
 
-. Check the API service health endpoint:
+. 校验 API 服务健康检查接口:
 +
 [source,console,role=execute,subs=attributes+]
 ----
@@ -190,9 +190,9 @@ MORTGAGE_HEALTH=$(oc get route mortgage-ai-api-health-route -n {user_project} -o
 curl -sk https://$\{MORTGAGE_HEALTH}/health/ | jq -r .
 ----
 +
-This health check verifies two critical dependencies for the multi-agent system: the FastAPI service itself, and its connection to the PostgreSQL database (which stores application state, embeddings for RAG, and audit trails).
+健康检查会验证两大核心依赖：FastAPI 服务自身、PostgreSQL 数据库连接(数据库存储业务状态、RAG 嵌入、审计记录)。
 +
-Expected output:
+正常返回示例:
 +
 [source,json]
 ----
@@ -214,122 +214,122 @@ Expected output:
 ]
 ----
 +
-**What this result means:** Both the API and Database components report `"status": "healthy"`. This confirms the FastAPI pod is running and can establish a connection to PostgreSQL. Without a healthy database connection, the agents cannot access their knowledge base, retrieve application data, or execute RAG workflows. If either component shows a status other than `"healthy"`, troubleshoot that service before proceeding.
+**返回结果含义:** 返回结果中 API 与数据库均为healthy代表服务正常。若任意一项状态异常，需先排查对应服务，再继续后续实验.
 
-== Exercise 3: Experience the observability gap
+== 实操练习 3：直观感受可观测性缺失带来的问题
 
-Now that you understand the 5 agent personas and how they collaborate, let's experience firsthand the observability challenge that comes with distributed AI systems.
+在掌握 5 个智能体架构与协作逻辑后，我们亲身体验分布式 AI 系统缺少可视化能力带来的排查难题。
 
-You'll interact with the application as a CEO and ask the assistant a question. The response will look correct, but you'll have no way of knowing what happened behind the scenes.
+以高管CEO身份登录系统并提问，页面返回看似正常的回答，但你完全无法知晓后台完整执行流程。
 
-. From the application landing page, click **Sign In**. 
+. 应用首页点击, **Sign In**. 
 
 +
 image::sign-in.png[]
 +
 
-. In the sign-in dialog, use the **Persona Demo Login** section at the bottom and select the **CEO** persona:
+. 登录弹窗底部为**Persona Demo Login**区域，选择 **CEO** 高管身份:
 
 +
 image::agentic-app4.png[Sign in dialog with Persona Demo Login showing CEO selection,link=self,window=blank,width=700]
 +
-. Click `Sign In`:
+. 点击登录 `Sign In`:
 
 +
 image::ceo-sign-in.png[]
 +
 
-. After signing in, you'll land on the **Executive Dashboard**, the CEO persona's view of portfolio health and operations:
+. 进入高管专属仪表盘**Executive Dashboard**，展示业务健康总览、运营:
 +
 image::agentic-app5.png[CEO Executive Dashboard showing Pipeline Overview and Denial Analysis,link=self,window=blank,width=700]
 
-. In the **Your Assistant** chat panel on the right, type the following question (if needed, adjust the center divider to reveal the chat panel or select the chat icon in the bottom right corner):
+. 页面右侧 **Your Assistant** 聊天框输入问题,  (若看不到聊天面板，拖动中间分隔栏或点击右下角聊天图标):
 +
 [source,console,role=execute,subs=attributes+]
 ----
-Show me the current pipeline status
+展示当前业务Pipeline整体状态
 ----
 
-. The assistant responds with a detailed portfolio health overview: active applications, stage breakdown, pull-through rate, and average days to close:
+. 助手会输出完整业务概况：在办申请数量、阶段分布、贷款转化率、平均放款周期:
 +
 image::agentic-app6.png[CEO Assistant responding with portfolio health overview,link=self,window=blank,width=700]
 
-=== Build a conversation for later analysis
+=== 生成多轮对话，用于后续链路追踪分析
 
-Before we move on, let's generate a richer session with multiple conversation exchanges (called "turns" in AI terminology — each turn is one question from you and one response from the agent). This will give us more data to explore when we get to tracing in Module 4.
+我们多问几个问题，生成多轮交互记录（AI 领域称为对话轮次，一轮 = 用户提问 + 智能体回复），为模块 4 的链路追踪预留充足测试数据。
 
 [start=5]
-. In the same chat, ask a follow-up question:
+. 同一对话窗口依次提问:
 +
 [source,console,role=execute,subs=attributes+]
 ----
 What are the denial trends?
 ----
 
-. Then ask one more:
+. 接着再次提问:
 +
 [source,console,role=execute,subs=attributes+]
 ----
 How are my loan officers doing?
 ----
 
-Each question triggers a different tool call behind the scenes. By the time you finish, your CEO session will have 3 turns spanning pipeline health, denial analysis, and officer performance. In Module 4, you'll trace every step of this conversation end-to-end.
+每一条提问都会触发不同后台工具调用。完成后本次高管会话包含三轮对话，覆盖业务总量、拒贷分析、专员绩效三类数据，模块 4 中将完整追溯整条对话全链路。
 
-=== The observability challenge
+=== 可观测性核心难题
 
-The response looks great. But stop and think about what just happened behind the scenes:
+页面返回结果看似完整，但后台存在大量无法直观获取的信息:
 
-* Which **agent** processed your question? Was it a single agent, or did multiple agents collaborate?
-* Which **tools** did the agent invoke to gather pipeline data, denial rates, and performance metrics?
-* How **long** did each step take? Was the LLM call fast, or did a tool call add latency?
-* What if the response was **wrong**? How would you trace back to the root cause?
-* What if a tool call **failed silently**? Would you even know?
+* 由哪一个**智能体**处理本次提问？是单个智能体？还是多智能体协同处理？
+* 智能体调用了哪些工具**tools**来获取业务总量、拒贷率、绩效指标？
+* 每一步操作耗时**多久**？是大模型调用缓慢，还是工具tool调用造成延迟？
+* 若回复数据**出错**，该如何追溯定位根因？
+* 若工具调用**失败性静默**，你能否察觉？
 
-Without proper observability instrumentation, these questions are unanswerable. The application gives you a polished response, but the entire decision-making process (the agent routing, tool invocations, LLM calls, and data retrieval) remains a black box.
+缺少专业埋点与可观测体系，以上问题全部无法解答。前端仅展示加工后的最终回答，完整决策链路（智能体路由、工具调用、大模型请求、数据查询）完全是黑盒。
 
-**Why traditional monitoring isn't enough:**
+**传统监控方案的局限性:**
 
-Traditional application monitoring tracks HTTP requests, error rates, and response times. For the mortgage-ai API, that means you'd see:
+传统应用监控仅采集 HTTP 请求、错误率、响应耗时。针对mortgage-ai API，传统监控只能看到:
 
 * `POST /api/ceo/chat` → 200 OK, 2.3s response time
 
-But you wouldn't see:
+但无法获取以下关键信息:
 
-* Which tools the CEO agent called (`get_pipeline_summary`, `calculate_pull_through_rate`)
-* How many LLM calls happened (was it 3 or 8?)
-* Which call took 1.8s of that 2.3s total
-* Whether the agent retrieved the correct data from the database
-* If any tool calls failed silently but the agent still generated a response
+* 高管智能体具体调用了哪些工具 (`get_pipeline_summary`, `calculate_pull_through_rate`)
+* 总共发起多少次大模型调用（3 次还是 8 次）
+* 2.3 秒总耗时中，1.8 秒消耗在哪一步操作
+* 智能体是否从数据库读取到准确业务数据
+* 是否存在工具调用静默性失败，但智能体依旧生成回答
 
-This is why AgentOps requires specialized observability: you need to see inside the decision-making process, not just the HTTP wrapper around it. In the next modules, you'll learn how to instrument this visibility using the 3 pillars of observability.
+这正是 AgentOps 需要专用可观测能力的核心原因：我们需要看透智能体内部完整决策流程，而非仅监控外层 HTTP 接口。后续模块将基于可观测三大支柱，讲解如何埋点实现全链路可视化。
 
 [%collapsible]
-.Under the hood: Production-ready AI patterns
+.底层原理：可用于生产的AI模式
 ====
-This application demonstrates key patterns for regulated industries:
+本应用展示了受强监管行业落地 AI 系统的核心实践模式:
 
-* **Multi-agent orchestration**: 5 LangGraph agents with role-scoped tools and RBAC enforcement
-* **Compliance knowledge base**: RAG using pgvector with tiered boosting (federal regulations > agency guidelines > internal policies)
-* **Model routing**: Complexity-based routing between fast and capable LLM tiers
-* **Comprehensive audit trail**: Hash-chained, append-only audit events with MLflow trace correlation
-* **PII masking**: Middleware-based masking for executive roles (SSN, DOB, account numbers)
-* **Safety shields**: Input and output content filters with escalation pattern detection
+* **多智能体编排**: 基于 LangGraph 构建 5 个业务智能体，工具按角色隔离，配套 RBAC 增强管控
+* **合规知识库**: 依托 pgvector 实现检索增强生成（RAG），采用分层提升策略：联邦法规 > 监管机构指引 > 企业内部制度
+* **模型路由**: 根据业务复杂度自动分流，在轻量快速大模型与高性能大模型层之间动态切换
+* **完整审计链路**: 采用哈希链、仅追加写入的审计事件，并与 MLflow 链路追踪数据关联打通
+* **敏感个人信息脱敏**: 基于中间件统一脱敏高管视图中的隐私数据（社保号、出生日期、账户编号）
+* **安全防护屏障**: 输入 / 输出内容过滤，可识别风险升级类异常对话模式
 ====
 
-== Module summary
+== 模块总结
 
-**What you accomplished:**
+**本节实操完成内容:**
 
-* Explored the 5 agent personas and the multi-agent architecture
-* Interacted with agents via the application UI
-* Experienced the observability gap in distributed AI systems
+* 熟悉五个业务智能体角色与整套多智能体系统架构
+* 通过前端应用界面完成智能体交互实操
+* 直观感受分布式 AI 系统缺失可观测能力带来的排查黑盒问题
 
-**Key takeaways:**
+**核心要点:**
 
-* Multi-agent systems distribute decision-making across multiple components
-* A single API can serve multiple agent personas with different capabilities
-* Specialized observability approaches are required for AgentOps
+* 多智能体系统将业务决策逻辑拆分至多个组件协同完成
+* 单套 API 服务可承载多套能力完全不同的业务智能体
+* AI 智能体运维（AgentOps）必须配套专用可观测体系
 
-**Next steps:**
+*下一章节预告:**
 
-Module 2 will introduce the 3 pillars of observability (metrics, logs, and traces) and how different personas (SRE/Platform Engineering vs. AI Developer/Engineer) approach monitoring these systems.
+模块 2 将讲解可观测三大支柱：指标、日志、链路追踪；同时区分平台运维工程师、AI 开发工程师 (SRE/Platform Engineering vs. AI Developer/Engineer) 两类角色的监控落地思路。
