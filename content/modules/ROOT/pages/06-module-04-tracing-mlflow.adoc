@@ -1,53 +1,53 @@
-= Module 4: Tracing and MLflow
+= 模块 4：跟踪和 MLflow
 :imagesdir: ../assets/images
-:navtitle: Module 4: Tracing & MLflow
+:navtitle: 模块 4：跟踪与 MLflow
 :toc: macro
 :toclevels: 1
 
-Metrics tell you *what* is happening, but traces tell you *why*. In this module, you'll explore MLflow tracing to gain end-to-end visibility into the Fed Aura Capital multi-agent mortgage system. You'll trace the requests you made in Module 1 across LangGraph agents and tool calls, closing the observability gap you experienced firsthand.
+指标告诉你*什么*正在发生，但跟踪告诉你*为什么*。在本模块中，你将探索 MLflow 跟踪，以获得对 Fed Aura Capital 多智能体抵押贷款系统的端到端可见性。你将在 LangGraph 代理和工具调用上跟踪你在模块 1 中发出的请求，关闭你亲身体验到的可观测性差距。
 
-TIP: In this module, you're wearing **both hats**: SREs use traces to diagnose latency and failures, while AI Developers use them to understand agent reasoning and tool behavior.
+TIP：在本模块中，你扮演**两个角色**：SRE 使用跟踪来诊断延迟和失败，而 AI 开发者使用它们来理解代理推理和工具行为。
 
-== Learning objectives
+== 学习目标
 
-By the end of this module, you'll be able to:
+完成本模块后，你将能够：
 
-* Navigate the MLflow UI to find and analyze request traces
-* Correlate traces back to user interactions from Module 1
-* Analyze multi-agent execution timelines, tool calls, and LLM invocations
-* Understand how MLflow captures user identity, inputs, outputs, and latency
+* 导航 MLflow UI 以查找和分析请求跟踪
+* 将跟踪关联回模块 1 中的用户交互
+* 分析多智能体执行时间线、工具调用和 LLM 调用
+* 理解 MLflow 如何捕获用户身份、输入、输出和延迟
 
-== Introduction to MLflow tracing
+== MLflow 跟踪简介
 
-MLflow Tracing is an OpenTelemetry-compatible LLM observability solution that captures inputs, outputs, and metadata for each step of a request. For Fed Aura Capital, this means visibility into the complete path of loan applications across agents, every LLM call with its prompt and response, all tool invocations, and agent decision points. Each request creates a **trace** (the complete request flow) composed of **spans** (individual operations like LLM calls or tool invocations) organized in a parent-child tree showing what called what.
+MLflow 跟踪是一个与 OpenTelemetry 兼容的 LLM 可观测性解决方案，它捕获请求每个步骤的输入、输出和元数据。对于 Fed Aura Capital，这意味着对跨代理的贷款申请完整路径的可见性，每个带有其 prompt 和响应的 LLM 调用，所有工具调用和代理决策点。每个请求创建一个**跟踪**（完整的请求流程），由**跨度**（LLM 调用或工具调用等单个操作）组成，组织成显示什么调用什么的父子树。
 
-== Exercise 1: Access the MLflow tracking server
+== 练习 1：访问 MLflow 跟踪服务器
 
-Red Hat OpenShift AI includes MLflow as part of the platform.
+Red Hat OpenShift AI 包含 MLflow 作为平台的一部分。
 
-. Navigate to the *MLflow Console* tab. If prompted, log in with username `{user}`, password `{password}`. Then select `{user_project}` from the **Select workspace** dropdown in the top-left corner:
+. 导航到 *MLflow 控制台* 标签页。如果提示，请使用用户名 `{user}`、密码 `{password}` 登录。然后从左上角的 **选择工作区** 下拉菜单中选择 `{user_project}`：
 +
-image::select-mlflow-wksp.png[MLflow UI welcome page showing workspace selection and core features,link=self,window=blank,width=700]
+image::select-mlflow-wksp.png[MLflow UI 欢迎页面，显示工作区选择和核心功能,link=self,window=blank,width=700]
 +
-NOTE: Red Hat OpenShift AI (RHOAI) deploys a single shared MLflow instance that provides namespace-based isolation through **workspaces**. Each data science project (OpenShift namespace) maps to its own MLflow workspace, giving teams logically separated experiments, traces, registered models, and prompts, all while sharing a single tracking server.
+NOTE：Red Hat OpenShift AI (RHOAI) 部署单个共享 MLflow 实例，该实例通过**工作区**提供基于命名空间的隔离。每个数据科学项目（OpenShift 命名空间）映射到其自己的 MLflow 工作区，为团队提供逻辑隔离的实验、跟踪、注册模型和 prompt，同时共享单个跟踪服务器。
 
-. MLflow provides three main capabilities. For this module, you'll focus on **Tracing** to analyze the agent workflows from Module 1:
+. MLflow 提供三个主要功能。对于本模块，你将专注于**跟踪**来分析模块 1 中的代理工作流程：
 +
 --
-* **Tracing**: Capture and debug LLM interactions and agent workflows
-* **Evaluation**: Measure and compare LLM quality with built-in and custom scorers (Module 5)
-* **Prompts**: Version control and manage prompts with aliases across teams (Module 5)
+* **跟踪**：捕获和调试 LLM 交互和代理工作流程
+* **评估**：使用内置和自定义评分器测量和比较 LLM 质量（模块 5）
+* **Prompts**：跨团队使用别名对 prompt 进行版本控制和管理（模块 5）
 --
 
-== How does tracing work?
+== 跟踪如何工作？
 
-When you deployed the mortgage-ai application in Module 1, tracing was already enabled. You never had to configure it manually. Every LLM call, tool invocation, and agent decision was recorded automatically. Here's how.
+当你部署 mortgage-ai 应用程序时，跟踪已启用。你从未需要手动配置它。每个 LLM 调用、工具调用和代理决策都自动记录。这是如何实现的。
 
-=== MLflow autolog: one-line tracing
+=== MLflow 自动日志记录：一行跟踪
 
-MLflow Tracing integrates with https://mlflow.org/docs/latest/genai/tracing/integrations/#agent-frameworks-python[40+ popular LLM and AI agent frameworks^], offering a **one-line automatic tracing** experience. Call `autolog()` once at application startup, and all your LangChain operations (LLM calls, tool invocations, agent decisions) are automatically captured—no changes needed to your agent logic.
+MLflow 跟踪与 https://mlflow.org/docs/latest/genai/tracing/integrations/#agent-frameworks-python[40+ 流行的 LLM 和 AI 代理框架^] 集成，提供**一行自动跟踪**体验。在应用程序启动时调用 `autolog()` 一次，所有 LangChain 操作（LLM 调用、工具调用、代理决策）都会自动捕获——无需更改代理逻辑。
 
-The mortgage-ai application uses https://mlflow.org/docs/latest/genai/tracing/integrations/listing/langchain/[LangChain autologging^]. In https://github.com/rh-ai-quickstart/multi-agent-loan-origination/blob/main/packages/api/src/observability.py#L105[observability.py^], the entire tracing setup is:
+mortgage-ai 应用程序使用 https://mlflow.org/docs/latest/genai/tracing/integrations/listing/langchain/[LangChain 自动日志记录^]。在 https://github.com/rh-ai-quickstart/multi-agent-loan-origination/blob/main/packages/api/src/observability.py#L105[observability.py^] 中，整个跟踪设置是：
 
 [source,python]
 ----
@@ -58,199 +58,195 @@ mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
 mlflow.set_experiment(settings.MLFLOW_EXPERIMENT_NAME)
 mlflow.langchain.autolog()  # <1>
 ----
-<1> This single line enables automatic tracing for all LangChain and LangGraph operations: every LLM call, tool invocation, and agent decision is captured as spans without any code changes to the agents themselves.
+<1> 这一行启用所有 LangChain 和 LangGraph 操作的自动跟踪：每个 LLM 调用、工具调用和代理决策都被捕获为跨度，而无需对代理本身进行任何代码更改。
 
-MLflow's automatic tracing provides:
+MLflow 的自动跟踪提供：
 
-* **Zero code changes** for basic observability: autolog hooks into the framework at the library level
-* **Unified traces across multi-framework apps**: LangChain, LangGraph, and custom tools all appear in a single trace
-* **Rich metadata** including inputs, outputs, token counts, model names, and latency
-* **Production-ready scaling**: traces are sent asynchronously to avoid blocking the application
+* **零代码更改**用于基本可观测性：自动日志记录挂钩到库级别的框架
+* **跨多框架应用的统一跟踪**：LangChain、LangGraph 和自定义工具都出现在单个跟踪中
+* **丰富的元数据**，包括输入、输出、令牌计数、模型名称和延迟
+* **生产就绪的扩展**：跟踪异步发送以避免阻塞应用程序
 
-=== OpenTelemetry compatibility
+=== OpenTelemetry 兼容性
 
-MLflow Tracing is built on https://opentelemetry.io/[OpenTelemetry^], the industry standard for distributed tracing. This means you can also export traces to other backends (Jaeger, Zipkin, Grafana Tempo) alongside MLflow.
+MLflow 跟踪建立在 https://opentelemetry.io/[OpenTelemetry^] 之上，这是分布式跟踪的行业标准。这意味着你也可以将跟踪导出到其他后端（Jaeger、Zipkin、Grafana Tempo）以及 MLflow。
 
-== Exercise 2: Find your first trace
+== 练习 2：查找你的第一个跟踪
 
-In Module 1, you clicked **Explore Products** and chatted with the Prospect Agent. That conversation looked like a simple exchange, but MLflow captured every step. Let's find that trace.
+在模块 1 中，你点击了**探索产品**并与潜在客户代理聊天。那次对话看起来像是一个简单的交流，但 MLflow 捕获了每一步。让我们找到那个跟踪。
 
-. In MLflow, click **Experiments** in the left sidebar, then select the **mortgage-ai** experiment. This is the experiment configured by the mortgage-ai application where all traces are recorded.
+. 在 MLflow 中，点击左侧边栏中的 **实验**，然后选择 **mortgage-ai** 实验。这是由 mortgage-ai 应用程序配置的实验，所有跟踪都记录在此处。
 
-. Click **Traces** in the left sidebar. You'll see a list of all traced requests, sorted by most recent:
+. 点击左侧边栏中的 **跟踪**。你将看到所有跟踪请求的列表，按最近排序：
 +
-image::mlflow2.png[MLflow Traces list showing captured requests including Explore Products and portfolio health queries,link=self,window=blank,width=700]
+image::mlflow2.png[MLflow 跟踪列表，显示捕获的请求，包括探索产品和投资组合健康查询,link=self,window=blank,width=700]
 +
-Each row shows the **Trace ID**, the **Request** (what the user asked), the **Response** (what the agent returned), **Execution time**, and **State**. Notice the trace at the bottom, _"What mortgage products do you offer? I'd like..."_, this is the Explore Products conversation from Module 1.
+每行显示 **跟踪 ID**、**请求**（用户问什么）、**响应**（代理返回什么）、**执行时间**和**状态**。注意底部的跟踪，_"你提供什么抵押贷款产品？我想..."_，这是模块 1 中的探索产品对话。
 
-. Click on that trace to open its **Summary** view:
+. 点击该跟踪以打开其**摘要**视图：
 +
-image::mlflow3.png[MLflow trace summary showing inputs with user identity and the span sequence of ChatOpenAI and tool calls,link=self,window=blank,width=700]
+image::mlflow3.png[MLflow 跟踪摘要，显示带有用户身份的输入和 ChatOpenAI 及工具调用的跨度序列,link=self,window=blank,width=700]
 +
-The Summary tab reveals what was invisible in Module 1:
+摘要选项卡揭示了模块 1 中不可见的内容：
 +
 --
-* **Inputs**: The user context passed to the agent
-* **Span sequence**: The operations that executed (`ChatOpenAI was called`, tool invocations, and follow-up LLM calls)
-* **Outputs**: The complete response returned to the user, including metadata
+* **输入**：传递给代理的用户上下文
+* **跨度序列**：执行的操作（`调用了 ChatOpenAI`、工具调用和后续 LLM 调用）
+* **输出**：返回给用户的完整响应，包括元数据
 --
 
-== Exercise 3: Analyze the CEO trace end-to-end
+== 练习 3：端到端分析 CEO 跟踪
 
-Remember Module 1, Exercise 3? You signed in as CEO David Park, asked _"What is my portfolio health?"_, and got a detailed response. We pointed out the observability gap: you had no way of knowing which agents processed your question, which tools were invoked, or how long each step took.
+还记得模块 1 练习 3 吗？你以 CEO David Park 身份登录，询问 _"我的投资组合健康状况如何？"_，并得到了详细的回答。我们指出了可观测性差距：你无法知道哪些代理处理了你的问题、调用了哪些工具或每步花费多长时间。
 
-Now let's close that gap.
+现在让我们关闭那个差距。
 
-image::mlflow4.png[CEO Executive Dashboard showing the portfolio health question and agent response from Module 1,link=self,window=blank,width=700]
+image::mlflow4.png[CEO 执行仪表板，显示模块 1 中的投资组合健康问题和代理响应,link=self,window=blank,width=700]
 
-=== Find the CEO trace
+=== 查找 CEO 跟踪
 
-. Return to the MLflow **Traces** list and locate the trace for _"Show me the current pipeline status"_:
+. 返回 MLflow **跟踪**列表并定位 _"显示当前流水线状态"_ 的跟踪：
 +
-image::find-trace.png[MLflow Traces list with the pipeline status trace highlighted,link=self,window=blank,width=700]
+image::find-trace.png[MLflow 跟踪列表，突出显示流水线状态跟踪,link=self,window=blank,width=700]
 +
-Notice the execution time. That's the total end-to-end latency for a question that seemed to be answered instantly in the chat UI.
+注意执行时间。这是在聊天 UI 中似乎立即回答的问题的总端到端延迟。
 
-=== Examine user identity tracking
+=== 检查用户身份跟踪
 
 [start=2]
-. Click on the trace to open the **Summary** tab.
+. 点击跟踪以打开 **摘要** 选项卡。
 +
-image::trace-summary.png[MLflow trace summary showing David Park user identity and the span sequence with ChatOpenAI and ceo_pipeline_summary calls,link=self,window=blank,width=700]
+image::trace-summary.png[MLflow 跟踪摘要，显示 David Park 用户身份以及带有 ChatOpenAI 和 ceo_pipeline_summary 调用的跨度序列,link=self,window=blank,width=700]
 +
-MLflow captures the full user context with every trace:
+MLflow 使用每个跟踪捕获完整的用户上下文：
 +
 --
-* **user_id**: `d1a2b3c4-e5f6-7890-abcd-ef1234567804`, the authenticated user's UUID
-* **user_email**: `david.park@example.com`, traceable identity
-* **user_name**: `David Park`, the CEO persona
---
-+
-Below the inputs, the span sequence shows the agent's execution plan: `ChatOpenAI` was called (the LLM decides what to do), then `ceo_pipeline_summary` was called (the tool fetches data), then `ChatOpenAI` was called again (the LLM formulates the response).
-+
-NOTE: If you don't see a tool call (e.g., `ceo_pipeline_summary`) in the span sequence, go back to the Mortgage AI App and ask the same question again. LLMs are non-deterministic: even with an optimized system prompt, the model may occasionally answer from its training data without invoking the tool. Repeat until you see a trace that includes the tool call, then continue with the next steps.
+* **user_id**：`d1a2b3c4-e5f6-7890-abcd-ef1234567804`，经过身份验证的用户的 UUID
+* **user_email**：`david.park@example.com`，可跟踪的身份
+* **user_name**：`David Park`，CEO 角色
+-- +
+在输入下方，跨度序列显示代理的执行计划：调用了 `ChatOpenAI`（LLM 决定做什么），然后调用了 `ceo_pipeline_summary`（工具获取数据），然后再次调用 `ChatOpenAI`（LLM 制定响应）。 +
+NOTE：如果你在跨度序列中没有看到工具调用（例如 `ceo_pipeline_summary`），请返回抵押贷款 AI 应用并再次询问相同的问题。LLM 是非确定性的：即使使用优化的系统 prompt，模型有时也可能从其训练数据中回答而不调用工具。重复直到看到包含工具调用的跟踪，然后继续后续步骤。
 
-=== Explore the execution timeline
+=== 探索执行时间线
 
 [start=3]
-. Click the **Details & Timeline** tab, then click **Show execution timeline** to see the full trace breakdown:
+. 点击 **详细信息和时间线** 选项卡，然后点击 **显示执行时间线** 以查看完整的跟踪细分：
 +
-image::nav-execution-timeline.png[MLflow Details and Timeline view showing the full execution tree from LangGraph through input shield agent ChatOpenAI tool calls and output shield,link=self,window=blank,width=700]
+image::nav-execution-timeline.png[MLflow 详细信息和时间线视图，显示从 LangGraph 通过输入保护代理 ChatOpenAI 工具调用到输出保护的完整执行树,link=self,window=blank,width=700]
 +
-The trace tree shows the complete execution path: `LangGraph` → `input_shield` → `agent` → `ChatOpenAI` (1.26s, decides to call a tool) → `tool_auth` → `ceo_pipeline_summary` (17ms, fetches pipeline data) → `agent` → `ChatOpenAI` (6.44s, composes the response) → `output_shield`. Now you can answer every question from Module 1's observability challenge.
+跟踪树显示完整的执行路径：`LangGraph` → `input_shield` → `agent` → `ChatOpenAI`（1.26s，决定调用工具）→ `tool_auth` → `ceo_pipeline_summary`（17ms，获取流水线数据）→ `agent` → `ChatOpenAI`（6.44s，制定响应）→ `output_shield`。现在你可以回答模块 1 可观测性挑战中的每个问题。
 +
 [%collapsible]
-.Full span breakdown (click to expand)
+.完整跨度细分（点击展开）
 ====
 [cols="1,2",options="header"]
 |===
-|Span |What It Does
+|跨度 |它做什么
 
 |`LangGraph`
-|Root orchestrator: manages the full agent workflow
+|根编排器：管理完整的代理工作流程
 
 |`input_shield`
-|Safety filter: checks the input for harmful content
+|安全过滤器：检查输入是否有害内容
 
-|`agent` (first)
-|LangGraph agent node: routes to the LLM
+|`agent`（第一个）
+|LangGraph 代理节点：路由到 LLM
 
-|`ChatOpenAI` (first)
-|LLM call: decides to call the `ceo_pipeline_summary` tool
+|`ChatOpenAI`（第一个）
+|LLM 调用：决定调用 `ceo_pipeline_summary` 工具
 
 |`should_continue`
-|Decision point: should the agent keep processing?
+|决策点：代理是否应继续处理？
 
 |`tool_auth`
-|Authorization check: does the CEO role have access to this tool?
+|授权检查：CEO 角色是否有权访问此工具？
 
 |`tools` → `ceo_pipeline_summary`
-|Tool execution: queries the database for pipeline data
+|工具执行：查询数据库获取流水线数据
 
-|`agent` (second)
-|LangGraph agent node: routes the tool result back to the LLM
+|`agent`（第二个）
+|LangGraph 代理节点：将工具结果路由回 LLM
 
-|`ChatOpenAI` (second)
-|LLM call: formulates a natural-language response from the raw pipeline data
+|`ChatOpenAI`（第二个）
+|LLM 调用：从原始流水线数据制定自然语言响应
 
 |`output_shield`
-|Safety filter: checks the output before returning to the user
+|安全过滤器：在返回给用户之前检查输出
 |===
 ====
 
-=== Inspect the tool call
+=== 检查工具调用
 
 [start=4]
-. In the trace tree, click on the **ceo_pipeline_summary** span to see the tool's inputs and outputs:
+. 在跟踪树中，点击 **ceo_pipeline_summary** 跨度以查看工具的输入和输出：
 +
-image::mlflow7.png[MLflow span detail for ceo_pipeline_summary showing input days=90 and output with pipeline summary data,link=self,window=blank,width=700]
+image::mlflow7.png[MLflow 跨度详细信息，显示 ceo_pipeline_summary，输入 days=90 和带有流水线摘要数据的输出,link=self,window=blank,width=700]
 +
 --
-* **Inputs**: `days: 90`, the tool queries a 90-day window of pipeline data
-* **Outputs**: `"Pipeline Summary (90-day window): Total active applications: 38..."`, the raw data the LLM used to compose its response
---
-+
-This is where the agent got its numbers. If the CEO's response ever contains incorrect data, you can trace it directly to this tool's output and verify whether the issue is in the tool logic or the LLM's interpretation.
+* **输入**：`days: 90`，工具查询 90 天窗口的流水线数据
+* **输出**：`"Pipeline Summary (90-day window): Total active applications: 38..."`，LLM 用于制定其响应的原始数据
+-- +
+这是代理获取其数字的地方。如果 CEO 的响应包含错误数据，你可以直接将其追溯到此工具的输出，并验证问题是在工具逻辑还是 LLM 的解释中。
 
-=== Inspect the LLM call
+=== 检查 LLM 调用
 
 [start=5]
-. Click on the final **ChatOpenAI** span to see the actual LLM invocation:
+. 点击最后的 **ChatOpenAI** 跨度以查看实际的 LLM 调用：
 +
-image::mlflow8.png[MLflow span detail for ChatOpenAI showing model gpt-oss-120b with system prompt and completion,link=self,window=blank,width=700]
+image::mlflow8.png[MLflow 跨度详细信息，显示 ChatOpenAI，模型 gpt-oss-120b，带有系统 prompt 和完成,link=self,window=blank,width=700]
 +
 --
-* **Model**: `gpt-oss-120b`, the exact model serving this request
-* **Inputs → messages**: The system prompt (_"You are the Fed Aura Capital executive assistant"_) and the conversation context including the tool result
-* **Outputs → choices**: The complete LLM response before any post-processing
---
+* **模型**：`gpt-oss-120b`，服务此请求的确切模型
+* **输入 → messages**：系统 prompt（_"你是 Fed Aura Capital 执行助手"_）和包括工具结果的对话上下文
+* **输出 → choices**：任何后处理之前的完整 LLM 响应
+-- +
+这种级别的详细信息对于调试至关重要：你可以看到模型接收的确切 prompt、哪个模型版本处理了它以及安全过滤器和格式化之前的原始完成。
+
+=== 继续探索
+
+尝试以其他角色（借款人、贷款专员、承保人）身份登录并与他们聊天。然后返回 MLflow。每个对话自动显示为新跟踪。比较不同角色如何使用不同的工具和模型。
+
+== 练习 4：探索用户会话
+
+许多现实世界的 AI 应用程序使用会话来维护多轮用户交互。https://mlflow.org/docs/latest/genai/tracing/track-users-sessions/[MLflow 跟踪提供内置支持^]用于将跟踪与用户关联并将它们分组为会话。在 LLM 应用程序或 AI 代理中跟踪用户和会话为理解用户行为、分析对话流程和改进个性化提供了必要的上下文。
+
+. 在 MLflow 中，点击 **可观测性** 下左侧边栏中的 **会话**：
 +
-This level of detail is essential for debugging: you can see the exact prompt the model received, which model version handled it, and the raw completion before safety filters and formatting.
+image::sessions0.png[MLflow 左侧边栏，显示可观测性下的会话,link=self,window=blank,width=700]
 
-=== Keep exploring
+. 在 mortgage-ai 应用程序中，每次聊天对话都作为会话跟踪。MLflow 将会话中的所有轮次分组在一起，让你看到完整的对话流程：
 
-Try signing in as other personas (Borrower, Loan Officer, Underwriter) and chatting with them. Then return to MLflow. Every conversation appears automatically as a new trace. Compare how different personas use different tools and models.
+image::sessions1.png[MLflow 聊天会话视图，显示一个会话，7 轮，按用户和代理分组,link=self,window=blank,width=700]
 
-== Exercise 4: Explore user sessions
+点击会话会显示每轮及其输入和输出。你可以点击任何轮次上的 **查看完整跟踪** 直接跳转到详细跟踪视图：
 
-Many real-world AI applications use sessions to maintain multi-turn user interactions. https://mlflow.org/docs/latest/genai/tracing/track-users-sessions/[MLflow Tracing provides built-in support^] for associating traces with users and grouping them into sessions. Tracking users and sessions in your LLM application or AI agent provides essential context for understanding user behavior, analyzing conversation flows, and improving personalization.
+image::sessions2.png[MLflow 会话详细信息，显示第 1 轮及其输入、输出和查看完整跟踪链接,link=self,window=blank,width=700]
 
-. In MLflow, click **Sessions** in the left sidebar under **Observability**:
-+
-image::sessions0.png[MLflow left sidebar showing Sessions under Observability,link=self,window=blank,width=700]
+这对于调试代理行为随时间下降的多轮对话特别有价值。你可以看到代理在每步拥有的完整上下文。
 
-. In the mortgage-ai application, each chat conversation is tracked as a session. MLflow groups all turns within a session together, letting you see the full conversation flow:
+== 模块总结
 
-image::sessions1.png[MLflow Chat Sessions view showing a session with 7 turns grouped by user and agent,link=self,window=blank,width=700]
+**你完成的工作：**
 
-Clicking into a session reveals each turn with its inputs and outputs. You can click **View full trace** on any turn to jump directly to the detailed trace view:
+* 访问了 MLflow 并找到了来自你模块 1 交互的跟踪
+* 端到端分析了 CEO 跟踪：输入保护、LLM 调用、工具授权、工具执行和输出保护
+* 检查了各个跨度以查看工具输入/输出和 LLM prompt/完成
 
-image::sessions2.png[MLflow session detail showing Turn 1 with inputs outputs and View full trace link,link=self,window=blank,width=700]
+**关键要点：**
 
-This is especially valuable for debugging multi-turn conversations where agent behavior degrades over time. You can see the full context the agent had at each step.
+* MLflow 自动日志记录提供零代码更改的端到端跟踪：一行启用它
+* 跟踪捕获用户身份、执行时间线和工具/LLM 详细信息，为多智能体系统关闭可观测性差距
+* 个别跨度检查使你能够将问题精确定位到特定组件：工具逻辑、LLM prompt 或安全过滤器
 
-== Module summary
+**后续步骤：**
 
-**What you accomplished:**
+你已完成核心可观测性模块！你现在拥有指标、跟踪和日志协同工作来监控你的多智能体系统。
 
-* Accessed MLflow and found traces from your Module 1 interactions
-* Analyzed the CEO trace end-to-end: input shields, LLM calls, tool authorization, tool execution, and output shields
-* Inspected individual spans to see tool inputs/outputs and LLM prompts/completions
+**选项 1 - 继续高级主题（如果时间允许推荐）：**
 
-**Key takeaways:**
+link:07-module-05-evals.html[模块 5：代理和 LLM 评估] 介绍质量评估框架，将跟踪与评估相结合以在生产前捕获回归。link:08-module-06-dev-to-production.html[模块 6] 将这些评估自动化为 CI/CD 流水线。
 
-* MLflow autolog provides end-to-end tracing with zero code changes: one line enables it
-* Traces capture user identity, execution timelines, and tool/LLM details, closing the observability gap for multi-agent systems
-* Individual span inspection lets you pinpoint issues to specific components: tool logic, LLM prompts, or safety filters
+**选项 2 - 跳到结论：**
 
-**Next steps:**
-
-You've completed the core observability modules! You now have metrics, traces, and logs working together to monitor your multi-agent system.
-
-**Option 1 - Continue to Advanced Topics (recommended if time permits):**
-
-link:07-module-05-evals.html[Module 5: Agent & LLM Evaluations] introduces quality assessment frameworks, combining tracing with evaluations to catch regressions before production. link:08-module-06-dev-to-production.html[Module 6] automates these evaluations into CI/CD pipelines.
-
-**Option 2 - Skip to Conclusion:**
-
-If you're short on time, skip to the link:09-conclusion.html[Conclusion], which recaps your observability journey and provides resources for continuing your learning.
+如果你时间不足，请跳到 link:09-conclusion.html[结论]，它回顾你的可观测性之旅并提供继续学习的资源。

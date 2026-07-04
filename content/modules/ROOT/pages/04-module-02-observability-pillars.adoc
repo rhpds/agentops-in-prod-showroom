@@ -1,235 +1,235 @@
-= Module 2: Observability pillars, concepts, and personas
+= 模块 2：可观测性支柱、概念和角色
 :imagesdir: ../assets/images
-:navtitle: Module 2: Observability Pillars
+:navtitle: 模块 2：可观测性支柱
 :toc: macro
 :toclevels: 1
 
-== Revisiting your CEO conversation
+== 重温你的 CEO 对话
 
-Remember when you asked the CEO Assistant "What's the portfolio health?" in Module 1? That single question generated a polished response with pipeline statistics and metrics. But what actually happened behind the scenes?
+还记得你在模块 1 中问 CEO 助手"投资组合健康状况如何"吗？这个问题产生了一个包含流水线统计和指标的精致回答。但实际上幕后发生了什么？
 
-**Your question triggered:**
+**你的问题触发了：**
 
-* **30+ metrics**: Token counts, LLM latency, database query times, tool call durations
-* **15+ log events**: Agent decisions, tool parameters, prompt/completion pairs, database results
-* **1 distributed trace**: Spanning 5+ LLM calls and 3+ tool invocations across the CEO agent workflow
+* **30+ 个指标**：令牌计数、LLM 延迟、数据库查询时间、工具调用持续时间
+* **15+ 个日志事件**：代理决策、工具参数、prompt/完成对、数据库结果
+* **1 个分布式跟踪**：跨越 CEO 代理工作流程中的 5+ 个 LLM 调用和 3+ 个工具调用
 
-All you saw was the final answer. The decision-making process—which tools were called, how long each step took, whether any calls failed—remained completely invisible.
+你只看到最终答案。决策过程——调用了哪些工具、每步花费多长时间、是否有任何调用失败——完全不可见。
 
-**This is the observability gap in action.**
+**这就是可观测性差距的实际表现。**
 
-In this module, you'll learn the 3 pillars of observability (metrics, logs, traces) that make that invisible decision-making process visible. You'll understand what Fed Aura Capital needs to capture from your CEO conversation to debug issues, optimize performance, and ensure quality.
+在本模块中，你将学习使不可见的决策过程可见的 3 个可观测性支柱（指标、日志、跟踪）。你将了解 Fed Aura Capital 需要从你的 CEO 对话中捕获什么来调试问题、优化性能并确保质量。
 
-NOTE: This is a conceptual module: no terminal or cluster work required. The goal is to build a shared vocabulary before diving into hands-on tooling in Modules 3-6.
+NOTE：这是一个概念性模块：不需要终端或集群工作。目标是在模块 3-6 中深入实践工具之前建立共享词汇。
 
-== Learning objectives
+== 学习目标
 
-By the end of this module, you'll be able to:
+完成本模块后，你将能够：
 
-* Define the 3 pillars of observability: metrics, logs, and traces
-* Explain how each pillar applies specifically to multi-agent AI systems
-* Distinguish between the observability needs of SRE/Platform Engineers and AI Developers/Engineers
-* Map observability tools to persona-specific use cases in Fed Aura Capital
+* 定义可观测性的 3 个支柱：指标、日志和跟踪
+* 解释每个支柱如何具体应用于多智能体 AI 系统
+* 区分 SRE/平台工程师和 AI 开发者/工程师的可观测性需求
+* 将可观测性工具映射到 Fed Aura Capital 中的特定角色用例
 
-== The 3 pillars of observability
+== 可观测性的 3 个支柱
 
-Before diving into tools and implementation, let's establish a shared vocabulary for observability in the context of agentic AI systems.
+在深入工具和实现之前，让我们在智能体 AI 系统的背景下为可观测性建立共享词汇。
 
-=== Pillar 1: Metrics
+=== 支柱 1：指标
 
-**Definition**: Numeric measurements collected at regular intervals that represent the state of a system.
+**定义**：以定期间隔收集的表示系统状态的数值测量。
 
-**For traditional systems**:
+**对于传统系统**：
 
-* CPU utilization, memory usage, request rate
-* Error rates, latency percentiles
-* Queue depths, connection counts
+* CPU 利用率、内存使用率、请求速率
+* 错误率、延迟百分位数
+* 队列深度、连接计数
 
-**For agentic AI systems**:
+**对于智能体 AI 系统**：
 
-* Token usage per agent per request
-* LLM inference latency
-* Agent decision confidence scores
-* MCP tool call success/failure rates
-* Agent handoff frequencies
-* Model response quality scores
+* 每个代理每个请求的令牌使用量
+* LLM 推理延迟
+* 代理决策置信度分数
+* MCP 工具调用成功/失败率
+* 代理移交频率
+* 模型响应质量分数
 
-=== Pillar 2: Logs
+=== 支柱 2：日志
 
-**Definition**: Timestamped, immutable records of discrete events.
+**定义**：离散事件的时间戳不可变记录。
 
-**For traditional systems**:
+**对于传统系统**：
 
-* Application errors and exceptions
-* Access logs, audit trails
-* Debug information
+* 应用程序错误和异常
+* 访问日志、审计跟踪
+* 调试信息
 
-**For agentic AI systems**:
+**对于智能体 AI 系统**：
 
-* Agent reasoning chains and decision rationale
-* Prompt/completion pairs for debugging
-* Tool invocation parameters and responses
-* Compliance audit events (critical for Fed Aura Capital!)
-* Agent state transitions
+* 代理推理链和决策基本原理
+* 用于调试的 prompt/完成对
+* 工具调用参数和响应
+* 合规审计事件（对 Fed Aura Capital 至关重要！）
+* 代理状态转换
 
-=== Pillar 3: Traces
+=== 支柱 3：跟踪
 
-**Definition**: Records of the path of a request as it propagates through a distributed system.
+**定义**：请求在分布式系统中传播时的路径记录。
 
-**For traditional systems**:
+**对于传统系统**：
 
-* Service-to-service call chains
-* Database query execution paths
-* External API integrations
+* 服务到服务调用链
+* 数据库查询执行路径
+* 外部 API 集成
 
-**For agentic AI systems**:
+**对于智能体 AI 系统**：
 
-* Multi-agent workflow execution paths
-* LLM inference spans with prompt/completion
-* MCP tool call chains
-* Agent-to-agent handoff sequences
-* Complete decision paths from input to output
+* 多智能体工作流程执行路径
+* 带有 prompt/完成的 LLM 推理跨度
+* MCP 工具调用链
+* 代理到代理移交序列
+* 从输入到输出的完整决策路径
 
-image::arch1.png[Observability for Agentic AI Systems: 3 pillars with metrics logs and traces flowing into observability backends,link=self,window=blank,width=700]
+image::arch1.png[智能体 AI 系统的可观测性：3 个支柱，指标、日志和跟踪流入可观测性后端,link=self,window=blank,width=700]
 
-== Exercise 1: Map pillars to Fed Aura Capital needs
+== 练习 1：将支柱映射到 Fed Aura Capital 的需求
 
-Let's apply these concepts to Fed Aura Capital's multi-agent mortgage system.
+让我们将这些概念应用于 Fed Aura Capital 的多智能体抵押贷款系统。
 
-. Review this mapping of observability needs:
+. 审查这个可观测性需求映射：
 +
 [cols="1,1,2",options="header"]
 |===
-|Pillar |Traditional Need |Fed Aura Capital AI Need
+|支柱 |传统需求 |Fed Aura Capital AI 需求
 
-|Metrics
-|Request rate, error rate
-|Agent token consumption, model latency, compliance check pass rate
+|指标
+|请求速率、错误率
+|代理令牌消耗、模型延迟、合规检查通过率
 
-|Logs
-|Error messages
-|Agent reasoning chains, compliance audit trail, PII access logs
+|日志
+|错误消息
+|代理推理链、合规审计跟踪、PII 访问日志
 
-|Traces
-|Service call graph
-|Loan application flow across 5 agents, MCP tool execution path
+|跟踪
+|服务调用图
+|跨越 5 个代理的贷款申请流程、MCP 工具执行路径
 |===
 
-. Identify which pillar helps answer each question. Try to answer before revealing the solution:
+. 识别哪个支柱有助于回答每个问题。在揭示解决方案之前尝试回答：
 
-* "How many tokens did we consume processing loan applications today?"
+* "今天我们处理贷款申请消耗了多少令牌？"
 +
 [%collapsible]
 ====
-*Metrics*: token usage counters track consumption over time.
+*指标*：令牌使用计数器跟踪一段时间内的消耗。
 ====
 
-* "Why is the API failing after we upgraded the model configuration?"
+* "升级模型配置后 API 为什么失败了？"
 +
 [%collapsible]
 ====
-*Logs*: error details and config mismatches are captured in log events.
+*日志*：错误详细信息和配置不匹配被捕获在日志事件中。
 ====
 
-* "Where is the bottleneck in our loan processing pipeline?"
+* "我们贷款处理流水线中的瓶颈在哪里？"
 +
 [%collapsible]
 ====
-*Traces*: end-to-end request traces reveal which agent or tool call is slowest.
+*跟踪*：端到端请求跟踪揭示哪个代理或工具调用最慢。
 ====
 
-* "Is our compliance check service degrading?"
+* "我们的合规检查服务是否在退化？"
 +
 [%collapsible]
 ====
-*Metrics*: latency percentiles and error rate trends show degradation over time.
+*指标*：延迟百分位数和错误率趋势显示随时间的退化。
 ====
 
-* "What was the complete path of application #12345?"
+* "申请 #12345 的完整路径是什么？"
 +
 [%collapsible]
 ====
-*Traces*: distributed traces reconstruct the full request flow across all agents.
+*跟踪*：分布式跟踪重构所有代理上的完整请求流程。
 ====
 
-== Exercise 2: 2 personas, one observability stack
+== 练习 2：2 个角色，一个可观测性技术栈
 
-At Fed Aura Capital, 2 primary teams need observability but focus on different things. Let's identify who owns what in the AgentOps observability stack.
+在 Fed Aura Capital，2 个主要团队需要可观测性但关注不同的东西。让我们识别 AgentOps 可观测性技术栈中谁拥有什么。
 
-image::arch2.png[AgentOps Observability Stack showing SRE and AI Developer personas,link=self,window=blank,width=700]
+image::arch2.png[AgentOps 可观测性技术栈，显示 SRE 和 AI 开发者角色,link=self,window=blank,width=700]
 
-The stack serves both personas:
+该技术栈为两个角色服务：
 
-* **SRE / Platform Engineering**: system health, SLOs, capacity. Uses Red Hat OpenShift AI (RHOAI) Observability Stack, OpenShift Logging, and Grafana dashboards.
-* **AI Developer / Engineer**: model behavior, decision quality, agent performance. Uses MLflow Tracing, MLflow Evaluations, and Grafana dashboards.
-* **Grafana / Perses Dashboards**: shared by both personas for metrics and KPI visualization.
+* **SRE / 平台工程**：系统健康、SLO、容量。使用 Red Hat OpenShift AI (RHOAI) 可观测性技术栈、OpenShift 日志和 Grafana 仪表板。
+* **AI 开发者 / 工程师**：模型行为、决策质量、代理性能。使用 MLflow 跟踪、MLflow 评估和 Grafana 仪表板。
+* **Grafana / Perses 仪表板**：由两个角色共享，用于指标和 KPI 可视化。
 
-For each scenario below, decide which persona is responsible. Click to reveal the answer:
+对于以下每个场景，决定哪个角色负责。点击揭示答案：
 
-* "MLflow tracking server is running out of disk space"
+* "MLflow 跟踪服务器磁盘空间不足"
 +
 [%collapsible]
 ====
-*SRE/Platform Engineering*: infrastructure and storage management.
+*SRE/平台工程*：基础设施和存储管理。
 ====
 
-* "Loan approval rate dropped 15% after a model update"
+* "模型更新后贷款批准率下降了 15%"
 +
 [%collapsible]
 ====
-*AI Developer/Engineer*: model behavior change requires investigation of outputs and traces.
+*AI 开发者/工程师*：模型行为变化需要调查输出和跟踪。
 ====
 
-* "P99 latency for the underwriter agent exceeded SLO"
+* "承保代理的 P99 延迟超过了 SLO"
 +
 [%collapsible]
 ====
-*SRE/Platform Engineering*: SLO tracking and performance monitoring.
+*SRE/平台工程*：SLO 跟踪和性能监控。
 ====
 
-* "Agent is providing inconsistent advice to similar inquiries"
+* "代理对类似查询提供不一致的建议"
 +
 [%collapsible]
 ====
-*AI Developer/Engineer*: output quality and prompt debugging.
+*AI 开发者/工程师*：输出质量和 prompt 调试。
 ====
 
-* "Kubernetes pods for the MCP server keep restarting"
+* "MCP 服务器的 Kubernetes Pod 不断重启"
 +
 [%collapsible]
 ====
-*SRE/Platform Engineering*: pod health and infrastructure troubleshooting.
+*SRE/平台工程*：Pod 健康和基础设施故障排除。
 ====
 
-* "Compliance check agent is flagging too many false positives"
+* "合规检查代理标记了太多误报"
 +
 [%collapsible]
 ====
-*AI Developer/Engineer*: agent decision logic and evaluation tuning.
+*AI 开发者/工程师*：代理决策逻辑和评估调整。
 ====
 
-Some issues require collaboration between both personas:
+某些问题需要两个角色之间的协作：
 
 --
-* **Latency spikes**: SRE identifies the symptom (high latency), AI Developer investigates the cause (complex prompt, model issue)
-* **Error rate increases**: SRE sees the metric, AI Developer analyzes the failed traces
-* **Resource exhaustion**: SRE manages capacity, AI Developer optimizes token usage
+* **延迟峰值**：SRE 识别症状（高延迟），AI 开发者调查原因（复杂的 prompt、模型问题）
+* **错误率增加**：SRE 看到指标，AI 开发者分析失败的跟踪
+* **资源耗尽**：SRE 管理容量，AI 开发者优化令牌使用
 --
 
-== Module summary
+== 模块总结
 
-**What you accomplished:**
+**你完成的工作：**
 
-* Mapped the 3 pillars of observability (metrics, logs, traces) to agentic AI needs
-* Identified SRE vs AI Developer responsibilities in the observability stack
-* Recognized where both personas must collaborate
+* 将可观测性的 3 个支柱（指标、日志、跟踪）映射到智能体 AI 需求
+* 识别了可观测性技术栈中的 SRE 与 AI 开发者职责
+* 识别了两个角色必须协作的地方
 
-**Key takeaways:**
+**关键要点：**
 
-* Metrics, logs, and traces each serve unique purposes. Agentic apps add token usage, agent reasoning, and multi-agent workflow paths.
-* SRE/Platform Engineers focus on system health; AI Developers focus on model behavior
-* Effective AgentOps requires collaboration between both personas
+* 指标、日志和跟踪各有独特用途。智能体应用添加了令牌使用、代理推理和多智能体工作流程路径。
+* SRE/平台工程师专注于系统健康；AI 开发者专注于模型行为
+* 有效的 AgentOps 需要两个角色之间的协作
 
-**Next steps:**
+**后续步骤：**
 
-Module 3 will explore metrics and logs hands-on using pre-deployed Grafana dashboards and LokiStack.
+模块 3 将使用预部署的 Grafana 仪表板和 LokiStack 实践探索指标和日志。

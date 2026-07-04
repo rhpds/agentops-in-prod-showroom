@@ -1,126 +1,126 @@
-= Conclusion and next steps
+= 结论与后续步骤
 :imagesdir: ../assets/images
-:navtitle: Conclusion
+:navtitle: 结论
 :toc:
 :toc-placement: preamble
 :icons: font
 
-Congratulations! You've completed the AgentOps Observability with Red Hat AI workshop.
+恭喜！你已完成基于红帽 AI 的 AgentOps 可观测性工作坊。
 
-== What you've learned
+== 你学到了什么
 
-**Core observability (Modules 1-4):**
+**核心可观测性（模块 1-4）：**
 
-* Explored a production-grade multi-agent mortgage lending system built with LangGraph
-* Understood the 3 pillars of observability and how they apply to agentic AI
-* Explored Grafana dashboards with agent-specific metrics and KPIs
-* Configured MLflow tracing for multi-agent workflows and MCP tool calls
+* 探索了基于 LangGraph 构建的生产级多智能体抵押贷款系统
+* 理解了可观测性的三大支柱及其在智能体 AI 中的应用
+* 探索了包含智能体特定指标和 KPI 的 Grafana 仪表板
+* 为多智能体工作流和 MCP 工具调用配置了 MLflow 链路追踪
 
-**Advanced quality assurance (Modules 5-6, if completed):**
+**高级质量保证（模块 5-6，如已完成）：**
 
-* Implemented LLM evaluations for quality assurance
-* Automated evaluations with AI Pipelines for continuous quality monitoring
-* Caught a prompt regression before production by comparing evaluation results across prompt versions
+* 实施了用于质量保证的 LLM 评估
+* 使用 AI 管道自动化评估，实现持续质量监控
+* 通过比较不同提示版本的评估结果，在上线前捕获了提示回归问题
 
-You now have the practical skills to implement AgentOps observability at your organization.
+你现在已具备在组织内实施 AgentOps 可观测性的实用技能。
 
-== Key takeaways
+== 关键要点
 
-The most important concepts to remember:
+需要记住的最重要概念：
 
-. **Agentic AI apps fail distributedly**: Multi-agent systems require observability across the entire workflow, not just individual components. Traditional monitoring falls short.
+. **智能体 AI 应用分布式失败**: 多智能体系统需要对整个工作流进行可观测性监控，而不仅仅是单个组件。传统监控手段力有不逮。
 
-. **The 3 pillars work together**: Metrics detect anomalies, traces locate problems, and logs explain root causes. Effective AgentOps requires all 3.
+. **三大支柱协同工作**: 指标检测异常，链路定位问题，日志解释根因。有效的 AgentOps 需要三者兼备。
 
-. **Different personas, different needs**: SRE/Platform Engineers focus on system health and SLOs; AI Developers focus on model quality and behavior. Both perspectives are essential for production AI.
+. **不同角色，不同需求**: SRE/平台工程师关注系统健康和 SLO；AI 开发者关注模型质量和行为。两种视角对于生产环境 AI 都至关重要。
 
-. **Tracing is the cornerstone**: MLflow tracing provides the end-to-end visibility needed to understand multi-agent decision paths and diagnose distributed failures.
+. **链路追踪是基石**: MLflow 追踪提供了理解多智能体决策路径和诊断分布式故障所需的端到端可见性。
 
-. **Evaluations ensure quality**: Observability tells you if systems work; evaluations tell you if they work *well*. Continuous evaluation prevents quality regression.
+. **评估确保质量**: 可观测性告诉你系统是否工作；评估告诉你系统是否*良好地*工作。持续评估可防止质量回归。
 
-== Fed Aura Capital's transformation
+== 联邦奥若资本的转型
 
-Remember where we started? Fed Aura Capital was facing:
+还记得我们的起点吗？联邦奥若资本曾面临：
 
-* Blind spots in agent interactions
-* Hidden latency bottlenecks
-* Silent failures in MCP tools
-* No quality baseline
+* 智能体交互盲区
+* 隐性延迟瓶颈
+* MCP 工具静默失败
+* 无质量基线
 
-With the AgentOps observability stack you implemented, they now have:
+通过你实施的 AgentOps 可观测性技术栈，他们现在拥有：
 
 [cols="1,2",options="header"]
 |===
-|Before |After
+|之前 |之后
 
-|Hours to diagnose issues
-|Minutes to pinpoint root cause
+|数小时诊断问题
+|数分钟定位根因
 
-|No visibility into agent decisions
-|Complete trace of every request
+|无智能体决策可见性
+|每个请求的完整追踪记录
 
-|Reactive incident response
-|Proactive alerting and monitoring
+|被动响应事件
+|主动告警与监控
 
-|Unknown quality levels
-|Baseline metrics with regression detection
+|未知质量水平
+|具备基线指标与回归检测
 |===
 
-== Next steps
+== 后续步骤
 
-Ready to continue your AgentOps journey? Here are some recommended paths:
+准备继续你的 AgentOps 之旅？以下是推荐路径：
 
-=== Apply to your own systems
+=== 应用到你自己的系统
 
-. **Start with tracing**: If you only implement one thing, make it MLflow tracing—it provides the most value for debugging agent failures.
+. **从链路追踪开始**: 如果你只实施一件事，就选择 MLflow 追踪——它在调试智能体故障方面提供最大价值。
 
-. **Define your personas**: Identify who needs observability data (SREs, AI developers) and what questions they need answered.
+. **定义你的角色**: 确定谁需要可观测性数据（SRE、AI 开发者）以及他们需要回答什么问题。
 
-. **Build incrementally**: Start with basic metrics, add tracing, then implement evaluations. Don't try to do everything at once.
+. **增量构建**: 从基础指标开始，添加链路追踪，然后实施评估。不要试图一次性完成所有事情。
 
-. **Practice incident response**: Run game days with simulated failures to validate your observability stack before real incidents occur.
+. **演练事件响应**: 在真实事件发生之前，通过模拟故障进行游戏日演练，验证你的可观测性技术栈。
 
-=== Recommended resources
+=== 推荐资源
 
-Deepen your knowledge with these resources:
+通过这些资源深化你的知识：
 
-==== MLflow and tracing
+==== MLflow 和链路追踪
 
-* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow Tracing Documentation^]: Comprehensive guide to MLflow tracing
-* link:https://mlflow.org/docs/latest/llms/index.html[MLflow LLMs^]: LLM tracking and deployment
+* link:https://mlflow.org/docs/latest/genai/tracing/[MLflow Tracing Documentation^]: MLflow 追踪综合指南
+* link:https://mlflow.org/docs/latest/llms/index.html[MLflow LLMs^]: LLM 追踪与部署
 
-==== Red Hat OpenShift AI
+==== 红帽 OpenShift AI
 
-* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/[Red Hat OpenShift AI Documentation^]: Official product documentation
-* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.18/html/managing_openshift_ai/managing-observability_managing-rhoai[Red Hat OpenShift AI (RHOAI) Observability Guide^]: Managing observability in RHOAI
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/[红帽 OpenShift AI 文档^]: 官方产品文档
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.18/html/managing_openshift_ai/managing-observability_managing-rhoai[红帽 OpenShift AI (RHOAI) 可观测性指南^]: 在 RHOAI 中管理可观测性
 
-==== Multi-agent frameworks
+==== 多智能体框架
 
-* link:https://langchain-ai.github.io/langgraph/[LangGraph Documentation^]: Build stateful multi-agent applications
-* link:https://modelcontextprotocol.io/[Model Context Protocol^]: MCP specification and tools
+* link:https://langchain-ai.github.io/langgraph/[LangGraph 文档^]: 构建有状态的多智能体应用
+* link:https://modelcontextprotocol.io/[模型上下文协议^]: MCP 规范与工具
 
-==== Observability
+==== 可观测性
 
-* link:https://opentelemetry.io/docs/[OpenTelemetry Documentation^]: Industry standard for observability
-* link:https://grafana.com/docs/grafana/latest/[Grafana Documentation^]: Dashboard and visualization
+* link:https://opentelemetry.io/docs/[OpenTelemetry 文档^]: 可观测性行业标准
+* link:https://grafana.com/docs/grafana/latest/[Grafana 文档^]: 仪表板与可视化
 
-=== Get certified
+=== 获取认证
 
-Validate your expertise with Red Hat certifications:
+通过红帽认证验证你的专业知识：
 
-* link:https://www.redhat.com/en/services/certification[Red Hat Certification Program^]
-* link:https://www.redhat.com/en/services/training/do316-managing-virtual-machines-red-hat-openshift-ai[Red Hat OpenShift AI Training^]
+* link:https://www.redhat.com/en/services/certification[红帽认证项目^]
+* link:https://www.redhat.com/en/services/training/do316-managing-virtual-machines-red-hat-openshift-ai[红帽 OpenShift AI 培训^]
 
-== Share your feedback
+== 分享你的反馈
 
-Help us improve this workshop. Tell us what worked, what didn't, and what topics you'd like to see covered next.
+帮助我们改进此工作坊。告诉我们哪些有效、哪些需要改进，以及你希望下次看到哪些主题。
 
-Contact us with your feedback!
+联系我们要反馈意见！
 
-== Thank you!
+== 谢谢！
 
-You've taken an important step toward making your multi-agent AI systems observable, reliable, and maintainable.
+你已迈出重要一步，让你的多智能体 AI 系统变得可观测、可靠且易于维护。
 
-Remember: **Agentic AI apps don't fail silently. They fail distributedly.** But with proper observability, you can see everything, diagnose quickly, and maintain quality.
+记住：**智能体 AI 应用不会静默失败。它们会分布式地失败。** 但通过适当的可观测性，你可以洞察一切、快速诊断并保持质量。
 
-Keep building, keep learning, keep observing!
+继续构建，继续学习，持续观察！

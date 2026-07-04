@@ -1,97 +1,97 @@
-= Module 3: Metrics and logs for agentic applications
+= 模块 3：智能体应用的指标和日志
 :imagesdir: ../assets/images
-:navtitle: Module 3: Metrics & Logs
+:navtitle: 模块 3：指标与日志
 :toc: macro
 :toclevels: 1
 
-Metrics tell you *what* is happening in your system. Logs tell you *what exactly happened and when*. In this module, you'll explore a pre-deployed Grafana dashboard that monitors the mortgage-ai multi-agent system, then investigate application logs using LokiStack in the OpenShift Console.
+指标告诉你系统中发生了*什么*。日志告诉你*确切发生了什么以及何时发生*。在本模块中，你将探索一个预部署的 Grafana 仪表板，该仪表板监控 mortgage-ai 多智能体系统，然后使用 OpenShift 控制台中的 LokiStack 调查应用程序日志。
 
-TIP: In this module, you're wearing your **SRE / Platform Engineering hat**, focusing on system health, request rates, error rates, and operational logs.
+TIP：在本模块中，你扮演 **SRE / 平台工程角色**，专注于系统健康、请求速率、错误率和操作日志。
 
-== Learning objectives
+== 学习目标
 
-By the end of this module, you'll be able to:
+完成本模块后，你将能够：
 
-* Identify the key metrics that matter for multi-agent AI systems
-* Navigate the pre-deployed Mortgage-AI Grafana dashboard
-* Explore and filter application logs using LokiStack and Log Query Language (LogQL)
-* Explain how metrics and logs work together for agentic observability
+* 识别对多智能体 AI 系统至关重要的关键指标
+* 导航预部署的 Mortgage-AI Grafana 仪表板
+* 使用 LokiStack 和日志查询语言（LogQL）探索和过滤应用程序日志
+* 解释指标和日志如何协同工作以实现智能体可观测性
 
-== What makes agentic metrics different?
+== 是什么让智能体指标与众不同？
 
-Traditional applications need request rate, error rate, and latency. Agentic applications need all of that *plus* metrics that capture LLM behavior, agent routing, and tool execution. Here are the 6 metrics that matter most:
+传统应用程序需要请求速率、错误率和延迟。智能体应用程序需要所有这些*加上*捕获 LLM 行为、代理路由和工具执行的指标。这里有 6 个最重要的指标：
 
 [cols="2,2,3",options="header"]
 |===
-|Metric |Prometheus Name |What It Tells You
+|指标 |Prometheus 名称 |它告诉你什么
 
-|Request Rate & Errors
+|请求速率和错误
 |`http_requests_total`
-|How much traffic are we getting? How many requests are failing?
+|我们获得了多少流量？有多少请求失败了？
 
-|Latency Percentiles
+|延迟百分位数
 |`http_request_duration_seconds`
-|How fast are we responding? Are there outliers?
+|我们响应有多快？有异常值吗？
 
-|LLM Token Usage
+|LLM 令牌使用量
 |`llm_tokens_total`
-|How many tokens are we burning? What's the cost per conversation?
+|我们消耗了多少令牌？每次对话的成本是多少？
 
-|LLM Inference Latency
+|LLM 推理延迟
 |`llm_inference_duration_seconds`
-|How long does the model take to respond? Is it the bottleneck?
+|模型响应需要多长时间？它是瓶颈吗？
 
-|Tool Call Success Rate
+|工具调用成功率
 |`tool_calls_total`
-|Are agent tools working? Which ones are failing?
+|代理工具是否工作？哪些失败了？
 
-|Agent Routing
+|代理路由
 |`agent_routing_total`
-|Are queries routing to the fast or capable model? Is the classifier working?
+|查询是路由到快速还是能力模型？分类器是否工作？
 |===
 
-image::agentic-app-pre4.png[Agentic Metrics - The 6 That Matter showing traditional metrics plus agentic additions with model routing and Prometheus scraping by OpenShift UWM,link=self,window=blank,width=700]
+image::agentic-app-pre4.png[智能体指标 - 最重要的 6 个，显示传统指标加上智能体附加项，包括模型路由和由 OpenShift UWM 进行 Prometheus 抓取,link=self,window=blank,width=700]
 
-The mortgage-ai API exposes all these at `GET /metrics` in Prometheus format. **OpenShift User Workload Monitoring** (a built-in Prometheus instance that comes with Red Hat OpenShift AI) scrapes them automatically every 30 seconds and stores them in a time-series database.
+mortgage-ai API 以 Prometheus 格式在 `GET /metrics` 处公开所有这些指标。**OpenShift 用户工作负载监控**（Red Hat OpenShift AI 附带的内置 Prometheus 实例）每 30 秒自动抓取它们并将它们存储在时间序列数据库中。
 
-This means you don't need to set up Prometheus yourself—the platform handles collection and storage. You just need to:
+这意味着你不需要自己设置 Prometheus——平台处理收集和存储。你只需要：
 
-1. Expose metrics from your application (mortgage-ai already does this)
-2. Configure a visualization platform (we're using Grafana in this workshop) to query the OpenShift Prometheus data source (already configured)
-3. Build dashboards to visualize the metrics (you'll explore this next)
+1. 从应用程序公开指标（mortgage-ai 已经这样做了）
+2. 配置可视化平台（本研讨会中使用 Grafana）来查询 OpenShift Prometheus 数据源（已配置）
+3. 构建仪表板来可视化指标（你接下来将探索这一点）
 
 [%collapsible]
-.Complete metrics reference (click to expand)
+.完整指标参考（点击展开）
 ====
-The mortgage-ai backend exposes 10 custom metrics defined in `packages/api/src/core/metrics.py`:
+mortgage-ai 后端公开了 `packages/api/src/core/metrics.py` 中定义的 10 个自定义指标：
 
 [cols="2,1,2",options="header"]
 |===
-|Prometheus Name |Type |Labels
+|Prometheus 名称 |类型 |标签
 
 |`llm_tokens_total`
 |Counter
-|`model`, `direction` (input/output), `persona`
+|`model`、`direction`（输入/输出）、`persona`
 
 |`llm_inference_duration_seconds`
 |Histogram
-|`model`, `persona`
+|`model`、`persona`
 
 |`agent_routing_total`
 |Counter
-|`persona`, `complexity` (simple/complex)
+|`persona`、`complexity`（简单/复杂）
 
 |`agent_escalation_total`
 |Counter
-|`persona`, `reason`
+|`persona`、`reason`
 
 |`tool_calls_total`
 |Counter
-|`tool_name`, `persona`, `status` (success/error)
+|`tool_name`、`persona`、`status`（成功/错误）
 
 |`tool_call_duration_seconds`
 |Histogram
-|`tool_name`, `persona`
+|`tool_name`、`persona`
 
 |`active_chat_sessions`
 |Gauge
@@ -99,157 +99,157 @@ The mortgage-ai backend exposes 10 custom metrics defined in `packages/api/src/c
 
 |`chat_messages_total`
 |Counter
-|`persona`, `direction` (inbound/outbound)
+|`persona`、`direction`（入站/出站）
 
 |`loan_applications_total`
 |Counter
-|`status`, `loan_type` (not yet instrumented)
+|`status`、`loan_type`（尚未检测）
 
 |`compliance_checks_total`
 |Counter
-|`check_type`, `result` (not yet instrumented)
+|`check_type`、`result`（尚未检测）
 |===
 
-Additionally, `prometheus-fastapi-instrumentator` provides automatic HTTP metrics (`http_requests_total`, `http_request_duration_seconds_bucket`).
+此外，`prometheus-fastapi-instrumentator` 提供自动 HTTP 指标（`http_requests_total`、`http_request_duration_seconds_bucket`）。
 ====
 
-== Exercise 1: Explore the Mortgage-AI Grafana dashboard
+== 练习 1：探索 Mortgage-AI Grafana 仪表板
 
-Navigate to the *Grafana* tab to access the dashboard.
+导航到 *Grafana* 标签页以访问仪表板。
 
 image::grafana-tab.png[]
 
-If prompted, login again with your credentials:
+如果提示，使用你的凭据再次登录：
 
-* **Username**: {user}
-* **Password**: {password}
+* **用户名**：{user}
+* **密码**：{password}
 
-The Grafana instance is pre-deployed in your workspace namespace with a **Mortgage-AI Backend Metrics** dashboard already configured. It connects to 2 Prometheus datasources:
+Grafana 实例已预部署在你的工作区命名空间中，并配置了 **Mortgage-AI 后端指标** 仪表板。它连接到 2 个 Prometheus 数据源：
 
-* **User Workload Monitoring**: scrapes the mortgage-ai application metrics (default)
-* **Red Hat OpenShift AI (RHOAI) Prometheus**: provides model serving metrics from OpenShift AI
+* **用户工作负载监控**：抓取 mortgage-ai 应用程序指标（默认）
+* **Red Hat OpenShift AI (RHOAI) Prometheus**：从 OpenShift AI 提供模型服务指标
 
-Let's open it and see what's there.
+让我们打开它看看有什么。
 
-. Open the *Grafana* tab.
+. 打开 *Grafana* 标签页。
 
-. Navigate to the **Mortgage-AI Backend Metrics** dashboard.
+. 导航到 **Mortgage-AI 后端指标** 仪表板。
 
 image::open-grafana-sidebar.png[]
 image::open-metrics-dashboard.png[]
 
-=== Overview and HTTP panels
+=== 概览和 HTTP 面板
 
-The top of the dashboard gives you an at-a-glance view of system health:
+仪表板的顶部给你系统健康状况的一览：
 
-image::grafana2.png[Grafana Overview and HTTP panels showing request rate and latency,link=self,window=blank,width=700]
+image::grafana2.png[Grafana 概览和 HTTP 面板，显示请求速率和延迟,link=self,window=blank,width=700]
 
-What you're seeing:
+你看到的内容：
 
-* **Total Requests (Last Hour)**: how many requests hit the API. In the screenshot, ~983 requests.
-* **Request Rate**: current throughput in requests per second.
-* **Error Rate (%)**: percentage of 5xx responses. Green means healthy.
-* **P95 Latency**: 95% of requests complete faster than this value. Under 100ms is excellent.
+* **总请求数（最近一小时）**：有多少请求访问了 API。在截图中，约 983 个请求。
+* **请求速率**：当前每秒吞吐量。
+* **错误率（%）**：5xx 响应的百分比。绿色表示健康。
+* **P95 延迟**：95% 的请求在此值之前完成。低于 100ms 是极好的。
 
-Below the overview, the HTTP panels break down traffic by endpoint and status code. Look for:
+在概览下方，HTTP 面板按端点和状态代码细分流量。寻找：
 
-* Which endpoint gets the most traffic (likely `/api/prospect/chat`)
-* Any yellow (4xx) or red (5xx) bars in the HTTP Status Distribution
-* Which endpoints have the highest P95 latency
-
-[%collapsible]
-.Prometheus Query Language (PromQL) details for Overview panels (click to expand)
-====
-* **Request Rate**: `sum(rate(http_requests_total{namespace=~"$namespace"}[5m]))`
-* **Error Rate**: `(sum(rate(http_requests_total{namespace=~"$namespace", status=~"5.."}[5m])) / sum(rate(http_requests_total{namespace=~"$namespace"}[5m])) * 100) or vector(0)`
-* **P95 Latency**: `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=~"$namespace"}[5m])) by (le))`
-
-`rate()` calculates per-second averages over a time window. `histogram_quantile()` computes percentiles from histogram buckets.
-====
-
-=== AI agent metrics
-
-Scroll down to the **AI Agent Metrics** row. This is where it gets interesting. These metrics are unique to agentic applications:
-
-image::grafana1.png[Grafana AI Agent Metrics showing token usage and tool call success rate,link=self,window=blank,width=700]
-
-The 4 stat panels at the top of this section show:
-
-* **Active Chat Sessions**: live WebSocket connections. How many users are chatting right now?
-* **Total LLM Tokens**: cumulative tokens consumed since the API started. This is your cost proxy, in the screenshot, 18.5K tokens.
-* **Tool Call Success Rate**: are agent tools working? 100% means everything is healthy.
-* **Avg LLM Latency**: median time for an LLM inference call. 1.75s in the screenshot.
-
-Below the stats, the detail panels show:
-
-* **LLM Token Usage by Model**: which model burns the most tokens? Is input or output dominant?
-* **LLM Inference Latency by Persona**: which agent persona is slowest? A slow underwriter agent might indicate complex compliance tool calls.
-* **Agent Routing Distribution**: pie chart of simple vs complex routing. A high ratio of complex queries means the capable model is doing most of the work.
-* **Tool Calls by Status**: green for success, red for failures. A spike in red means tool integrations are breaking.
+* 哪个端点获得最多流量（可能是 `/api/prospect/chat`）
+* HTTP 状态分布中的任何黄色（4xx）或红色（5xx）条
+* 哪些端点具有最高的 P95 延迟
 
 [%collapsible]
-.PromQL details for AI Agent Metrics (click to expand)
+.概览面板的 Prometheus 查询语言（PromQL）详细信息（点击展开）
 ====
-* **LLM Tokens**: `sum(increase(llm_tokens_total{namespace=~"$namespace"}[1h]))`
-* **Tool Success Rate**: `(sum(tool_calls_total{namespace=~"$namespace", status="success"}) / sum(tool_calls_total{namespace=~"$namespace"}) * 100) or vector(100)`
-* **LLM Latency**: `histogram_quantile(0.50, sum(rate(llm_inference_duration_seconds_bucket{namespace=~"$namespace"}[5m])) by (le))`
-* **Routing Distribution**: `sum(agent_routing_total{namespace=~"$namespace"}) by (complexity)`
+* **请求速率**：`sum(rate(http_requests_total{namespace=~"$namespace"}[5m]))`
+* **错误率**：`(sum(rate(http_requests_total{namespace=~"$namespace", status=~"5.."}[5m])) / sum(rate(http_requests_total{namespace=~"$namespace"}[5m])) * 100) or vector(0)`
+* **P95 延迟**：`histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=~"$namespace"}[5m])) by (le))`
+
+`rate()` 在时间窗口上计算每秒平均值。`histogram_quantile()` 从直方图桶计算百分位数。
 ====
 
-TIP: The dashboard is managed as a `GrafanaDashboard` custom resource and version-controlled via GitOps. Run `oc get grafanadashboard -n {user_project}` to see it.
+=== AI 代理指标
 
-The traffic you generated in Module 1 (Explore Products, CEO portfolio health) is already reflected in these panels. Set the time range to **Last 1 hour** to see it.
+向下滚动到 **AI 代理指标** 行。这里开始有趣了。这些指标是智能体应用程序独有的：
 
-== Exercise 2: Explore application logs with LokiStack
+image::grafana1.png[Grafana AI 代理指标，显示令牌使用和工具调用成功率,link=self,window=blank,width=700]
 
-Metrics show aggregated health, but when something goes wrong you need the actual log events. Red Hat AI includes **LokiStack**, a high-performance log aggregation system that automatically collects everything your application writes to STDOUT or STDERR—no code changes needed. Let's explore the mortgage-ai logs.
+本部分顶部的 4 个统计面板显示：
 
-=== Navigate to the log viewer
+* **活动聊天会话**：实时 WebSocket 连接。现在有多少用户在聊天？
+* **LLM 令牌总数**：自 API 启动以来累计消耗的令牌。这是你的成本代理，在截图中 18.5K 令牌。
+* **工具调用成功率**：代理工具是否工作？100% 意味着一切健康。
+* **平均 LLM 延迟**：LLM 推理调用的中位时间。在截图中 1.75s。
 
-. Navigate to the *OCP Console* tab. Then navigate to **Observe** → **Logs**.
+在统计下方，详细信息面板显示：
+
+* **按模型的 LLM 令牌使用量**：哪个模型消耗最多令牌？输入还是输出占主导地位？
+* **按角色的 LLM 推理延迟**：哪个代理角色最慢？慢的承保代理可能表示复杂的合规工具调用。
+* **代理路由分布**：简单与复杂路由的饼图。复杂查询的高比率意味着能力模型在做大部分工作。
+* **按状态的工具调用**：绿色表示成功，红色表示失败。红色峰值意味着工具集成正在中断。
+
+[%collapsible]
+.AI 代理指标的 PromQL 详细信息（点击展开）
+====
+* **LLM 令牌**：`sum(increase(llm_tokens_total{namespace=~"$namespace"}[1h]))`
+* **工具成功率**：`(sum(tool_calls_total{namespace=~"$namespace", status="success"}) / sum(tool_calls_total{namespace=~"$namespace"}) * 100) or vector(100)`
+* **LLM 延迟**：`histogram_quantile(0.50, sum(rate(llm_inference_duration_seconds_bucket{namespace=~"$namespace"}[5m])) by (le))`
+* **路由分布**：`sum(agent_routing_total{namespace=~"$namespace"}) by (complexity)`
+====
+
+TIP：仪表板作为 `GrafanaDashboard` 自定义资源管理并通过 GitOps 进行版本控制。运行 `oc get grafanadashboard -n {user_project}` 来查看它。
+
+你在模块 1 中生成的流量（探索产品、CEO 投资组合健康）已经反映在这些面板中。将时间范围设置为 **最近 1 小时** 以查看它。
+
+== 练习 2：使用 LokiStack 探索应用程序日志
+
+指标显示聚合健康，但当出现问题时你需要实际的日志事件。Red Hat AI 包含 **LokiStack**，一个高性能日志聚合系统，它自动收集应用程序写入 STDOUT 或 STDERR 的所有内容——无需更改代码。让我们探索 mortgage-ai 日志。
+
+=== 导航到日志查看器
+
+. 导航到 *OCP 控制台* 标签页。然后导航到 **观察** → **日志**。
 +
 image::observe-logs.png[]
 +
-You'll see a **Forbidden — Missing permissions to get logs** error:
+你将看到 **禁止 - 缺少获取日志的权限** 错误：
 +
-image::logging4.png[OpenShift Console Observe Logs showing Forbidden error for regular user,link=self,window=blank,width=700]
+image::logging4.png[OpenShift 控制台观察日志，显示普通用户的禁止错误,link=self,window=blank,width=700]
 +
-This is expected. Because you're logged in as a regular user (`{user}`), OpenShift restricts log access to only your namespace for security. Cluster-wide log access is reserved for cluster administrators.
+这是预期的。因为你以普通用户（`{user}`）身份登录，OpenShift 出于安全考虑将日志访问限制为仅你的命名空间。集群范围的日志访问保留给集群管理员。
 
-=== Scope logs to your namespace
+=== 将日志范围限定到你的命名空间
 
 [start=2]
-. Click **Show Query** to open the query editor:
+. 点击 **显示查询** 以打开查询编辑器：
 +
-image::logging5.png[OpenShift Console Logs Show Query button,link=self,window=blank,width=700]
+image::logging5.png[OpenShift 控制台日志显示查询按钮,link=self,window=blank,width=700]
 +
-Enter this LogQL query to scope the logs to your namespace:
+输入此 LogQL 查询以将日志范围限定到你的命名空间：
 +
 [source,logql,role=execute,subs=attributes+]
 ----
 { log_type="application", kubernetes_namespace_name="{user_project}" }
 ----
 +
-Click **Run Query**. You should now see logs from the mortgage-ai pods.
+点击 **运行查询**。你现在应该看到来自 mortgage-ai Pod 的日志。
 +
-TIP: `log_type="application"` filters out infrastructure logs (kubelet, CRI-O). The `kubernetes_namespace_name` label is injected automatically by the log collector.
+TIP：`log_type="application"` 过滤掉基础设施日志（kubelet、CRI-O）。`kubernetes_namespace_name` 标签由日志收集器自动注入。
 
-=== Understanding the log format
+=== 理解日志格式
 
-What you see is structured JSON. Each log entry contains:
+你看到的是结构化 JSON。每个日志条目包含：
 
-* **Kubernetes metadata**: Pod IDs, container names, namespace labels, network configs
-* **Application message**: The actual log event from your application (in the `message` field)
-* **Timestamps**: When the event occurred
+* **Kubernetes 元数据**：Pod ID、容器名称、命名空间标签、网络配置
+* **应用程序消息**：来自应用程序的实际日志事件（在 `message` 字段中）
+* **时间戳**：事件发生的时间
 
-Scroll through a log entry to find the `message` field—that's where the useful application data lives. The metadata helps correlate logs across containers and filter by pod, namespace, or container.
+滚动日志条目以查找 `message` 字段——这是有用的应用程序数据所在的位置。元数据帮助跨容器关联日志并按 Pod、命名空间或容器进行过滤。
 
-TIP: To quickly locate the `message` field in a log entry, use your browser's find feature: **Cmd+F** (Mac) or **Ctrl+F** (Windows/Linux), then search for `"message"`. This helps you skip past the Kubernetes metadata and jump straight to the application log content.
+TIP：要快速定位日志条目中的 `message` 字段，请使用浏览器的查找功能：**Cmd+F** (Mac) 或 **Ctrl+F** (Windows/Linux)，然后搜索 `"message"`。这有助于你跳过 Kubernetes 元数据并直接跳转到应用程序日志内容。
 
-=== Extract application messages
+=== 提取应用程序消息
 
 [start=3]
-. Use LogQL to extract just the application messages and filter to API container logs:
+. 使用 LogQL 仅提取应用程序消息并过滤到 API 容器日志：
 +
 [source,logql,role=execute,subs=attributes+]
 ----
@@ -258,63 +258,63 @@ TIP: To quickly locate the `message` field in a log entry, use your browser's fi
 | line_format "{{.message}}"
 ----
 +
-This strips the Kubernetes metadata and shows only what the application wrote to its logs.
+这将删除 Kubernetes 元数据并仅显示应用程序写入其日志的内容。
 
-=== How AI helps with log analysis
+=== AI 如何帮助进行日志分析
 
-Raw logs contain rich data, but parsing JSON manually is tedious. In production, teams can use AI-powered observability tools to extract insights:
+原始日志包含丰富的数据，但手动解析 JSON 很繁琐。在生产环境中，团队可以使用 AI 驱动的可观测性工具来提取见解：
 
-**What AI assistants can do with these logs:**
+**AI 助手可以使用这些日志做什么：**
 
-* "Show me all errors from the CEO agent in the last hour"
-* "What caused the latency spike at 2pm?"
-* "Summarize today's failed tool calls"
+* "显示过去一小时内来自 CEO 代理的所有错误"
+* "下午 2 点是什么导致了延迟峰值？"
+* "总结今天的失败工具调用"
 
-**Example AI-generated insight:**
+**AI 生成的见解示例：**
 
 [source,text]
 ----
-Analysis of mortgage-ai logs (last hour):
-• 42 tool calls: 40 succeeded, 2 failed
-• Failures: get_credit_score timeout (30s)
-• Slowest tool: get_pipeline_summary (avg 2.3s)
-• Most active agent: Prospect (27 requests)
+mortgage-ai 日志分析（最近一小时）：
+• 42 个工具调用：40 个成功，2 个失败
+• 失败：get_credit_score 超时（30s）
+• 最慢的工具：get_pipeline_summary（平均 2.3s）
+• 最活跃的代理：潜在客户（27 个请求）
 ----
 
-The raw data exists in LokiStack—AI makes it accessible without manual JSON parsing or complex queries.
+原始数据存在于 LokiStack 中——AI 使其可访问而无需手动 JSON 解析或复杂查询。
 
-=== Logs and traces are complementary
+=== 日志和跟踪是互补的
 
-Logs capture detailed events: errors, warnings, debug output, tool results. They're essential for:
+日志捕获详细事件：错误、警告、调试输出、工具结果。它们对于以下内容至关重要：
 
-* Debugging specific failures ("What was the error message?")
-* Auditing compliance events ("Who accessed this PII?")
-* Investigating unexpected behavior ("Why did this calculation return zero?")
+* 调试特定失败（"错误消息是什么？"）
+* 审计合规事件（"谁访问了此 PII？"）
+* 调查意外行为（"为什么此计算返回零？"）
 
-**Module 4 introduces tracing**, which complements logs by providing:
+**模块 4 介绍跟踪**，它通过提供以下内容来补充日志：
 
-* Hierarchical request flow across agents and tools
-* Timing breakdowns for each step
-* Parent-child relationships showing what called what
+* 跨代理和工具的分层请求流程
+* 每个步骤的时间细分
+* 显示什么调用什么的父子关系
 
-Together, logs and traces give you complete visibility: logs for detailed events, traces for request flow.
+一起，日志和跟踪给你完整的可见性：日志用于详细事件，跟踪用于请求流程。
 
-IMPORTANT: **LokiStack is a supported feature of Red Hat AI.** Logs persist beyond pod lifetime—when a container restarts or gets redeployed, LokiStack retains the historical logs, making post-incident investigation possible. For multi-agent systems, this persistent log storage is essential for correlating events across API, UI, and database containers.
+IMPORTANT：**LokiStack 是 Red Hat AI 的支持功能。** 日志在 Pod 生命周期之外持久存在——当容器重启或重新部署时，LokiStack 保留历史日志，使事后调查成为可能。对于多智能体系统，这种持久日志存储对于跨 API、UI 和数据库容器关联事件至关重要。
 
-== Module summary
+== 模块总结
 
-**What you accomplished:**
+**你完成的工作：**
 
-* Explored the Grafana dashboard with HTTP and AI-specific agent metrics
-* Filtered application logs with LokiStack and LogQL queries
-* Correlated log entries across API and UI containers
+* 使用 HTTP 和 AI 特定代理指标探索了 Grafana 仪表板
+* 使用 LokiStack 和 LogQL 查询过滤应用程序日志
+* 关联了跨 API 和 UI 容器的日志条目
 
-**Key takeaways:**
+**关键要点：**
 
-* Agentic apps need metrics beyond HTTP: token usage, inference latency, routing decisions, and tool success rates
-* Logs provide the detail that metrics aggregate away. This detail is essential for debugging ephemeral containers.
-* Metrics answer "how much?" and "how fast?". Logs answer "what exactly happened?"
+* 智能体应用需要超出 HTTP 的指标：令牌使用、推理延迟、路由决策和工具成功率
+* 日志提供指标聚合掉的细节。对于调试临时容器，此细节至关重要。
+* 指标回答"多少？"和"多快？"。日志回答"确切发生了什么？"。
 
-**Next steps:**
+**后续步骤：**
 
-Module 4 will introduce MLflow tracing, the key to understanding *why* things happen, not just *what* is happening.
+模块 4 将介绍 MLflow 跟踪，这是理解*为什么*事情发生而不仅仅是*什么*正在发生的关键。
