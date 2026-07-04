@@ -99,75 +99,75 @@ image::agentic-app-pre2.png[Mortgage AI system architecture showing React fronte
 
 === 五个智能体角色介绍
 
-每个智能体拥有独立端点、工具与业务职责，智能体之间**不会直接相互调用**——相反，它们是服务于不同用户角色的独立工作流程。Each agent has its own endpoint, tools, and responsibilities. They **don't call each other** directly—instead, they're isolated workflows serving different user roles:
+每个智能体拥有独立端点、工具与业务职责，智能体之间**不会直接相互调用**——相反，它们是服务于不同用户角色的独立工作流程:
 
 image::agentic-app-pre3.png[The 5 agent personas showing Prospect and Borrower and Loan Officer and Underwriter and CEO with their roles and capabilities routing into a single FastAPI deployment via WebSocket,link=self,window=blank,width=700]
 
 [cols="1,1,2,2",options="header"]
 |===
-|Persona |Role |Agent |Key Capabilities
+|身份 |角色 |智能体 |核心能力
 
-|Prospect
+|潜在客户
 |Unauthenticated
 |Public Assistant
-|Product info, affordability estimates
+|贷款产品介绍、可贷额度测算
 
-|Borrower
+|借款人
 |`borrower`
 |Borrower Assistant
-|Application intake, document upload, status tracking, condition response
+|贷款申请录入、材料上传、进度查询、补充材料应答
 
-|Loan Officer
+|信贷专员
 |`loan_officer`
 |LO Assistant
-|Pipeline management, application review, communication drafting, knowledge base search
+|业务流程管理、申请单审核、沟通话术生成、知识库检索
 
-|Underwriter
+|风控审核员
 |`underwriter`
 |Underwriter Assistant
-|Risk assessment, compliance checks, condition management, decisions
+|风险评估、合规校验、补充材料管理、贷款审批决策
 
-|CEO
+|企业高管
 |`ceo`
 |CEO Assistant
-|Pipeline analytics, audit trail, decision trace, model monitoring
+|业务数据分析、审计追溯、决策链路查询、模型运行监控
 |===
 
-**API endpoints (all served by the same `mortgage-ai-api` pod):**
+**API 端点（全部由 mortgage-ai-api pod承载）:**
 
 [source,text]
 ----
-/api/prospect/chat    - Prospect Agent (initial inquiries)
-/api/borrower/chat    - Borrower Agent (application intake)
-/api/loanofficer/chat - Loan Officer Agent (pipeline management)
-/api/underwriter/chat - Underwriter Agent (risk assessment)
-/api/ceo/chat         - Executive Agent (analytics)
+/api/prospect/chat    - 潜在客户智能体（售前咨询）
+/api/borrower/chat    - 借款人智能体（申请录入）
+/api/loanofficer/chat - 信贷专员智能体（pipeline管理）
+/api/underwriter/chat - 风控审核智能体（风险评估）
+/api/ceo/chat         - 高管分析智能体（数据分析）
 ----
 
-=== How a request flows
+=== 请求完整流转链路
 
-**Request path:** User → UI → WebSocket → API router → Specific agent → LangGraph workflow → Tools (DB, MCP, LLM) → Response
+**请求路径:** User → UI → WebSocket → API router → Specific agent → LangGraph workflow → Tools (DB, MCP, LLM) → Response
 
-**Example (CEO asking "What's the portfolio health?"):**
+**示例场景 (高管提问： "What's the portfolio health?"，中文亦可："当前业务资产整体状况如何？"):**
 
-. User asks question in UI
-. WebSocket routes to `/api/ceo/chat` based on authenticated role
-. CEO Agent (LangGraph workflow) receives the question
-. Agent decides which tools to call: `get_pipeline_summary`, `calculate_pull_through_rate`
-. Each tool may query the database or call external MCP tools
-. Agent calls the LLM multiple times to reason about tool results
-. Final response is sent back to the user
+. 用户在前端页面输入问题
+. WebSocket 根据登录高管身份，路由请求至/api/ceo/chat接口
+. 高管智能体（LangGraph 流程）接收提问
+. 智能体自主判定需要调用工具/tools：`get_pipeline_summary`, `calculate_pull_through_rate`(获取业务汇总数据,计算贷款转化率)
+. 工具分别查询数据库或调用外部 MCP tools
+. 智能体多次调用大模型，结合工具返回数据完成推理分析
+. 整合结论后将回答返回前端用户
 
-**Why this matters for observability:** A single user question can trigger 5+ LLM calls, 10+ tool invocations, and multiple database queries. When something fails or returns wrong data, you need to trace the entire decision path to find the root cause.
+**可观测性核心痛点:** 用户单次提问，背后可能触发 5 次以上大模型调用、十余次工具调用、多轮数据库查询。一旦结果异常或流程报错，必须完整追溯整条决策链路，才能定位根因。
 
-IMPORTANT: **Common failure modes in multi-agent architectures** +
-Understanding how these systems fail is key to implementing effective observability: +
+重点: **多智能体架构常见故障模式** +
+理解系统故障形式，是搭建有效可观测体系的前提: +
  +
-• **Silent tool failures**: MCP tool returns empty data, but the agent proceeds anyway and generates a response based on incomplete information +
-• **Cascading latency**: A slow database query delays the LLM call, which delays the response—but you can't tell which step caused the bottleneck +
-• **Context overflow**: Agent tries to pass too much data to the LLM, the call fails with a cryptic error, and the user sees a generic timeout +
-• **Non-deterministic failures**: The same question produces different results due to LLM variations, making bugs difficult to reproduce +
-• **Distributed failures**: One agent's tool call fails, affecting downstream agents without clear error propagation
+• **工具静默失效**: MCP 工具返回空数据，但智能体继续基于残缺信息生成回复，无任何报错提示 +
+• **延迟连锁叠加**: 数据库查询缓慢拖慢大模型调用，最终整体响应超时，无法定位耗时瓶颈步骤 +
+• **上下文溢出**: 智能体向大模型传入数据量超限，调用失败仅返回模糊报错，用户仅看到通用超时提示 +
+• **非确定性故障**: 相同提问因大模型输出随机性得到不同结果，问题难以复现 +
+• **分布式连锁故障**: 某一个智能体工具调用失败，影响下游智能体流程，且错误无法清晰传递
 
 === Verify the deployment
 
