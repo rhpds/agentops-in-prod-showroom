@@ -51,27 +51,27 @@ image::agentic-app0.png[OpenShift Console Pods view showing mortgage-ai componen
 image::mortgage-app.png[]
 +
 
-. Scroll down a bit. Try a sample conversation clicking the **Explore Products** button:
+. 页面向下滚动，点击**浏览产品**按钮发起测试对话:
 +
 image::explore-products.png[Explore Products button on the Fed Aura Capital landing page,link=self,window=blank,width=400]
 +
-The Prospect Agent should respond with mortgage product options:
+客户咨询智能体会返回各类贷款产品介绍:
 +
 image::agentic-app2.png[Mortgage-AI chat interface with Prospect Agent responding with loan options,link=self,window=blank,width=700]
 
-NOTE: The LLM backend has rate limiting and may occasionally time out. If the agent does not respond or you see an error, reload the page and ask the question again.
+注意事项: 大模型后端存在调用频次限制，偶尔会出现请求超时。若智能体无响应或页面报错，刷新页面后重新提问即可。
 
-NOTE: Because the application uses generative AI, responses are non-deterministic. The exact wording, formatting, and details may differ from the screenshots shown in this workshop.
+注意事项: 本应用基于生成式 AI 开发，输出内容具备不确定性，文字表述、排版、细节信息会与教程截图存在差异。
 
-== Exercise 2: Explore the multi-agent architecture
+== 实操练习 2：拆解多智能体底层架构
 
-Now that you've seen the application in action, let's explore what's running under the hood. The mortgage-ai system serves 5 distinct agent personas through a single API deployment.
+体验完应用交互后，我们深入了解后台运行逻辑。抵押贷款 AI 系统仅部署一套 API 服务，内部集成 5 套独立智能体，对外支撑五类业务角色。.
 
-=== Understanding the architecture
+=== 架构说明
 
-The mortgage-ai system runs as **a single FastAPI service with 5 LangGraph agent implementations** inside it. Each agent serves a different persona in the lending workflow, but they all run in the same pod.
+整套抵押贷款 AI 系统封装为**单个 FastAPI 服务 Pod，内部内置 5 套 LangGraph 智能体逻辑**。每个智能体对应一类业务角色，全部运行在同一个pod内。
 
-**System architecture:**
+**系统架构链路:**
 
 image::agentic-app-pre2.png[Mortgage AI system architecture showing React frontend connecting via WebSocket to FastAPI backend with 5 agent personas and PostgreSQL with pgvector and MinIO object storage,link=self,window=blank,width=700]
 
