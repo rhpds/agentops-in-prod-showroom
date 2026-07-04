@@ -330,6 +330,6 @@ How are my loan officers doing?
 * 单套 API 服务可承载多套能力完全不同的业务智能体
 * AI 智能体运维（AgentOps）必须配套专用可观测体系
 
-*下一章节预告:**
+**下一章节预告:**
 
 模块 2 将讲解可观测三大支柱：指标、日志、链路追踪；同时区分平台运维工程师、AI 开发工程师 (SRE/Platform Engineering vs. AI Developer/Engineer) 两类角色的监控落地思路。
