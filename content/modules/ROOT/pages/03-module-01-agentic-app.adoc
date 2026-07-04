@@ -75,31 +75,31 @@ image::agentic-app2.png[Mortgage-AI chat interface with Prospect Agent respondin
 
 image::agentic-app-pre2.png[Mortgage AI system architecture showing React frontend connecting via WebSocket to FastAPI backend with 5 agent personas and PostgreSQL with pgvector and MinIO object storage,link=self,window=blank,width=700]
 
-**Deployed components:**
+**部署组件清单:**
 
 [cols="1,2",options="header"]
 |===
-|Component |Purpose
+|组件 |用途
 
 |mortgage-ai-api
-|**One FastAPI pod** containing all 5 agent implementations, routes by role via WebSocket
+|**单 FastAPI pod** 内置全部 5 套智能体逻辑，通过 WebSocket 根据角色路由请求
 
 |mortgage-ai-ui
-|React frontend for interacting with agents
+|React 前端页面，提供智能体交互界面
 
 |mortgage-ai-db
-|PostgreSQL with pgvector for document storage and RAG (Retrieval-Augmented Generation) embeddings
+|PostgreSQL 数据库，搭载 pgvector 插件，用于文档存储、RAG 嵌入式
 
 |minio
-|S3-compatible object storage for uploaded documents
+|兼容 S3 协议的对象存储，存放用户上传业务文件
 
 |keycloak
-|Identity provider (disabled for this workshop)
+|身份认证服务（本工作坊已禁用）
 |===
 
-=== The 5 agent personas
+=== 五个智能体角色介绍
 
-Each agent has its own endpoint, tools, and responsibilities. They **don't call each other** directly—instead, they're isolated workflows serving different user roles:
+每个智能体拥有独立端点、工具与业务职责，智能体之间**不会直接相互调用**——相反，它们是服务于不同用户角色的独立工作流程。Each agent has its own endpoint, tools, and responsibilities. They **don't call each other** directly—instead, they're isolated workflows serving different user roles:
 
 image::agentic-app-pre3.png[The 5 agent personas showing Prospect and Borrower and Loan Officer and Underwriter and CEO with their roles and capabilities routing into a single FastAPI deployment via WebSocket,link=self,window=blank,width=700]
 
