@@ -148,7 +148,7 @@ image::agentic-app-pre3.png[The 5 agent personas showing Prospect and Borrower a
 
 **请求路径:** User → UI → WebSocket → API router → Specific agent → LangGraph workflow → Tools (DB, MCP, LLM) → Response
 
-**示例场景 (高管提问： "What's the portfolio health?"，中文亦可："当前业务资产整体状况如何？"):**
+**示例场景 (高管提问： "What's the portfolio health?"，中文亦可："当前业务资产整体健康状况如何？"):**
 
 . 用户在前端页面输入问题
 . WebSocket 根据登录高管身份，路由请求至/api/ceo/chat接口
