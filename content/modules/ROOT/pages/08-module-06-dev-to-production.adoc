@@ -1,73 +1,73 @@
-= Module 6: From development to production
+= 模块 6：从开发到生产
 :imagesdir: ../assets/images
-:navtitle: Module 6: Dev to Production
+:navtitle: 模块 6：开发到生产
 :toc: macro
 :toclevels: 1
 
 [NOTE]
 ====
-**This module is optional** and builds on Module 5. It shows how to automate evaluations into CI/CD pipelines for continuous quality monitoring.
+**本模块是可选的**，建立在模块 5 的基础上。它展示了如何将评估自动化集成到 CI/CD 流水线中，以实现持续的质量监控。
 ====
 
-In Module 5, you ran evaluations manually from a Jupyter notebook, the *inner loop* of an AI Developer's workflow. But manual evaluations don't scale. In production, you need evaluations that run automatically, on a schedule, or as part of a CI/CD pipeline.
+在模块 5 中，你从 Jupyter notebook 手动运行评估，这是 AI 开发者工作流程中的*内循环*。但手动评估无法扩展。在生产环境中，你需要能够自动运行、按计划或作为 CI/CD 流水线一部分运行的评估。
 
-In this module, you'll move from the inner loop to the *outer loop* by importing and running an evaluation pipeline in Red Hat OpenShift AI. The same scorers, datasets, and MLflow integration you used in Module 5 now run as an automated pipeline. No notebook required.
+在本模块中，你将通过在 Red Hat OpenShift AI 中导入和运行评估流水线，从内循环转移到*外循环*。你在模块 5 中使用的相同的评分器、数据集和 MLflow 集成现在作为自动化流水线运行。无需 notebook。
 
-TIP: In this module, you're wearing **both hats**: AI Developers define the evaluation logic, while SRE/Platform Engineers manage the pipeline infrastructure and scheduling.
+TIP：在本模块中，你需要扮演**两个角色**：AI 开发者定义评估逻辑，而 SRE/平台工程师管理流水线基础设施和调度。
 
-== Learning objectives
+== 学习目标
 
-By the end of this module, you'll be able to:
+完成本模块后，你将能够：
 
-* Explain the difference between inner loop (notebook) and outer loop (pipeline) evaluation
-* Import an evaluation pipeline definition into OpenShift AI
-* Run an automated evaluation pipeline and configure its parameters
-* View automated evaluation results in MLflow
-* Detect prompt regressions by comparing evaluation results across prompt versions
+* 解释内循环（notebook）和外循环（流水线）评估之间的区别
+* 将评估流水线定义导入 OpenShift AI
+* 运行自动化评估流水线并配置其参数
+* 在 MLflow 中查看自动化评估结果
+* 通过比较不同 prompt 版本的评估结果来检测 prompt 回归
 
-== From inner loop to outer loop
+== 从内循环到外循环
 
-In Module 5, you evaluated the prospect agent by running cells in a Jupyter notebook. That approach works well during development, but it has limitations:
+在模块 5 中，你通过在 Jupyter notebook 中运行单元格来评估潜在客户代理。这种方法在开发期间效果很好，但也有局限性：
 
-* **Manual**: Someone has to open the notebook and click Run
-* **Not reproducible**: Results depend on the notebook environment and who ran it
-* **Not schedulable**: You can't trigger it automatically on a model update or prompt change
+* **手动操作**：有人需要打开 notebook 并点击运行
+* **不可复现**：结果取决于 notebook 环境和运行者
+* **不可调度**：你无法在模型更新或 prompt 更改时自动触发它
 
-The outer loop solves these problems by packaging the same evaluation logic into an **AI Pipeline**, a series of containerized steps that run on the OpenShift AI platform.
+外循环通过将相同的评估逻辑打包到**AI 流水线**中来解决这些问题，这是一系列在 OpenShift AI 平台上运行的容器化步骤。
 
 [cols="1,1",options="header"]
 |===
-|Inner Loop (Module 5) |Outer Loop (Module 6)
+|内循环（模块 5） |外循环（模块 6）
 
 |Jupyter notebook
-|AI Pipeline (Kubeflow Pipelines)
+|AI 流水线（Kubeflow Pipelines）
 
-|Manual execution
-|Automated, scheduled, or triggered
+|手动执行
+|自动化、计划或触发执行
 
-|Developer's workbench
-|Platform-managed containers
+|开发者工作台
+|平台管理的容器
 
-|Interactive exploration
-|Reproducible, auditable runs
+|交互式探索
+|可复现、可审计的运行
 |===
 
-Red Hat OpenShift AI includes https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.4/[Data Science Pipelines^] (based on Kubeflow Pipelines) for orchestrating multi-step ML workflows, including evaluation pipelines.
+Red Hat OpenShift AI 包含 https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.4/[数据科学流水线^]（基于 Kubeflow Pipelines），用于编排多步骤 ML 工作流，包括评估流水线。
 
-== Exercise 1: Import an evaluation pipeline
+== 练习 1：导入评估流水线
 
-The mortgage-ai project includes a pre-compiled evaluation pipeline that packages the same simple evaluation from Module 5 into 4 automated steps.
+mortgage-ai 项目包含一个预编译的评估流水线，它将模块 5 中的相同简单评估打包为 4 个自动化步骤。
 
-. In Red Hat OpenShift AI, navigate to **Develop & Train** > **Pipelines** > **Pipeline definitions**:
+. 在 Red Hat OpenShift AI 中，导航到 **开发与训练** > **流水线** > **流水线定义**：
 +
-image::eval16.png[OpenShift AI Pipeline definitions page showing no pipelines with Import pipeline button,link=self,window=blank,width=700]
+image::eval16.png[OpenShift AI 流水线定义页面，显示没有流水线，带有导入流水线按钮,link=self,window=blank,width=700]
 
-. Click **Import pipeline** and configure it:
+. 点击 **导入流水线** 并进行配置：
 +
 --
-* **Pipeline name**: `eval-simple-run`
-* Select **Import by url**
-* Paste the pipeline URL:
+* **流水线名称**：`eval-simple-run`
+* 选择 **通过 URL 导入**
+* 粘贴流水线 URL：
 +
 [source,text]
 ----
@@ -75,169 +75,169 @@ https://raw.githubusercontent.com/rh-ai-quickstart/multi-agent-loan-origination/
 ----
 --
 +
-image::eval17.png[Import pipeline dialog with name eval-simple-run and Import by url selected,link=self,window=blank,width=500]
+image::eval17.png[导入流水线对话框，显示名称 eval-simple-run 并选择了通过 URL 导入,link=self,window=blank,width=500]
 +
-Click **Import pipeline**.
+点击 **导入流水线**。
 
-. The pipeline graph shows the 4 automated steps:
+. 流水线图显示 4 个自动化步骤：
 +
-image::eval18.png[Pipeline definition graph showing setup-mlflow-op then create-dataset-op then run-simple-eval-op then report-results-op,link=self,window=blank,width=700]
+image::eval18.png[流水线定义图，显示 setup-mlflow-op 然后 create-dataset-op 然后 run-simple-eval-op 然后 report-results-op,link=self,window=blank,width=700]
 +
 --
-* **setup-mlflow-op**: Configure MLflow tracking URI, workspace, and experiment
-* **create-dataset-op**: Create the evaluation dataset on the MLflow server (same 6 test cases from Module 5)
-* **run-simple-eval-op**: Run the 3 deterministic scorers (contains_expected, has_numeric_result, response_length)
-* **report-results-op**: Print the evaluation summary
+* **setup-mlflow-op**：配置 MLflow 跟踪 URI、工作区和实验
+* **create-dataset-op**：在 MLflow 服务器上创建评估数据集（与模块 5 相同的 6 个测试用例）
+* **run-simple-eval-op**：运行 3 个确定性评分器（contains_expected、has_numeric_result、response_length）
+* **report-results-op**：打印评估摘要
 --
 
-This is the same evaluation you ran manually in Module 5, Exercise 5, but packaged as a pipeline that can run without a notebook.
+这是你在模块 5 练习 5 中手动运行的相同评估，但打包为无需 notebook 即可运行的流水线。
 
-== Exercise 2: Run the evaluation pipeline
+== 练习 2：运行评估流水线
 
-. Click **Actions** > **Create run**:
+. 点击 **操作** > **创建运行**：
 +
-image::eval19.png[Actions dropdown showing Create run and Create schedule options,link=self,window=blank,width=300]
+image::eval19.png[操作下拉菜单，显示创建运行和创建计划选项,link=self,window=blank,width=300]
 +
-NOTE: Notice the **Create schedule** option. In production, you would schedule evaluations to run periodically (e.g., every 6 hours) to continuously monitor agent quality.
+NOTE：请注意 **创建计划** 选项。在生产环境中，你会定期调度评估运行（例如每 6 小时），以持续监控代理质量。
 
-. In the **Create run** form, set the run name to `eval-run-1`:
+. 在 **创建运行** 表单中，将运行名称设置为 `eval-run-1`：
 +
-image::eval20.png[Create run form showing run type project experiment and run name fields,link=self,window=blank,width=700]
+image::eval20.png[创建运行表单，显示运行类型项目实验和运行名称字段,link=self,window=blank,width=700]
 
-. Scroll down to **Parameters** and configure the required values:
+. 向下滚动到 **参数** 并配置必需的值：
 +
 --
-* **mlflow_tracking_uri**: `pass:[https://mlflow.redhat-ods-applications.svc.cluster.local:8443]`
-* **mlflow_workspace**: `{user_project}`
+* **mlflow_tracking_uri**：`pass:[https://mlflow.redhat-ods-applications.svc.cluster.local:8443]`
+* **mlflow_workspace**：`{user_project}`
 --
 +
-image::eval21.png[Create run Parameters section showing agent_name dataset_name mlflow_experiment_name mlflow_tracking_uri and mlflow_workspace,link=self,window=blank,width=500]
+image::eval21.png[创建运行参数部分，显示 agent_name dataset_name mlflow_experiment_name mlflow_tracking_uri 和 mlflow_workspace,link=self,window=blank,width=500]
 +
-The other parameters (`agent_name`, `dataset_name`, `mlflow_experiment_name`) use sensible defaults. Click **Create run**.
+其他参数（`agent_name`、`dataset_name`、`mlflow_experiment_name`）使用合理的默认值。点击 **创建运行**。
 
-. The pipeline starts executing. You can watch each step complete in the graph view:
+. 流水线开始执行。你可以在图视图中观看每个步骤的完成情况：
 +
-image::eval22.png[Pipeline run eval-run-1 executing showing the 4-step graph with Running status,link=self,window=blank,width=700]
+image::eval22.png[流水线运行 eval-run-1 正在执行，显示 4 步图和运行中状态,link=self,window=blank,width=700]
 +
-Each step runs in its own container on the OpenShift AI platform. The pipeline authenticates to MLflow using the pod's Kubernetes service account token, so no manual token management is needed.
+每个步骤在 OpenShift AI 平台上自己的容器中运行。流水线使用 Pod 的 Kubernetes 服务账户令牌向 MLflow 进行身份验证，因此无需手动令牌管理。
 
-== Exercise 3: View automated evaluation results in MLflow
+== 练习 3：在 MLflow 中查看自动化评估结果
 
-. Switch to the MLflow UI. Make sure you are still in the **{user_project}** workspace:
+. 切换到 MLflow UI。确保你仍然在 **{user_project}** 工作区中：
 +
-image::reselect-project-mlflow.png[MLflow workspace selector showing user project workspace,link=self,window=blank,width=400]
+image::reselect-project-mlflow.png[MLflow 工作区选择器，显示用户项目工作区,link=self,window=blank,width=400]
 +
-Once the pipeline completes, the evaluation results appear in MLflow just like the notebook-driven evaluations from Module 5.
+流水线完成后，评估结果会出现在 MLflow 中，就像模块 5 中由 notebook 驱动的评估一样。
 
 [start=2]
-. Navigate to the experiments tab to view the traces. The name of the new experiment is **multi-agent-loan-origination-eval**. 
+. 导航到实验选项卡以查看跟踪。新实验的名称是 **multi-agent-loan-origination-eval**。
 +
 image::find-new-exp.png[]
 +
 
-. Click on `Traces` from the side bar:
+. 从侧边栏点击 `Traces`：
 +
 image::traces-nav.png[]
 +
 
-You'll see the 6 new traces from the pipeline run with their assessment results:
+你将看到来自流水线运行的 6 个新跟踪及其评估结果：
 +
-image::eval23.png[MLflow Traces showing 6 automated evaluation traces with assessment columns,link=self,window=blank,width=700]
+image::eval23.png[MLflow 跟踪，显示 6 个自动化评估跟踪及其评估列,link=self,window=blank,width=700]
 +
-The results are identical in structure to what you saw in Module 5: the same scorers, the same dataset, the same assessment columns. The only difference is that these were produced by an automated pipeline instead of a notebook.
+结果的结构与你在模块 5 中看到的完全相同：相同的评分器、相同的数据集、相同的评估列。唯一的区别是这些结果是由自动化流水线而不是 notebook 生成的。
 
-. To see all assessment and expectation columns, click **Columns** and check **All Assessments** and **All Expectations**:
+. 要查看所有评估和期望列，点击 **列** 并选中 **所有评估** 和 **所有期望**：
 +
-image::eval24.png[MLflow Columns dropdown showing All Assessments and All Expectations checkboxes,link=self,window=blank,width=250]
+image::eval24.png[MLflow 列下拉菜单，显示所有评估和所有期望复选框,link=self,window=blank,width=250]
 
-TIP: If assessment columns are not visible in the Traces view (in this module or in Module 5), use the **Columns** dropdown to enable **All Assessments**. MLflow doesn't always show them by default.
+TIP：如果评估列在跟踪视图中不可见（在本模块或模块 5 中），请使用 **列** 下拉菜单启用 **所有评估**。MLflow 并不总是默认显示它们。
 
-== Exercise 4: Catch a bad prompt before production
+== 练习 4：在生产前捕获不良 prompt
 
-Automated pipelines ensure evaluations run continuously, but the real payoff comes when they catch a problem before it reaches users.
+自动化流水线确保评估持续运行，但真正的价值在于它们在问题影响用户之前就发现它。
 
-In this exercise, you'll simulate a realistic scenario: a team member proposes a prompt change to reduce latency, and you use evaluations to discover that the change would silently degrade response quality.
+在本练习中，你将模拟一个真实的场景：团队成员提出一个 prompt 更改以减少延迟，而你使用评估发现该更改会悄然降低响应质量。
 
-The scenario: A developer at Fed Aura Capital notices the prospect agent calls tools for questions it could answer from general knowledge. They propose a "quick optimization"—change `TOOL USE (MANDATORY)` to `TOOL USE (OPTIONAL)` in the system prompt, telling the agent to prefer its own knowledge and only call tools when truly necessary.
+场景：Fed Aura Capital 的一名开发者注意到潜在客户代理调用工具来回答它可以从常识中回答的问题。他们提出一个"快速优化"——将系统 prompt 中的 `TOOL USE (MANDATORY)` 改为 `TOOL USE (OPTIONAL)`，告诉代理更倾向于自己的知识，只有在真正必要时才调用工具。
 
-This sounds reasonable. It might reduce latency. But will the agent still provide accurate, product-specific responses? Let's find out.
+这听起来很合理。它可能会减少延迟。但代理还能提供准确的、特定产品的响应吗？让我们找出答案。
 
-=== Open the regression detection notebook
+=== 打开回归检测 notebook
 
-. In JupyterLab (from Module 5), navigate to `multi-agent-loan-origination/evaluations/` and open **evaluate_agent_v2.ipynb**:
+. 在 JupyterLab（来自模块 5）中，导航到 `multi-agent-loan-origination/evaluations/` 并打开 **evaluate_agent_v2.ipynb**：
 +
-image::eval25.png[JupyterLab showing evaluate_agent_v2.ipynb open with Prompt Regression Detection title and environment setup,link=self,window=blank,width=700]
+image::eval25.png[JupyterLab 显示 evaluate_agent_v2.ipynb 打开，标题为 Prompt 回归检测和环境设置,link=self,window=blank,width=700]
 +
-This notebook is purpose-built for prompt regression detection. It registers a modified Version 2 of the system prompt, runs the same evaluation dataset from Module 5, and compares results against the Version 1 baseline.
+这个 notebook 专为 prompt 回归检测而构建。它注册系统 prompt 的修改版本 2，运行模块 5 中相同的评估数据集，并将结果与版本 1 基线进行比较。
 
-. Run the **Install Dependencies** cell. 
+. 运行 **安装依赖** 单元格。
 
-. Run the environment variables configuration cell. Copy the **LLM_API_KEY** and **MLFLOW_TRACKING_TOKEN** values from **evaluate_agent.ipynb** (same as Module 5). 
+. 运行环境变量配置单元格。从 **evaluate_agent.ipynb**（与模块 5 相同）复制 **LLM_API_KEY** 和 **MLFLOW_TRACKING_TOKEN** 值。
 
-. Run the **Setup**, **Configure MLflow** and **1. Load Existing Prompt (Version 1)** cells.
+. 运行 **设置**、**配置 MLflow** 和 **1. 加载现有 Prompt（版本 1）** 单元格。
 
-=== Review the modified prompt
+=== 查看修改后的 prompt
 
 [start=3]
-. Run the cells under **2. Create Modified Prompt (Version 2)**. The notebook makes a single, subtle change to the system prompt:
+. 运行 **2. 创建修改后的 Prompt（版本 2）** 下的单元格。notebook 对系统 prompt 进行了一个微妙的更改：
 +
-image::eval26.png[Modified system prompt Version 2 showing TOOL USE changed from MANDATORY to OPTIONAL,link=self,window=blank,width=700]
+image::eval26.png[修改后的系统 prompt 版本 2，显示 TOOL USE 从 MANDATORY 更改为 OPTIONAL,link=self,window=blank,width=700]
 +
-The change: `TOOL USE (MANDATORY)` becomes `TOOL USE (OPTIONAL)`. The agent is now told to _"prefer answering from your general knowledge instead of calling tools"_ and _"Only call tools if you truly cannot answer from your own knowledge."_
-+
-This is a realistic scenario. Someone might "optimize" the prompt to reduce tool call latency, not realizing that tool-sourced data (specific product rates, loan limits, affordability calculations) is what makes the responses accurate.
+更改：`TOOL USE (MANDATORY)` 变为 `TOOL USE (OPTIONAL)`。代理现在被告知 _"更倾向于从你的常识回答，而不是调用工具"_ 和 _"只有在你确实无法从自己的知识回答时才调用工具。"_ +
+这是一个真实的场景。有人可能会"优化" prompt 以减少工具调用延迟，而没有意识到工具源数据（特定产品费率、贷款限额、负担能力计算）才是使响应准确的原因。
 
-=== Register Version 2 in MLflow
+=== 在 MLflow 中注册版本 2
 
 [start=4]
-. Run the cells under **3. Register Version 2 in MLflow Prompt Registry**. The notebook registers the modified prompt as Version 2 with a descriptive commit message:
+. 运行 **3. 在 MLflow Prompt 注册表中注册版本 2** 下的单元格。notebook 将修改后的 prompt 注册为版本 2，并带有描述性提交消息：
 +
-image::eval27.png[Notebook registering Version 2 prompt in MLflow with commit message V2 Changed TOOL USE from MANDATORY to OPTIONAL,link=self,window=blank,width=500]
+image::eval27.png[Notebook 在 MLflow 中注册版本 2 prompt，提交消息为 V2 Changed TOOL USE from MANDATORY to OPTIONAL,link=self,window=blank,width=500]
 +
-The output confirms `public-assistant-system-prompt (version 2)` with URI `prompts:/public-assistant-system-prompt/2`. Notice the tags include `"purpose": "regression-detection"`, making it clear this version is being tested, not deployed.
+输出确认了 `public-assistant-system-prompt (version 2)`，URI 为 `prompts:/public-assistant-system-prompt/2`。请注意标签包括 `"purpose": "regression-detection"`，这清楚地表明该版本正在测试，而不是部署。
 
-=== Compare prompt versions in MLflow
+=== 在 MLflow 中比较 prompt 版本
 
 [start=5]
-. Navigate to the *MLflow Console* tab. Switch to the **mortgage-ai-eval** experiment:
+. 导航到 *MLflow 控制台* 选项卡。切换到 **mortgage-ai-eval** 实验：
 +
 image::nav-mortgageaieval-exp.png[]
 +
-. Navigate to **Prompts** and click on **public-assistant-system-prompt**. Click the **Compare** tab. 
+
+. 导航到 **Prompts** 并点击 **public-assistant-system-prompt**。点击 **比较** 选项卡。
 
 +
 image::compare-prompts.png[]
 +
 
-. MLflow shows a side-by-side diff of Version 2 (left) and Version 1 (right):
-+
-image::eval28.png[MLflow Prompts Compare view showing side-by-side diff of Version 2 and Version 1 with red and green highlighting on the TOOL USE change,link=self,window=blank,width=700]
-+
-The diff highlighting makes the change immediately visible: the `TOOL USE` section changed from `(MANDATORY)` to `(OPTIONAL)`, and the instructions shifted from _"you MUST call the product_info tool"_ to _"you may call the product_info tool, but prefer answering from your general knowledge."_
-+
-This is the same experience as reviewing a code diff in a pull request, but for prompts. Before this, prompt changes at Fed Aura Capital were untracked text edits in YAML files. Now every change is versioned, diffable, and linked to evaluation results.
 
-=== Run evaluations against Version 2
+. MLflow 显示版本 2（左侧）和版本 1（右侧）的并排差异：
++
+image::eval28.png[MLflow Prompts 比较视图，显示版本 2 和版本 1 的并排差异，在 TOOL USE 更改上有红色和绿色高亮,link=self,window=blank,width=700]
++
+差异高亮使更改立即可见：`TOOL USE` 部分从 `(MANDATORY)` 更改为 `(OPTIONAL)`，指令从 _"你必须调用 product_info 工具"_ 转变为 _"你可以调用 product_info 工具，但更倾向于从你的常识回答。"_ +
+这与在拉取请求中审查代码差异的体验相同，但是针对 prompt 的。在此之前，Fed Aura Capital 的 prompt 更改是 YAML 文件中未跟踪的文本编辑。现在每个更改都是版本化的、可差异化的，并链接到评估结果。
+
+=== 对版本 2 运行评估
 
 [start=6]
-. Return to the notebook. Run the cells under **#5** thru  **7. Run Evaluation with V2 Prompt**. This cell runs the same 6 test cases and 3 deterministic scorers from Module 5, but with the modified v2 prompt:
+. 返回 notebook。运行 **#5** 到 **7. 使用 V2 Prompt 运行评估** 下的单元格。此单元格运行模块 5 中相同的 6 个测试用例和 3 个确定性评分器，但使用修改后的 v2 prompt：
 +
-image::eval29.png[Notebook running V2 evaluation showing 6 examples and 3 scorers with results contains_expected 83 percent has_numeric_result 50 percent response_length 100 percent,link=self,window=blank,width=500]
+image::eval29.png[Notebook 运行 V2 评估，显示 6 个示例和 3 个评分器，结果为 contains_expected 83 percent has_numeric_result 50 percent response_length 100 percent,link=self,window=blank,width=500]
 +
-The results will likely show regressions compared to your Module 5 baseline. Look for drops in `contains_expected` (the agent may no longer mention expected product keywords consistently) and changes in `has_numeric_result` (suggesting the agent is giving generic answers instead of tool-sourced specifics). Your exact percentages may vary, but the pattern of degradation should be visible.
+结果可能会显示与模块 5 基线相比的回归。寻找 `contains_expected` 的下降（代理可能不再一致地提及预期的产品关键字）和 `has_numeric_result` 的变化（表明代理给出通用答案而不是工具源的具体细节）。你的确切百分比可能会有所不同，但退化模式应该是可见的。
 
-=== Compare V1 vs V2 results
+=== 比较 V1 与 V2 结果
 
 [start=7]
-. Run the cells under **9. Compare V1 vs V2 Results**. The notebook compares the v2 scores against the v1 baseline and flags regressions:
+. 运行 **9. 比较 V1 与 V2 结果** 下的单元格。notebook 将 v2 分数与 v1 基线进行比较并标记回归：
 +
-image::eval30.png[Notebook comparing V1 baseline vs V2 modified prompt showing contains_expected 100 percent to 83 percent REGRESSION and has_numeric_result regression,link=self,window=blank,width=500]
+image::eval30.png[Notebook 比较 V1 基线与 V2 修改后的 prompt，显示 contains_expected 100 percent 到 83 percent REGRESSION 和 has_numeric_result regression,link=self,window=blank,width=500]
 +
-The comparison table will show which scorers regressed (exact percentages may vary):
-+
+比较表将显示哪些评分器回归（确切百分比可能会有所不同）：
+
 [cols="2,1,1,1,1",options="header"]
 |===
-|Scorer |V1 (baseline) |V2 (modified) |Delta |Status
+|评分器 |V1（基线） |V2（修改后） |Delta |状态
 
 |contains_expected
 |100%
@@ -258,58 +258,58 @@ The comparison table will show which scorers regressed (exact percentages may va
 |OK
 |===
 +
-You'll likely see regressions in multiple scorers. The agent may still produce long-enough responses (`response_length` often stays stable), but those responses become less specific: missing expected keywords and lacking numeric values like rates and dollar amounts. The "optimization" made responses faster but less accurate.
+你可能会看到多个评分器的回归。代理可能仍然产生足够长的响应（`response_length` 通常保持稳定），但这些响应变得不那么具体：缺少预期的关键字和费率、美元金额等数值。"优化"使响应更快，但不那么准确。
 
-=== View per-trace results in MLflow
+=== 在 MLflow 中查看逐跟踪结果
 
 [start=8]
-. In the MLflow UI, from the **MLflow Console** tab, navigate to **Prompts**, click **public-assistant-system-prompt**, and select the **Traces** tab:
+. 在 MLflow UI 中，从 **MLflow 控制台** 选项卡，导航到 **Prompts**，点击 **public-assistant-system-prompt**，然后选择 **跟踪** 选项卡：
 
 +
 image::prompt-traces.png[]
 +
 
-You can now see evaluation traces from both Version 1 and Version 2, with assessment columns showing per-trace pass/fail:
+
+你现在可以看到来自版本 1 和版本 2 的评估跟踪，评估列显示每个跟踪的通过/失败：
 +
-image::eval31.png[MLflow Prompts Traces tab showing Version 1 and Version 2 traces side by side with assessment columns contains_expected has_numeric_result and mortgage_guidelines,link=self,window=blank,width=700]
+image::eval31.png[MLflow Prompts 跟踪选项卡，并排显示版本 1 和版本 2 跟踪，包含评估列 contains_expected has_numeric_result 和 mortgage_guidelines,link=self,window=blank,width=700]
 +
-The traces are grouped by prompt version. You can see exactly which test cases passed or failed for each version:
+跟踪按 prompt 版本分组。你可以确切地看到每个版本的哪些测试用例通过或失败：
 +
 --
-* **Version 1** traces should show more consistent `True` values for `contains_expected` — the agent called the right tools and included the expected keywords.
-* **Version 2** traces will likely show `False` for several test cases — the agent answered from general knowledge instead of calling the `product_info` tool, missing expected keywords.
---
+* **版本 1** 跟踪应该为 `contains_expected` 显示更多一致的 `True` 值——代理调用了正确的工具并包含了预期的关键字。
+* **版本 2** 跟踪可能会在多个测试用例中显示 `False`——代理从常识回答而不是调用 `product_info` 工具，错过了预期的关键字。
+-- +
+点击任何失败的跟踪以了解为什么响应错过了预期的关键字并诊断根本原因。
+
+. 要并排比较 prompt 版本，导航到 **Prompts** > **public-assistant-system-prompt** 并点击 **文本** 选项卡以查看差异：
 +
-Click into any failing trace to understand why the response missed the expected keyword and diagnose the root cause.
-
-. To compare the prompt versions side by side, navigate to **Prompts** > **public-assistant-system-prompt** and click the **Text** tab to view the differences:
+image::eval34.png[MLflow Prompt 比较，显示版本 1 和版本 2 之间的文本差异,link=self,window=blank,width=700]
 +
-image::eval34.png[MLflow Prompt comparison showing text differences between Version 1 and Version 2,link=self,window=blank,width=700]
-+
-This lets you correlate specific prompt changes with evaluation regressions — a critical capability for prompt engineering at scale.
+这让你能够将特定的 prompt 更改与评估回归相关联——这是大规模 prompt 工程的关键能力。
 
-=== The verdict
+=== 结论
 
-The prompt change that seemed like a harmless optimization would have caused a **measurable regression** in response accuracy. Without the evaluation framework you built in Modules 5 and 6, this change would have been deployed to production based on a quick manual test ("it still answers questions, looks good"). Fed Aura Capital's prospect agent would have started giving generic mortgage advice instead of specific product information, potentially misguiding customers and creating compliance risk.
+看起来像无害优化的 prompt 更改会导致响应准确性的**可衡量回归**。如果没有你在模块 5 和 6 中构建的评估框架，此更改将基于快速手动测试（"它仍然回答问题，看起来不错"）部署到生产。Fed Aura Capital 的潜在客户代理将开始提供通用的抵押贷款建议，而不是特定产品信息，可能会误导客户并产生合规风险。
 
-The evaluation infrastructure caught the regression before it reached a single user. This is the core value of AgentOps: **visibility into quality, not just availability**.
+评估基础设施在问题影响任何用户之前就捕获了回归。这是 AgentOps 的核心价值：**对质量的可见性，而不仅仅是可用性**。
 
-== Module summary
+== 模块总结
 
-**What you accomplished:**
+**你完成的工作：**
 
-* Imported a pre-compiled evaluation pipeline into OpenShift AI
-* Configured and ran an automated evaluation pipeline
-* Viewed automated evaluation results in MLflow alongside notebook-driven results
-* Detected a prompt regression before production by comparing Version 1 and Version 2 evaluation results
+* 将预编译的评估流水线导入 OpenShift AI
+* 配置并运行自动化评估流水线
+* 在 MLflow 中查看自动化评估结果以及 notebook 驱动的结果
+* 通过比较版本 1 和版本 2 的评估结果在生产前检测到 prompt 回归
 
-**Key takeaways:**
+**关键要点：**
 
-* The inner loop (notebook) is for exploration and development; the outer loop (pipeline) is for automation and production
-* OpenShift AI Pipelines package the same evaluation logic into reproducible, schedulable, containerized runs
-* MLflow's Prompt Registry combined with evaluations creates a quality gate: every prompt change can be tested, diffed, and compared before deployment
-* Evaluations catch subtle regressions that manual testing would miss, preventing bad prompts from reaching production
+* 内循环（notebook）用于探索和开发；外循环（流水线）用于自动化和生产
+* OpenShift AI 流水线将相同的评估逻辑打包为可复现、可调度、容器化的运行
+* MLflow 的 Prompt 注册表与评估相结合创建了一个质量门：每个 prompt 更改都可以在部署前进行测试、差异化和比较
+* 评估捕获手动测试会错过的微妙回归，防止不良 prompt 到达生产环境
 
-**Next steps:**
+**后续步骤：**
 
-The Conclusion recaps the full observability journey—from the black box of Module 1 through metrics, traces, evaluations, and automated pipelines—and provides resources for continuing your AgentOps practice.
+结论回顾了完整的可观察性之旅——从模块 1 的黑箱到指标、跟踪、评估和自动化流水线——并提供继续你的 AgentOps 实践的资源。

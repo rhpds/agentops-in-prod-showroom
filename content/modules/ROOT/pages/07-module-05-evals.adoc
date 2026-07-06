@@ -1,119 +1,119 @@
-= Module 5: Agent & LLM evaluations (Evals)
+= 模块 5：代理和 LLM 评估（Evals）
 :imagesdir: ../assets/images
-:navtitle: Module 5: Agent & LLM Evaluations
+:navtitle: 模块 5：代理和 LLM 评估
 :toc: macro
 :toclevels: 1
 
 [NOTE]
 ====
-**This module is optional.** If you completed Modules 1-4, you have a strong observability foundation. This module adds advanced quality assurance capabilities for those who want deeper expertise in evaluation frameworks or have additional time.
+**本模块是可选的。** 如果你完成了模块 1-4，你已经有了坚实的可观察性基础。本模块为希望深入了解评估框架或有额外时间的人添加了高级质量保证能力。
 ====
 
-Observability tells you if your system is working, but evaluations tell you if your agents are working *well*. Without evals, a 20% drop in answer quality can go unnoticed for weeks until customers complain. In this module, you'll go beyond basic observability by running LLM evaluations against the Fed Aura Capital prospect agent using MLflow's evaluation framework, Prompt Registry, and LLM-as-a-Judge scorers (using one LLM to evaluate another LLM's output quality).
+可观察性告诉你系统是否工作，但评估告诉你代理是否*工作得很好*。如果没有评估，答案质量下降 20% 可能会在几周内未被注意到，直到客户投诉。在本模块中，你将通过使用 MLflow 的评估框架、Prompt 注册表和 LLM-as-a-Judge 评分器（使用一个 LLM 评估另一个 LLM 的输出质量）对 Fed Aura Capital 潜在客户代理运行 LLM 评估，超越基本的可观察性。
 
-TIP: In this module, you're wearing your **AI Developer / Engineer hat**, focusing on model output quality, prompt management, and evaluation design.
+TIP：在本模块中，你扮演 **AI 开发者/工程师角色**，专注于模型输出质量、prompt 管理和评估设计。
 
-This is the AI Developer's quality assurance layer, the *inner loop* where you manually evaluate agent outputs during development. In Module 6, you'll automate this into an *outer loop* that detects regressions continuously.
+这是 AI 开发者的质量保证层，是*内循环*，你在开发期间手动评估代理输出。在模块 6 中，你将把它自动化为持续检测回归的*外循环*。
 
-== Learning objectives
+== 学习目标
 
-By the end of this module, you'll be able to:
+完成本模块后，你将能够：
 
-* Launch a Jupyter workbench in Red Hat OpenShift AI
-* Register versioned prompts in MLflow's Prompt Registry
-* Create evaluation datasets with inputs and expected outputs
-* Run deterministic and LLM-as-a-Judge evaluations against a live agent
-* Analyze evaluation results and per-trace assessments in MLflow
+* 在 Red Hat OpenShift AI 中启动 Jupyter 工作台
+* 在 MLflow 的 Prompt 注册表中注册版本化 prompt
+* 创建包含输入和预期输出的评估数据集
+* 对实时代理运行确定性和 LLM-as-a-Judge 评估
+* 在 MLflow 中分析评估结果和逐跟踪评估
 
-== Why evaluations matter for AgentOps
+== 为什么评估对 AgentOps 很重要
 
-In the Fed Aura Capital mortgage system, agents make consequential decisions:
+在 Fed Aura Capital 抵押贷款系统中，代理做出重要决定：
 
-* The prospect agent qualifies leads. A false negative loses a $300K mortgage sale.
-* The underwriter agent assesses risk. A $500K bad loan approval creates regulatory exposure.
-* The underwriter agent checks compliance. Violations risk legal penalties and license suspension.
+* 潜在客户代理筛选销售线索。误报负面会损失 30 万美元的抵押贷款销售。
+* 承保代理评估风险。批准 50 万美元的不良贷款会产生监管风险。
+* 承保代理检查合规性。违规会面临法律处罚和执照暂停。
 
-In production, even a 1% error rate means 100 failures per day on 10,000 daily interactions. Metrics tell you the agent responded. Traces tell you how it responded. **Evaluations tell you if it responded correctly.**
+在生产环境中，即使是 1% 的错误率也意味着在每天 10,000 次互动中有 100 次失败。指标告诉你代理已响应。跟踪告诉你它是如何响应的。**评估告诉你它是否正确响应。**
 
-== Exercise 1: Launch a Jupyter workbench
+== 练习 1：启动 Jupyter 工作台
 
-To run evaluations, you need a Jupyter environment. Red Hat OpenShift AI provides managed workbenches with pre-installed data science libraries.
+要运行评估，你需要一个 Jupyter 环境。Red Hat OpenShift AI 提供预安装数据科学库的托管工作台。
 
-TIP: Throughout this workshop, all key services are accessible as *tabs at the top of this page* — no need to open separate browser windows. Navigate to the *RHOAI Console* tab to access the Red Hat OpenShift AI dashboard.
+TIP：在整个研讨会中，所有关键服务都可以作为*此页面顶部的标签页*访问——无需打开单独的浏览器窗口。导航到 *RHOAI 控制台* 标签页以访问 Red Hat OpenShift AI 仪表板。
 
-. Navigate to the *RHOAI Console* tab:
+. 导航到 *RHOAI 控制台* 标签页：
 +
-image::rhoai-console-tab.png[Showroom tabs showing RHOAI Console tab,link=self,window=blank,width=700]
+image::rhoai-console-tab.png[显示 RHOAI 控制台标签页的展示室标签页,link=self,window=blank,width=700]
 +
 
-. In the Red Hat OpenShift AI (RHOAI) dashboard, navigate to **Projects** and select your workspace (`{user_project}`).
+. 在 Red Hat OpenShift AI (RHOAI) 仪表板中，导航到 **项目** 并选择你的工作区（`{user_project}`）。
 
 image::find-project.png[]
 
-. Click **Create a workbench**:
+. 点击 **创建工作台**：
 +
 image::create-workbench.png[]
 +
 
-Now, configure it:
+现在，配置它：
 +
 --
-* **Name**: `{user_project}`
-* **Image selection**: `Jupyter | Data Science | CPU | Python 3.12`
-* **Version selection**: `3.4`
-* Leave other settings as defaults
+* **名称**：`{user_project}`
+* **镜像选择**：`Jupyter | 数据科学 | CPU | Python 3.12`
+* **版本选择**：`3.4`
+* 其他设置保持默认
 --
 +
-image::eval1.png[Red Hat OpenShift AI Create workbench form showing name and image configuration,link=self,window=blank,width=700]
+image::eval1.png[Red Hat OpenShift AI 创建工作台表单，显示名称和镜像配置,link=self,window=blank,width=700]
 
-. Click **Create workbench** and wait for it to start. 
+. 点击 **创建工作台** 并等待它启动。
 +
-NOTE: The workbench image download can take a couple of minutes the first time. Please be patient while it pulls the container image and starts.
+NOTE：工作台镜像下载第一次可能需要几分钟。请耐心等待它拉取容器镜像并启动。
 
-. Once the status shows **Running**, click to launch JupyterLab:
+. 一旦状态显示 **运行中**，点击启动 JupyterLab：
 +
-image::eval2.1.png[Red Hat OpenShift AI workbench status showing Running with Open button,link=self,window=blank,width=700]
+image::eval2.1.png[Red Hat OpenShift AI 工作台状态显示运行中并带有打开按钮,link=self,window=blank,width=700]
 
-NOTE: JupyterLab opens in a new window. Use your browser's split tab feature to view both JupyterLab and these instructions side-by-side, or toggle between windows as you work.
+NOTE：JupyterLab 在新窗口中打开。使用浏览器的分屏标签页功能并排查看 JupyterLab 和这些说明，或者在工作时在窗口之间切换。
 
-== Exercise 2: Clone the repository and open the evaluation notebook
+== 练习 2：克隆仓库并打开评估 notebook
 
-This is the *inner loop* in action: as an AI Developer or Engineer, you use Jupyter notebooks to experiment with prompts, tweak agent behavior, and evaluate outputs interactively. The notebook gives you a fast feedback cycle: change a prompt, re-run the evaluation, inspect the results, and iterate, all before any code reaches a pipeline or production.
+这是*内循环*的实际操作：作为 AI 开发者或工程师，你使用 Jupyter notebook 来试验 prompt、调整代理行为并交互式评估输出。notebook 为你提供快速反馈循环：更改 prompt、重新运行评估、检查结果并迭代，所有这些都在任何代码到达流水线或生产之前。
 
-TIP: Want to learn more about MLflow's evaluation framework? Open the *MLflow Docs* tab at the top of this page and explore the https://mlflow.org/docs/latest/genai/eval-monitor/[Evaluation & Monitoring^] section, which covers scorers, datasets, and evaluation-driven development workflows in depth.
+TIP：想了解更多关于 MLflow 评估框架的信息？打开此页面顶部的 *MLflow 文档* 标签页并探索 https://mlflow.org/docs/latest/genai/eval-monitor/[评估和监控^] 部分，该部分深入涵盖了评分器、数据集和评估驱动的工作流程。
 
-The evaluation notebook is part of the mortgage-ai application repository. Let's clone it and set up the environment.
+评估 notebook 是 mortgage-ai 应用仓库的一部分。让我们克隆它并设置环境。
 
-. In JupyterLab, click **Git** > **Clone a Repository** (or use the Git icon in the left sidebar). 
+. 在 JupyterLab 中，点击 **Git** > **克隆仓库**（或使用左侧边栏中的 Git 图标）。
 
 +
 image::git-clone.png[]
 +
 
-Enter the repository URL:
+输入仓库 URL：
 +
 [source,console,role=execute,subs=attributes+]
 ----
 https://github.com/rh-ai-quickstart/multi-agent-loan-origination.git
 ----
 +
-image::eval2.png[JupyterLab Clone a repo dialog with the multi-agent-loan-origination repository URL,link=self,window=blank,width=700]
+image::eval2.png[JupyterLab 克隆仓库对话框，显示 multi-agent-loan-origination 仓库 URL,link=self,window=blank,width=700]
 +
-Click **Clone** to download the repository.
+点击 **克隆** 以下载仓库。
 
-. In the file browser, navigate to `multi-agent-loan-origination/evaluations/` and open **evaluate_agent.ipynb**:
+. 在文件浏览器中，导航到 `multi-agent-loan-origination/evaluations/` 并打开 **evaluate_agent.ipynb**：
 +
-image::eval3.png[JupyterLab showing evaluate_agent.ipynb open with Setup cell and environment variables,link=self,window=blank,width=700]
+image::eval3.png[JupyterLab 显示 evaluate_agent.ipynb 打开，带有设置单元格和环境变量,link=self,window=blank,width=700]
 +
-IMPORTANT: **New to JupyterLab?** Use these keyboard shortcuts to run notebook cells: +
-• **Shift+Enter** — Run current cell and move to the next one +
-• **Ctrl+Enter** (Windows/Linux) or **Cmd+Enter** (Mac) — Run current cell without advancing +
-• A cell showing `[*]` on the left is currently executing +
-• To run all cells at once, click the restart-and-run-all button (⏮▶) in the toolbar
+IMPORTANT：**JupyterLab 新手？** 使用这些键盘快捷键运行 notebook 单元格：+
+• **Shift+Enter** — 运行当前单元格并移动到下一个 +
+• **Ctrl+Enter** (Windows/Linux) 或 **Cmd+Enter** (Mac) — 运行当前单元格但不前进 +
+• 左侧显示 `[*]` 的单元格当前正在执行 +
+• 要一次运行所有单元格，点击工具栏中的重启并运行所有按钮（⏮▶）
 
-. Run the **Install Dependencies** cell to install the required packages (MLflow, LangChain, OpenAI, etc.).
+. 运行 **安装依赖** 单元格以安装必需的包（MLflow、LangChain、OpenAI 等）。
 
-. The next cell, in the **Install Dependencies** section, configures the environment variables. The cell should look like this:
+. 下一个单元格，在 **安装依赖** 部分中，配置环境变量。该单元格应如下所示：
 +
 [source,python]
 ----
@@ -127,21 +127,22 @@ os.environ["MLFLOW_TRACKING_AUTH"] = "kubernetes"
 os.environ["MLFLOW_TRACKING_INSECURE_TLS"] = "true"
 ----
 +
-You need to fill in 2 values: `LLM_API_KEY` and `MLFLOW_TRACKING_TOKEN`
+你需要填写 2 个值：`LLM_API_KEY` 和 `MLFLOW_TRACKING_TOKEN`
 +
 --
-* `LLM_API_KEY`: extract this from the **llm-credentials** secret. In the OpenShift Console, navigate to **Workloads > Secrets** in the `{user_project}` namespace, find **llm-credentials** by using the search bar to filter. 
+* `LLM_API_KEY`：从 **llm-credentials** 密钥中提取此值。在 OpenShift 控制台中，导航到 `{user_project}` 命名空间中的 **工作负载 > 密钥**，使用搜索栏过滤找到 **llm-credentials**。
 +
-image::eval2.2.png[OpenShift Console Secrets page showing llm-credentials secret in the workspace namespace,link=self,window=blank,width=700]
+image::eval2.2.png[OpenShift 控制台密钥页面，显示工作区命名空间中的 llm-credentials 密钥,link=self,window=blank,width=700]
 --
 
-. Click to open the secret's details. Scroll down, and click **Reveal values**:
+. 点击打开密钥的详细信息。向下滚动，然后点击 **显示值**：
 +
 image::reveal-values.png[]
 +
-. Copy the `LLM_API_KEY` value for your notebook cell.
 
-. To get the `MLFLOW_TRACKING_TOKEN` value, navigate to the *Terminal* tab and run:
+. 复制 `LLM_API_KEY` 值用于你的 notebook 单元格。
+
+. 要获取 `MLFLOW_TRACKING_TOKEN` 值，导航到 *终端* 标签页并运行：
 +
 [source,bash,subs="+attributes"]
 ----
@@ -149,212 +150,218 @@ TOKEN=$(oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user}
 echo $\{TOKEN}
 ----
 +
-Copy the token value and paste it into the `MLFLOW_TRACKING_TOKEN` variable in the notebook's environment variables cell.
+复制令牌值并将其粘贴到 notebook 环境变量单元格中的 `MLFLOW_TRACKING_TOKEN` 变量中。
 
-. Run the environment variable configuration, **Setup** and **Configure MLflow** cells. This will take a bit to process. Remember, if the cell shows `[*]` on the left it is still executing.
+. 运行环境变量配置、**设置** 和 **配置 MLflow** 单元格。这将需要一些时间来处理。请记住，如果单元格左侧显示 `[*]`，它仍在执行中。
 
-. Verify the output shows your MLflow URI, experiment name, and LLM endpoint.
+. 验证输出显示你的 MLflow URI、实验名称和 LLM 端点。
 +
 image::setup-expected-output.png[]
 +
-TIP: You can run cells one by one with **Shift+Enter**, or click the **Restart the kernel and run all cells** button (fast-forward icon) in the toolbar to execute the entire notebook at once:
+
+TIP：你可以使用 **Shift+Enter** 逐个运行单元格，或者点击工具栏中的 **重启内核并运行所有单元格** 按钮（快进图标）一次执行整个 notebook：
 +
-image::eval2.3.png[JupyterLab toolbar showing Restart and Run All rewind button,link=self,window=blank,width=700]
+image::eval2.3.png[JupyterLab 工具栏，显示重启并运行所有倒带按钮,link=self,window=blank,width=700]
 
-== Exercise 3: Register a prompt in MLflow's Prompt Registry
+== 练习 3：在 MLflow 的 Prompt 注册表中注册 prompt
 
-Before running evaluations, let's register the agent's system prompt (the instructions that define the agent's role and behavior) in MLflow's https://mlflow.org/docs/latest/genai/prompt-registry/[Prompt Registry^]. The Prompt Registry provides version control for prompts. Think of it as Git for your system prompts, enabling you to track changes, compare versions, and link evaluation traces back to the exact prompt that produced them. Without versioning, when quality drops you can't identify which prompt change caused it or safely roll back.
+在运行评估之前，让我们在 MLflow 的 https://mlflow.org/docs/latest/genai/prompt-registry/[Prompt 注册表^] 中注册代理的系统 prompt（定义代理角色和行为的指令）。Prompt 注册表提供 prompt 的版本控制。将其视为系统 prompt 的 Git，使你能够跟踪更改、比较版本并将评估跟踪链接回产生它们的精确 prompt。没有版本控制，当质量下降时，你无法确定哪个 prompt 更改导致它或安全地回滚。
 
-. Run the 3 cells under **1. Register System Prompt in MLflow**. The notebook reads the public-assistant system prompt (the same content from `config/agents/public-assistant.yaml`) and registers it as a versioned artifact:
+. 运行 **1. 在 MLflow 中注册系统 Prompt** 下的 3 个单元格。notebook 读取公共助手系统 prompt（与 `config/agents/public-assistant.yaml` 中的相同内容）并将其注册为版本化工件：
 +
-image::eval4.png[Notebook cell registering the public-assistant system prompt in MLflow Prompt Registry,link=self,window=blank,width=500]
+image::eval4.png[Notebook 单元格在 MLflow Prompt 注册表中注册公共助手系统 prompt,link=self,window=blank,width=500]
 
-. Navigate to the *MLflow Console* tab. Switch to the **mortgage-ai-eval** experiment:
+. 导航到 *MLflow 控制台* 标签页。切换到 **mortgage-ai-eval** 实验：
 +
 image::nav-mortgageaieval-exp.png[]
 +
-Click **Prompts** in the left sidebar. 
+
+点击左侧边栏中的 **Prompts**。
 +
 image::nav-prompts.png[]
 +
-You'll see the registered prompt:
+
+你将看到注册的 prompt：
 +
-image::eval5.png[MLflow Prompts page showing public-assistant-system-prompt at Version 1,link=self,window=blank,width=700]
+image::eval5.png[MLflow Prompts 页面，显示版本 1 的 public-assistant-system-prompt,link=self,window=blank,width=700]
 
-. Click on **public-assistant-system-prompt** to inspect the version details:
+. 点击 **public-assistant-system-prompt** 以检查版本详细信息：
 +
-image::eval6.png[MLflow Prompt detail showing version 1 with metadata and prompt text preview,link=self,window=blank,width=700]
+image::eval6.png[MLflow Prompt 详细信息，显示版本 1 及其元数据和 prompt 文本预览,link=self,window=blank,width=700]
 +
-The prompt detail shows:
-+
---
-* **Version**: Version number and registration timestamp
-* **Metadata**: Agent name, persona, source file, and type tags
-* **Commit message**: Description of the change (like a Git commit)
-* **Prompt text**: The full system prompt content
---
-
-NOTE: When you update the system prompt and register a new version, MLflow keeps the history. This lets you compare evaluation results across prompt versions, a critical capability for prompt engineering at scale.
-
-== Exercise 4: Create an evaluation dataset
-
-The foundation of good evaluations is a high-quality dataset. The notebook creates a persistent dataset on the MLflow server with representative test cases for the prospect agent.
-
-. Run the cells under **2. Create Evaluation Dataset** and **3. View the Dataset**. The notebook creates 6 test cases, each with:
+prompt 详细信息显示：
 +
 --
-* **inputs**: The user message to send to the agent (e.g., _"Tell me about FHA loans"_)
-* **expectations**: Expected behavior including keywords, tool calls, topics, and forbidden content
+* **版本**：版本号和注册时间戳
+* **元数据**：代理名称、角色、源文件和类型标签
+* **提交消息**：更改描述（像 Git 提交一样）
+* **Prompt 文本**：完整的系统 prompt 内容
 --
 
-. In the MLflow UI, navigate to your experiment and click **Datasets**. 
+NOTE：当你更新系统 prompt 并注册新版本时，MLflow 会保留历史记录。这使你能够比较不同 prompt 版本的评估结果，这是大规模 prompt 工程的关键能力。
+
+== 练习 4：创建评估数据集
+
+良好评估的基础是高质量数据集。notebook 在 MLflow 服务器上创建一个持久数据集，其中包含潜在客户代理的代表性测试用例。
+
+. 运行 **2. 创建评估数据集** 和 **3. 查看数据集** 下的单元格。notebook 创建 6 个测试用例，每个用例包含：
++
+--
+* **inputs**：发送给代理的用户消息（例如，_"告诉我关于 FHA 贷款的信息"_）
+* **expectations**：预期行为，包括关键字、工具调用、主题和禁止内容
+--
+
+. 在 MLflow UI 中，导航到你的实验并点击 **数据集**。
 +
 image::nav-datasets.png[]
 +
 
-You'll see the `public_assistant_eval` dataset with 6 records:
+
+你将看到带有 6 条记录的 `public_assistant_eval` 数据集：
 +
-image::eval7.1.png[MLflow Datasets page showing public_assistant_eval with 6 records and their inputs and expectations,link=self,window=blank,width=700]
+image::eval7.1.png[MLflow 数据集页面，显示带有 6 条记录及其输入和期望的 public_assistant_eval,link=self,window=blank,width=700]
 +
-Each record shows the user message input alongside the expected answer and expected tool calls. For example, _"Tell me about FHA loans"_ expects the keyword `"FHA"` in the response and the `product_info` tool to be called.
+每条记录显示用户消息输入以及预期的答案和预期的工具调用。例如，_"告诉我关于 FHA 贷款的信息"_ 期望响应中包含关键字 `"FHA"` 并调用 `product_info` 工具。
 
-NOTE: Datasets are stored on the MLflow server, not as local files. This means they're versioned, shareable across team members, and can be reused across evaluation runs. When a new team member joins, they run evaluations against the same test cases—ensuring consistent quality standards across the team.
+NOTE：数据集存储在 MLflow 服务器上，而不是本地文件中。这意味着它们是版本化的，可以在团队成员之间共享，并且可以在评估运行中重复使用。当新团队成员加入时，他们对相同的测试用例运行评估——确保团队一致的质量标准。
 
-IMPORTANT: Teams without evaluation datasets often discover quality issues only after customer complaints—weeks too late. A structured dataset catches regressions during development, before they reach production.
+IMPORTANT：没有评估数据集的团队通常只在客户投诉后发现质量问题——几周后就太晚了。结构化数据集在开发期间捕获回归，在它们到达生产之前。
 
-== Exercise 5: Run a simple evaluation
+== 练习 5：运行简单评估
 
-Back in the notebook, let's start with deterministic scorers (automated checks that grade responses using simple rules), which are fast checks that don't require LLM calls. These are your first line of defense for catching obvious regressions.
+回到 notebook，让我们从确定性评分器（使用简单规则对响应进行评分的自动化检查）开始，这些是不需要 LLM 调用的快速检查。这些是捕获明显回归的第一道防线。
 
-=== Simple scorers
+=== 简单评分器
 
-The notebook defines 3 deterministic scorers:
+notebook 定义 3 个确定性评分器：
 
-* **contains_expected**: Does the response contain the expected keyword? (e.g., does an FHA question response mention "FHA"?)
-* **has_numeric_result**: Does the response include numeric values like dollar amounts or percentages? (important for affordability calculations)
-* **response_length**: Is the response at least 50 characters? (catches empty or truncated responses)
+* **contains_expected**：响应是否包含预期关键字？（例如，FHA 问题响应是否提到 "FHA"？）
+* **has_numeric_result**：响应是否包含数值，如美元金额或百分比？（对负担能力计算很重要）
+* **response_length**：响应是否至少 50 个字符？（捕获空或截断的响应）
 
-=== Set up the predictor and run the evaluation
+=== 设置预测器并运行评估
 
-Before running the evaluation, the notebook needs 2 pieces: a **predictor function** (the function that calls your agent for each test case) and the **scorer definitions**. The predictor wraps the agent invocation and loads the registered prompt, creating the automatic linkage between prompts and traces that you'll explore in Exercise 7.
+在运行评估之前，notebook 需要 2 个部分：**预测器函数**（为每个测试用例调用代理的函数）和**评分器定义**。预测器包装代理调用并加载注册的 prompt，创建 prompt 和跟踪之间的自动链接，你将在练习 7 中探索这一点。
 
-. Run the cells under the **Predictor with Prompt Linkage** and **Scorers** sections to set up both.
+. 运行 **带 Prompt 链接的预测器** 和 **评分器** 部分下的单元格以设置两者。
 
-. Then run the **Run Simple Evaluation** cell. The notebook sends each test case to the live agent, collects responses, and scores them:
+. 然后运行 **运行简单评估** 单元格。notebook 将每个测试用例发送到实时代理，收集响应并对它们进行评分：
 +
-image::eval7.png[Notebook running simple evaluation with 6 examples and 3 scorers showing results,link=self,window=blank,width=500]
+image::eval7.png[Notebook 运行简单评估，带有 6 个示例和 3 个评分器显示结果,link=self,window=blank,width=500]
 +
-The evaluation runs all 6 test cases against the prospect agent and reports the overall scores.
+评估对所有 6 个测试用例针对潜在客户代理运行并报告总体分数。
 
-NOTE: If you see any failures, double check your environment variables were correctly set. If you change the environment variables again, restart the kernel before rerunning the cells.
+NOTE：如果你看到任何失败，请仔细检查你的环境变量是否正确设置。如果你再次更改环境变量，请在重新运行单元格之前重启内核。
 
-=== View results in MLflow
+=== 在 MLflow 中查看结果
 
 [start=3]
-. Back in the MLflow UI, using the **MLflow Console** tab, click **Evaluation runs** in the left sidebar. 
+. 回到 MLflow UI，使用 **MLflow 控制台** 标签页，点击左侧边栏中的 **评估运行**。
 
 +
 image::nav-eval-runs.png[]
 +
 
-You'll see the evaluation run with all 6 traces:
-+
-image::eval8.png[MLflow Evaluation Runs showing the evaluation run with 6 traces and their requests responses and token counts,link=self,window=blank,width=700]
-+
-Each row shows the Trace ID, the request sent to the agent, the response received, and the token count.
 
-. Click **Traces** in the left sidebar to see the per-trace assessments. Click **Columns** and enable **All Assessments** to see the scorer results for each trace:
+你将看到带有所有 6 个跟踪的评估运行：
 +
-image::eval9.png[MLflow Traces view with Assessment columns showing contains_expected has_numeric_result and response_length results per trace,link=self,window=blank,width=700]
+image::eval8.png[MLflow 评估运行，显示评估运行及其 6 个跟踪的请求、响应和令牌计数,link=self,window=blank,width=700]
 +
-The assessment columns show True/False for each scorer on each trace. You can quickly spot which test cases passed or failed each check.
+每行显示跟踪 ID、发送到代理的请求、接收的响应和令牌计数。
+
+. 点击左侧边栏中的 **跟踪** 以查看逐跟踪评估。点击 **列** 并启用 **所有评估** 以查看每个跟踪的评分器结果：
 +
-NOTE: Some assessment columns may show null values. This is expected — at this stage we are only running simple deterministic scorers (`contains_expected`, `has_numeric_result`, `response_length`), not the LLM-as-a-Judge scorers. You'll enable those in Exercise 6, and the remaining columns will populate.
+image::eval9.png[MLflow 跟踪视图，带有评估列，显示每个跟踪的 contains_expected has_numeric_result 和 response_length 结果,link=self,window=blank,width=700]
 +
-NOTE: If assessment columns are not visible in the Traces view, use the **Columns** dropdown and enable **All Assessments**. MLflow doesn't always show them by default.
+评估列显示每个跟踪上每个评分器的 True/False。你可以快速发现哪些测试用例通过或未通过每个检查。
 +
-image::eval32.png[MLflow Columns dropdown showing All Assessments option to enable assessment columns,link=self,window=blank,width=350]
-
-. Click on a trace that has the simple scorer columns filled (`contains_expected`, `has_numeric_result`, `response_length`) — the rest should be null at this point. You'll see the detailed view with the **Assessments** sidebar:
+NOTE：某些评估列可能显示 null 值。这是预期的——在此阶段我们只运行简单的确定性评分器（`contains_expected`、`has_numeric_result`、`response_length`），而不是 LLM-as-a-Judge 评分器。你将在练习 6 中启用这些，其余列将填充。
 +
-image::eval10.png[MLflow trace detail showing inputs outputs span sequence and Assessments sidebar with Feedback and Expectations,link=self,window=blank,width=500]
+NOTE：如果评估列在跟踪视图中不可见，请使用 **列** 下拉菜单并启用 **所有评估**。MLflow 并不总是默认显示它们。
 +
-The detail view combines the trace information (inputs, outputs, span sequence) with the evaluation assessments. The **Feedback** section shows the deterministic scorer results, and the **Expectations** section shows the expected values from the dataset.
+image::eval32.png[MLflow 列下拉菜单，显示所有评估选项以启用评估列,link=self,window=blank,width=350]
 
-== Exercise 6: Run LLM-as-a-Judge evaluation
-
-Deterministic scorers catch surface-level issues, but can't assess whether a response is *actually helpful*. A deterministic scorer sees "FHA" in the response and passes—but can't detect if the agent gave incorrect rate information or violated compliance guidelines. For that, you need https://mlflow.org/docs/latest/genai/eval-monitor/running-evaluation/agents/[LLM-as-a-Judge^], using an LLM to evaluate the quality of another LLM's output.
-
-=== LLM judge scorers
-
-The notebook adds 5 LLM-powered scorers on top of the 3 simple ones:
-
-* **https://mlflow.org/docs/latest/genai/eval-monitor/scorers/llm-judge/tool-call/correctness/[ToolCallCorrectness^]**: Did the agent call the right tools? (e.g., did it use `product_info` for product questions?)
-* **ToolCallEfficiency**: Were tool calls minimal and efficient?
-* **RelevanceToQuery**: Is the response relevant to what the user asked?
-* **Safety**: Is the response safe and appropriate?
-* **Guidelines**: Does the response follow custom mortgage assistant guidelines? (helpful, no rate promises, professional language)
-
-=== Run the evaluation
-
-. Run the **Run Full LLM-as-a-Judge Evaluation** cell. This runs all 8 scorers (3 simple + 5 LLM judges) against the 6 test cases:
+. 点击一个填充了简单评分器列（`contains_expected`、`has_numeric_result`、`response_length`）的跟踪——其余的此时应为 null。你将看到带有 **评估** 侧边栏的详细视图：
 +
-image::eval11.png[Notebook running LLM-as-a-Judge evaluation with 8 scorers including 5 LLM judges,link=self,window=blank,width=500]
+image::eval10.png[MLflow 跟踪详细信息，显示输入、输出、跨度序列和带有反馈和期望的评估侧边栏,link=self,window=blank,width=500]
 +
-This evaluation takes longer than the simple one because each test case is scored by 5 LLM judges in addition to the deterministic checks.
+详细视图将跟踪信息（输入、输出、跨度序列）与评估评估相结合。**反馈** 部分显示确定性评分器结果，**期望** 部分显示来自数据集的预期值。
 
-=== View results in MLflow
+== 练习 6：运行 LLM-as-a-Judge 评估
+
+确定性评分器捕获表面级别的问题，但无法评估响应是否*真正有用*。确定性评分器看到响应中的 "FHA" 并通过——但无法检测代理是否给出了错误的费率信息或违反了合规准则。为此，你需要 https://mlflow.org/docs/latest/genai/eval-monitor/running-evaluation/agents/[LLLM-as-a-Judge^]，使用 LLM 评估另一个 LLM 输出的质量。
+
+=== LLM 评判评分器
+
+notebook 在 3 个简单评分器之上添加了 5 个 LLM 驱动的评分器：
+
+* **https://mlflow.org/docs/latest/genai/eval-monitor/scorers/llm-judge/tool-call/correctness/[ToolCallCorrectness^]**：代理是否调用了正确的工具？（例如，它是否对产品问题使用 `product_info`？）
+* **ToolCallEfficiency**：工具调用是否最少且高效？
+* **RelevanceToQuery**：响应是否与用户询问的内容相关？
+* **Safety**：响应是否安全且适当？
+* **Guidelines**：响应是否遵循自定义抵押贷款助手准则？（有帮助、无费率承诺、专业语言）
+
+=== 运行评估
+
+. 运行 **运行完整的 LLM-as-a-Judge 评估** 单元格。这会对 6 个测试用例运行所有 8 个评分器（3 个简单 + 5 个 LLM 评判）：
++
+image::eval11.png[Notebook 运行 LLM-as-a-Judge 评估，带有 8 个评分器，包括 5 个 LLM 评判,link=self,window=blank,width=500]
++
+此评估比简单评估花费更长时间，因为每个测试用例除了确定性检查外还由 5 个 LLM 评判进行评分。
+
+=== 在 MLflow 中查看结果
 
 [start=2]
-. In the MLflow UI, click **Evaluation runs**. 
+. 在 MLflow UI 中，点击 **评估运行**。
 
 +
 image::nav-eval-runs.png[]
 +
-You'll now see 2 runs: the simple evaluation and the LLM-as-a-Judge evaluation:
+你现在将看到 2 次运行：简单评估和 LLM-as-a-Judge 评估：
 +
-image::eval12.png[MLflow Evaluation Runs showing 2 runs - simple and LLM-as-a-Judge,link=self,window=blank,width=700]
+image::eval12.png[MLflow 评估运行，显示 2 次运行 - 简单和 LLM-as-a-Judge,link=self,window=blank,width=700]
 
-. Click **Traces** and use the **Columns** dropdown to enable **All Assessments**. You'll see the full picture with both deterministic and LLM judge results:
+. 点击 **跟踪** 并使用 **列** 下拉菜单启用 **所有评估**。你将看到包含确定性和 LLM 评判结果的完整画面：
 +
-image::eval13.png[MLflow Traces view with full assessment columns including tool_call_correctness safety and relevance,link=self,window=blank,width=700]
+image::eval13.png[MLflow 跟踪视图，带有完整的评估列，包括 tool_call_correctness safety 和 relevance,link=self,window=blank,width=700]
 +
-The additional columns show Pass/Fail for each LLM judge. Notice how `tool_call_correctness` shows 83% pass rate and `safety` shows 100%. The agent is safe but occasionally calls the wrong tool.
+额外的列显示每个 LLM 评判的通过/失败。注意 `tool_call_correctness` 显示 83% 的通过率，而 `safety` 显示 100%。代理是安全的，但偶尔调用错误的工具。
 
-. Click on a trace to see all 8 assessments in the detail view:
+. 点击跟踪以在详细视图中查看所有 8 个评估：
 +
-image::eval14.png[MLflow trace detail showing all 8 assessments including safety mortgage_guidelines tool_call_efficiency tool_call_correctness and relevance_to_query,link=self,window=blank,width=500]
+image::eval14.png[MLflow 跟踪详细信息，显示所有 8 个评估，包括 safety mortgage_guidelines tool_call_efficiency tool_call_correctness 和 relevance_to_query,link=self,window=blank,width=500]
 +
-The assessments sidebar now shows the full evaluation picture for this single trace: safety (Yes), mortgage_guidelines (No, perhaps the response was too informal), tool_call_efficiency (Yes), tool_call_correctness (Yes), relevance_to_query (Yes), and the 3 deterministic checks.
+评估侧边栏现在显示此单个跟踪的完整评估画面：safety（是）、mortgage_guidelines（否，也许响应太不正式）、tool_call_efficiency（是）、tool_call_correctness（是）、relevance_to_query（是）和 3 个确定性检查。
 
-TIP: LLM judges catch quality issues that deterministic scorers miss. In Fed Aura Capital's testing, LLM-as-a-Judge evaluations identified 17% more quality problems than keyword checks alone—problems that would have reached customers without this layer of assessment.
+TIP：LLM 评判捕获确定性评分器遗漏的质量问题。在 Fed Aura Capital 的测试中，LLM-as-a-Judge 评估比仅关键字检查多识别了 17% 的质量问题——如果没有这一层评估，这些问题将到达客户。
 
-== Exercise 7: Explore prompt-trace linkage
+== 练习 7：探索 prompt-跟踪链接
 
-When quality drops in production, prompt-trace linkage lets you answer "which prompt version caused this?" in seconds rather than days of manual correlation. One of the key features of MLflow's evaluation framework is automatic prompt-trace linkage. Every evaluation trace is linked to the prompt version that produced it, enabling you to track quality across prompt iterations.
+当生产中的质量下降时，prompt-跟踪链接使你能够在几秒钟而不是几天的手动关联内回答"哪个 prompt 版本导致了这个问题？"。MLflow 评估框架的关键特性之一是自动 prompt-跟踪链接。每个评估跟踪都链接到产生它的 prompt 版本，使你能够跟踪不同 prompt 迭代的质量。
 
-. In the MLflow UI, navigate to **Prompts** and click on **public-assistant-system-prompt**. Click the **Traces** tab:
+. 在 MLflow UI 中，导航到 **Prompts** 并点击 **public-assistant-system-prompt**。点击 **跟踪** 标签页：
 +
-image::eval15.png[MLflow Prompts Traces tab showing evaluation traces linked to prompt version 1,link=self,window=blank,width=700]
+image::eval15.png[MLflow Prompts 跟踪标签页，显示链接到 prompt 版本 1 的评估跟踪,link=self,window=blank,width=700]
 +
-All evaluation traces are automatically linked to the prompt version that produced them. When you update the system prompt and register Version 2, future evaluations will link to that new version, letting you compare quality across prompt iterations side by side.
 
-== Module summary
+所有评估跟踪都自动链接到产生它们的 prompt 版本。当你更新系统 prompt 并注册版本 2 时，未来的评估将链接到该新版本，使你能够并排比较不同 prompt 迭代的质量。
 
-**What you accomplished:**
+== 模块总结
 
-* Launched a Jupyter workbench in Red Hat OpenShift AI and set up the evaluation environment
-* Registered the prospect agent's system prompt in MLflow's Prompt Registry
-* Created an evaluation dataset with 6 test cases on the MLflow server
-* Ran deterministic and LLM-as-a-Judge evaluations against the live agent
-* Analyzed per-trace assessments and prompt-trace linkage in MLflow
+**你完成的工作：**
 
-**Why this matters:**
+* 在 Red Hat OpenShift AI 中启动了 Jupyter 工作台并设置了评估环境
+* 在 MLflow 的 Prompt 注册表中注册了潜在客户代理的系统 prompt
+* 在 MLflow 服务器上创建了一个包含 6 个测试用例的评估数据集
+* 对实时代理运行了确定性和 LLM-as-a-Judge 评估
+* 在 MLflow 中分析了逐跟踪评估和 prompt-跟踪链接
 
-Without evaluations, you're flying blind—quality drops go undetected until customers complain. This inner-loop evaluation process catches agent failures in development that would otherwise reach production. Prompt versioning lets you identify and roll back quality-breaking changes in seconds. LLM judges detect subtle failures (wrong tool calls, unsafe responses, guideline violations) that simple checks miss.
+**为什么这很重要：**
 
-**Bottom line:** Evaluations shift quality control left, from post-incident firefighting to pre-deployment prevention.
+没有评估，你就像盲飞——质量下降直到客户投诉才会被发现。这个内循环评估过程在开发期间捕获代理失败，否则它们会到达生产环境。Prompt 版本控制使你能够在几秒钟内识别并回滚质量破坏性更改。LLM 评判检测简单检查遗漏的微妙失败（错误的工具调用、不安全的响应、准则违规）。
 
-**Next steps:**
+**底线：** 评估将质量控制左移，从事后救火转变为部署前预防。
 
-Module 6 will move from the inner loop (manual evaluation) to the outer loop, automating evaluation with AI Pipelines that can be scheduled or triggered to detect regressions continuously.
+**后续步骤：**
+
+模块 6 将从内循环（手动评估）转移到外循环，使用可以调度或触发以持续检测回归的 AI 流水线自动化评估。

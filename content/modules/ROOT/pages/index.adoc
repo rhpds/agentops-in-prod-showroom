@@ -1,41 +1,41 @@
-= AgentOps Observability with Red Hat AI
+= 使用 Red Hat AI 的 AgentOps 可观测性
 
-Welcome to the AgentOps Observability with Red Hat AI workshop!
+欢迎使用使用 Red Hat AI 的 AgentOps 可观测性工作坊！
 
-== What you'll learn
+== 你将学到什么
 
-In this workshop, you will:
+在本工作坊中，你将：
 
-* Monitor the Stack: Utilize Red Hat AI's out-of-the-box observability stack to track key metrics and logs of your Agentic App
-* Trace Multi-Agent Executions: Track requests across multi-agent frameworks and MCP tools to understand the complete decision-making path
-* LLM Evaluations: Combine tracing with LLM evaluations (Evals) in MLflow to ensure your agents maintain high-quality outputs
-* From Development to Production: Move from manual notebook evaluations to automated AI pipelines that run continuously on the platform
+* 监控技术栈：利用 Red Hat AI 的开箱即用可观测性技术栈来跟踪你的智能体应用的关键指标和日志
+* 追踪多智能体执行：跟踪跨多智能体框架和 MCP 工具的请求，以了解完整的决策路径
+* LLM 评估：在 MLflow 中将追踪与 LLM 评估（Evals）相结合，确保你的代理保持高质量的输出
+* 从开发到生产：从手动 notebook 评估转移到在平台上持续运行的自动化 AI 流水线
 
-== Who this is for
+== 适用对象
 
-This workshop is designed for SREs, Platform Engineers, and AI Developers/Engineers who want to implement end-to-end observability for multi-agent AI systems.
+本工作坊专为 SRE、平台工程师和 AI 开发者/工程师设计，他们希望为多智能体 AI 系统实施端到端可观测性。
 
-== Prerequisites
+== 前置条件
 
-This workshop assumes basic familiarity with Kubernetes and AI/ML concepts.
+本工作坊假设你对 Kubernetes 和 AI/ML 概念有基本了解。
 
-== Workshop environment
+== 工作坊环境
 
-You will work with a multi-agent mortgage lending application built with LangGraph and integrated with Model Context Protocol (MCP) tools.
+你将使用一个使用 LangGraph 构建并与模型上下文协议（MCP）工具集成的多智能体抵押贷款应用程序。
 
-Log into OpenShift with the following credentials:
+使用以下凭据登录 OpenShift：
 
-* Username: {user}
-* Password: {password}
+* 用户名：{user}
+* 密码：{password}
 
-NOTE: All environment details and credentials are available in the lab interface.
+NOTE：所有环境详细信息和凭据都可在实验界面中找到。
 
-== Estimated time
+== 预计时间
 
-This workshop will take approximately **1 hour 30 minutes** to complete.
+完成本工作坊大约需要 **1 小时 30 分钟**。
 
-You can work at your own pace.
+你可以按照自己的节奏工作。
 
-== Let's get started!
+== 开始吧！
 
-Click on **Workshop Overview** in the navigation to begin your learning journey.
+点击导航中的 **工作坊总览** 开始你的学习之旅。

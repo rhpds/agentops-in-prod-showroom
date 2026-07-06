@@ -1,6 +1,6 @@
 = 工作坊详情
 :imagesdir: ../assets/images
-:navtitle: Workshop Details
+:navtitle: 工作坊详情
 :toc:
 :toc-placement: preamble
 :icons: font
