@@ -1,17 +1,17 @@
-.Welcome and Introduction
-* xref:index.adoc[Welcome]
-* xref:01-overview.adoc[Workshop Overview]
-* xref:02-details.adoc[Workshop Details]
+.欢迎和介绍
+* xref:index.adoc[欢迎]
+* xref:01-overview.adoc[工作坊概览]
+* xref:02-details.adoc[工作服明细]
 
-.Core Modules
-* xref:03-module-01-agentic-app.adoc[Module 1: The Agentic App]
-* xref:04-module-02-observability-pillars.adoc[Module 2: Observability Pillars]
-* xref:05-module-03-metrics-kpis.adoc[Module 3: Metrics & Logs]
-* xref:06-module-04-tracing-mlflow.adoc[Module 4: Tracing & MLflow]
+.核心 Modules
+* xref:03-module-01-agentic-app.adoc[Module 1: 智能体应用]
+* xref:04-module-02-observability-pillars.adoc[Module 2: 可观测性支柱]
+* xref:05-module-03-metrics-kpis.adoc[Module 3: 指标 & 日志]
+* xref:06-module-04-tracing-mlflow.adoc[Module 4: 追踪 & MLflow]
 
-.Advanced Modules (Optional)
-* xref:07-module-05-evals.adoc[Module 5: Agent & LLM Evaluations]
-* xref:08-module-06-dev-to-production.adoc[Module 6: Dev to Production]
+.高级 Modules (可选)
+* xref:07-module-05-evals.adoc[Module 5: 智能体 & LLM 评估]
+* xref:08-module-06-dev-to-production.adoc[Module 6: 从开发到生产]
 
-.Conclusion
+.总结
 * xref:09-conclusion.adoc[Conclusion]
