@@ -124,6 +124,6 @@ TIP: 绝大多数实操任务推荐使用分屏模式，方便对照教程同步
 == 作者与贡献人员
 
 **Primary Author**: Red Hat AI AI Business Unit +
-**Authors**: Roberto Carratalá, Taylor Smith , Hongtao Wang +
+**Authors**: Roberto Carratalá, Taylor Smith , Hongtao Wang, Di Chen +
 **Last Updated**: July 2026 +
 **Workshop Version**: 1.0
