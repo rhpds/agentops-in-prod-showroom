@@ -197,10 +197,10 @@ image::mlflow7.png[MLflow span detail for ceo_pipeline_summary showing input day
 [start=5]
 . 最後の **ChatOpenAI** スパンをクリックして、実際の LLM 呼び出しを確認します：
 +
-image::mlflow8.png[MLflow span detail for ChatOpenAI showing model gpt-oss-120b with system prompt and completion,link=self,window=blank,width=700]
+image::mlflow8.png[MLflow span detail for ChatOpenAI showing model nvidia/nemotron-3-nano with system prompt and completion,link=self,window=blank,width=700]
 +
 --
-* **Model (モデル)**: `gpt-oss-120b`, このリクエストを処理している正確なモデル
+* **Model (モデル)**: `nvidia/nemotron-3-nano`, このリクエストを処理している正確なモデル
 * **Inputs → messages**: システムプロンプト (_"あなたは Fed Aura Capital のエグゼクティブアシスタントです"_) と、ツールの結果を含む会話のコンテキスト
 * **Outputs → choices**: 安全フィルターやフォーマット処理前の、完全な LLM の応答
 --
