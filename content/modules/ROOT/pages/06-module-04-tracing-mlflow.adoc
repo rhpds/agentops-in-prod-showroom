@@ -197,10 +197,10 @@ This is where the agent got its numbers. If the CEO's response ever contains inc
 [start=5]
 . Click on the final **ChatOpenAI** span to see the actual LLM invocation:
 +
-image::mlflow8.png[MLflow span detail for ChatOpenAI showing model gpt-oss-120b with system prompt and completion,link=self,window=blank,width=700]
+image::mlflow8.png[MLflow span detail for ChatOpenAI showing model nvidia/nemotron-3-nano with system prompt and completion,link=self,window=blank,width=700]
 +
 --
-* **Model**: `gpt-oss-120b`, the exact model serving this request
+* **Model**: `nvidia/nemotron-3-nano`, the exact model serving this request
 * **Inputs → messages**: The system prompt (_"You are the Fed Aura Capital executive assistant"_) and the conversation context including the tool result
 * **Outputs → choices**: The complete LLM response before any post-processing
 --
