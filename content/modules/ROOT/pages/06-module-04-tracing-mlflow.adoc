@@ -194,10 +194,10 @@ image::mlflow7.png[MLflow 跨度详细信息，显示 ceo_pipeline_summary，输
 [start=5]
 . 点击最后的 **ChatOpenAI** 跨度以查看实际的 LLM 调用：
 +
-image::mlflow8.png[MLflow 跨度详细信息，显示 ChatOpenAI，模型 gpt-oss-120b，带有系统 prompt 和完成,link=self,window=blank,width=700]
+image::mlflow8.png[MLflow 跨度详细信息，显示 ChatOpenAI，模型 nvidia/nemotron-3-nano，带有系统 prompt 和完成,link=self,window=blank,width=700]
 +
 --
-* **模型**：`gpt-oss-120b`，服务此请求的确切模型
+* **模型**：`nvidia/nemotron-3-nano`，服务此请求的确切模型
 * **输入 → messages**：系统 prompt（_"你是 Fed Aura Capital 执行助手"_）和包括工具结果的对话上下文
 * **输出 → choices**：任何后处理之前的完整 LLM 响应
 -- +
