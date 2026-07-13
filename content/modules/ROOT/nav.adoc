@@ -1,7 +1,7 @@
 .欢迎和介绍
 * xref:index.adoc[欢迎]
 * xref:01-overview.adoc[工作坊概览]
-* xref:02-details.adoc[工作服明细]
+* xref:02-details.adoc[工作坊明细]
 
 .核心 Modules
 * xref:03-module-01-agentic-app.adoc[Module 1: 智能体应用]
