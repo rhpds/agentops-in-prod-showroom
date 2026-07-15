@@ -121,7 +121,6 @@ os.environ["LLM_BASE_URL"] = "<from llm-credentials secret>"
 os.environ["LLM_API_KEY"] = "<from llm-credentials secret>"
 os.environ["LLM_MODEL"] = "nemotron"
 os.environ["MLFLOW_TRACKING_URI"] = "https://mlflow.redhat-ods-applications.svc.cluster.local:8443"
-os.environ["MLFLOW_TRACKING_TOKEN"] = "<from terminal>"
 os.environ["MLFLOW_EXPERIMENT_NAME"] = "mortgage-ai"
 os.environ["MLFLOW_TRACKING_AUTH"] = "kubernetes"
 os.environ["MLFLOW_TRACKING_INSECURE_TLS"] = "true"
@@ -140,16 +139,6 @@ image::eval2.2.png[OpenShift Console Secrets page showing llm-credentials secret
 image::reveal-values.png[]
 +
 . ノートブックのセルに `LLM_API_KEY` の値をコピーします。
-
-. `MLFLOW_TRACKING_TOKEN` の値を取得するには、**Terminal** タブに移動して以下を実行します：
-+
-[source,bash,subs="+attributes"]
-----
-TOKEN=$(oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password} > /dev/null 2>&1 && oc whoami --show-token)
-echo $\{TOKEN}
-----
-+
-トークンの値をコピーし、ノートブックの環境変数セルにある `MLFLOW_TRACKING_TOKEN` 変数に貼り付けます。
 
 . 環境変数の構成、**Setup**、および **Configure MLflow** セルを実行します。処理に少し時間がかかります。セルの左側に `[*]` が表示されている場合、それはまだ実行中であることを覚えておいてください。
 
