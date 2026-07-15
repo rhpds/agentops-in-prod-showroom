@@ -117,7 +117,7 @@ IMPORTANT: **JupyterLab は初めてですか？** ノートブックのセル�
 +
 [source,python]
 ----
-os.environ["LLM_BASE_URL"] = "<from llm-credentials secret>"
+os.environ["LLM_BASE_URL"] = "https://litellm-prod.apps.maas.redhatworkshops.io"
 os.environ["LLM_API_KEY"] = "<from llm-credentials secret>"
 os.environ["LLM_MODEL"] = "nemotron"
 os.environ["MLFLOW_TRACKING_URI"] = "https://mlflow.redhat-ods-applications.svc.cluster.local:8443"
@@ -126,7 +126,7 @@ os.environ["MLFLOW_TRACKING_AUTH"] = "kubernetes"
 os.environ["MLFLOW_TRACKING_INSECURE_TLS"] = "true"
 ----
 +
-入力する必要がある値は2つです：`LLM_API_KEY` と `MLFLOW_TRACKING_TOKEN`
+入力する必要がある値は1つです：`LLM_API_KEY`
 +
 --
 * `LLM_API_KEY`: これを **llm-credentials** シークレットから抽出します。OpenShift Console(OCP Consoleタブ) で、`{user_project}` ネームスペースの **Workloads > シークレット(もしくはSecrets)** に移動し、検索バーを使用してフィルタリングし、**llm-credentials** を見つけます。
