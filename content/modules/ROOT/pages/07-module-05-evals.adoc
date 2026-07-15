@@ -117,7 +117,7 @@ IMPORTANT: **JupyterLab は初めてですか？** ノートブックのセル�
 +
 [source,python]
 ----
-os.environ["LLM_BASE_URL"] = "https://litellm-prod.apps.maas.redhatworkshops.io"
+os.environ["LLM_BASE_URL"] = "https://litellm-prod.apps..."
 os.environ["LLM_API_KEY"] = "<from llm-credentials secret>"
 os.environ["LLM_MODEL"] = "nemotron"
 os.environ["MLFLOW_TRACKING_URI"] = "https://mlflow.redhat-ods-applications.svc.cluster.local:8443"
