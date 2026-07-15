@@ -121,7 +121,6 @@ os.environ["LLM_BASE_URL"] = "<from llm-credentials secret>"
 os.environ["LLM_API_KEY"] = "<from llm-credentials secret>"
 os.environ["LLM_MODEL"] = "nemotron"
 os.environ["MLFLOW_TRACKING_URI"] = "https://mlflow.redhat-ods-applications.svc.cluster.local:8443"
-os.environ["MLFLOW_TRACKING_TOKEN"] = "<from terminal>"
 os.environ["MLFLOW_EXPERIMENT_NAME"] = "mortgage-ai"
 os.environ["MLFLOW_TRACKING_AUTH"] = "kubernetes"
 os.environ["MLFLOW_TRACKING_INSECURE_TLS"] = "true"
@@ -141,16 +140,6 @@ image::reveal-values.png[]
 +
 
 . 复制 `LLM_API_KEY` 值用于你的 notebook 单元格。
-
-. 要获取 `MLFLOW_TRACKING_TOKEN` 值，导航到 *Terminal* 标签页并运行：
-+
-[source,bash,subs="+attributes"]
-----
-TOKEN=$(oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password} > /dev/null 2>&1 && oc whoami --show-token)
-echo $\{TOKEN}
-----
-+
-复制令牌值并将其粘贴到 notebook 环境变量单元格中的 `MLFLOW_TRACKING_TOKEN` 变量中。
 
 . 运行环境变量配置、**Setup** 和 **Configure MLflow** 单元格。这将需要一些时间来处理。请记住，如果单元格左侧显示 `[*]`，它仍在执行中。
 
