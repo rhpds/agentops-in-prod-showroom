@@ -231,11 +231,6 @@ image::eval7.1.png[MLflow Datasets page showing public_assistant_eval with 6 rec
 +
 Each record shows the user message input alongside the expected answer and expected tool calls. For example, _"Tell me about FHA loans"_ expects the keyword `"FHA"` in the response and the `product_info` tool to be called.
 
-
-NOTE: 数据集存储在 MLflow 服务器上，而不是本地文件中。这意味着它们是版本化的，可以在团队成员之间共享，并且可以在评估运行中重复使用。当新团队成员加入时，他们对相同的测试用例运行评估——确保团队一致的质量标准。
-
-IMPORTANT: 没有评估数据集的团队通常只在客户投诉后发现质量问题——几周后就太晚了。结构化数据集在开发期间捕获回归，在它们到达生产之前。
-
 == 练习 5：运行简单评估
 
 回到 notebook，让我们从确定性评分器（使用简单规则对响应进行评分的自动化检查）开始，这些是不需要 LLM 调用的快速检查。这些是捕获明显回归的第一道防线。
