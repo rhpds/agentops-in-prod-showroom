@@ -215,7 +215,7 @@ NOTE：当你更新系统 prompt 并注册新版本时，MLflow 会保留历史�
 image::nav-datasets.png[]
 +
 
-You'll see the `public_assistant_eval` dataset with 6 records:
+你将看到带有 6 条记录的 `public_assistant_eval` 数据集:
 +
 image::eval7.1.png[MLflow Datasets page showing public_assistant_eval with 6 records and their inputs and expectations,link=self,window=blank,width=700]
 +
@@ -225,7 +225,7 @@ NOTE: 数据集存储在 MLflow 服务器上，而不是本地文件中。这意
 
 IMPORTANT: 没有评估数据集的团队通常只在客户投诉后发现质量问题——几周后就太晚了。结构化数据集在开发期间捕获回归，在它们到达生产之前.
 
-你将看到带有 6 条记录的 `public_assistant_eval` 数据集：
+你将看到带有 6 条记录的 `public_assistant_eval` 数据集:
 +
 image::eval7.1.png[MLflow Datasets page showing public_assistant_eval with 6 records and their inputs and expectations,link=self,window=blank,width=700]
 +
