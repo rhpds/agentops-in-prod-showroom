@@ -264,7 +264,7 @@ image::nav-eval-runs.png[]
 
 你将看到带有所有 6 个跟踪的评估运行：
 +
-image::eval8.png[MLflow 评估运行，显示评估运行及其 6 个跟踪的请求、响应和令牌计数,link=self,window=blank,width=700]
+image::eval8.png[MLflow Evaluation Runs showing the evaluation run with 6 traces and their requests responses and token counts,link=self,window=blank,width=700]
 +
 每行显示跟踪 ID、发送到代理的请求、接收的响应和令牌计数。
 
