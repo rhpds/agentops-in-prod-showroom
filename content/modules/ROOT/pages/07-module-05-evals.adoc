@@ -265,11 +265,11 @@ NOTE：如果你看到任何失败，请仔细检查你的环境变量是否正�
 image::nav-eval-runs.png[]
 +
 
-You'll see the evaluation run with all 6 traces:
+你将看到带有所有 6 个跟踪的评估运行:
 +
 image::eval8.png[MLflow Evaluation Runs showing the evaluation run with 6 traces and their requests responses and token counts,link=self,window=blank,width=700]
 +
-Each row shows the Trace ID, the request sent to the agent, the response received, and the token count.
+每行显示跟踪 ID、发送到代理的请求、接收的响应和令牌计数.
 
 你将看到带有所有 6 个跟踪的评估运行：
 +
