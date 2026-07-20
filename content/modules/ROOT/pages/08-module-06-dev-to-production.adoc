@@ -94,13 +94,13 @@ image::eval18.png[流水线定义图，显示 setup-mlflow-op 然后 create-data
 
 == 练习 2：运行评估流水线
 
-. 点击 **操作** > **创建运行**：
+. 点击 **Actions** > **Create run**：
 +
 image::eval19.png[操作下拉菜单，显示创建运行和创建计划选项,link=self,window=blank,width=300]
 +
-NOTE：请注意 **创建计划** 选项。在生产环境中，你会定期调度评估运行（例如每 6 小时），以持续监控代理质量。
+NOTE: 请注意 **Create schedule** 选项。在生产环境中，你会定期调度评估运行（例如每 6 小时），以持续监控代理质量。
 
-. 在 **创建运行** 表单中，将运行名称设置为 `eval-run-1`：
+. 在 **Create run** 表单中，将运行名称设置为 `eval-run-1`：
 +
 image::eval20.png[创建运行表单，显示运行类型项目实验和运行名称字段,link=self,window=blank,width=700]
 
@@ -269,6 +269,11 @@ image::eval30.png[Notebook 比较 V1 基线与 V2 修改后的 prompt，显示 c
 image::prompt-traces.png[]
 +
 
+You can now see evaluation traces from both Version 1 and Version 2, with assessment columns showing per-trace pass/fail:
++
+image::eval31.png[MLflow Prompts Traces tab showing Version 1 and Version 2 traces side by side with assessment columns contains_expected has_numeric_result and mortgage_guidelines,link=self,window=blank,width=700]
++
+The traces are grouped by prompt version. You can see exactly which test cases passed or failed for each version:
 
 你现在可以看到来自版本 1 和版本 2 的评估跟踪，评估列显示每个跟踪的通过/失败：
 +
