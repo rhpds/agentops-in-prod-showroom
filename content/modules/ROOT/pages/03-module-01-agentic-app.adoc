@@ -247,7 +247,7 @@ image::agentic-app5.png[CEO Executive Dashboard showing Pipeline Overview and De
 +
 [source,console,role=execute,subs=attributes+]
 ----
-展示当前业务Pipeline整体状态
+Show me the current pipeline status
 ----
 
 . 助手会输出完整业务概况：在办申请数量、阶段分布、贷款转化率、平均放款周期:
