@@ -232,9 +232,9 @@ image::eval7.1.png[MLflow Datasets page showing public_assistant_eval with 6 rec
 Each record shows the user message input alongside the expected answer and expected tool calls. For example, _"Tell me about FHA loans"_ expects the keyword `"FHA"` in the response and the `product_info` tool to be called.
 每条记录显示用户消息输入以及预期的答案和预期的工具调用。例如，_"告诉我关于 FHA 贷款的信息"_ 期望响应中包含关键字 `"FHA"` 并调用 `product_info` 工具。
 
-NOTE：数据集存储在 MLflow 服务器上，而不是本地文件中。这意味着它们是版本化的，可以在团队成员之间共享，并且可以在评估运行中重复使用。当新团队成员加入时，他们对相同的测试用例运行评估——确保团队一致的质量标准。
+NOTE: 数据集存储在 MLflow 服务器上，而不是本地文件中。这意味着它们是版本化的，可以在团队成员之间共享，并且可以在评估运行中重复使用。当新团队成员加入时，他们对相同的测试用例运行评估——确保团队一致的质量标准。
 
-IMPORTANT：没有评估数据集的团队通常只在客户投诉后发现质量问题——几周后就太晚了。结构化数据集在开发期间捕获回归，在它们到达生产之前。
+IMPORTANT: 没有评估数据集的团队通常只在客户投诉后发现质量问题——几周后就太晚了。结构化数据集在开发期间捕获回归，在它们到达生产之前。
 
 == 练习 5：运行简单评估
 
