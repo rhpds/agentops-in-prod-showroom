@@ -263,7 +263,7 @@ image::eval30.png[Notebook 比较 V1 基线与 V2 修改后的 prompt，显示 c
 === 在 MLflow 中查看逐跟踪结果
 
 [start=8]
-. 在 MLflow UI 中，从 **MLflow 控制台** 选项卡，导航到 **Prompts**，点击 **public-assistant-system-prompt**，然后选择 **跟踪** 选项卡：
+. 在 MLflow UI 中，从 **MLflow 控制台** 选项卡，导航到 **Prompts**，点击 **public-assistant-system-prompt**，然后选择 **Traces** 选项卡：
 
 +
 image::prompt-traces.png[]
@@ -282,7 +282,7 @@ image::eval31.png[MLflow Prompts Traces tab showing Version 1 and Version 2 trac
 +
 点击任何失败的跟踪以了解为什么响应错过了预期的关键字并诊断根本原因。
 
-. 要并排比较 prompt 版本，导航到 **Prompts** > **public-assistant-system-prompt** 并点击 **文本** 选项卡以查看差异：
+. 要并排比较 prompt 版本，导航到 **Prompts** > **public-assistant-system-prompt** 并点击 **Text** 选项卡以查看差异：
 +
 image::eval34.png[MLflow Prompt 比较，显示版本 1 和版本 2 之间的文本差异,link=self,window=blank,width=700]
 +
