@@ -218,7 +218,7 @@ image::nav-datasets.png[]
 
 你将看到带有 6 条记录的 `public_assistant_eval` 数据集：
 +
-image::eval7.1.png[MLflow 数据集页面，显示带有 6 条记录及其输入和期望的 public_assistant_eval,link=self,window=blank,width=700]
+image::eval7.1.png[MLflow Datasets page showing public_assistant_eval with 6 records and their inputs and expectations,link=self,window=blank,width=700]
 +
 每条记录显示用户消息输入以及预期的答案和预期的工具调用。例如，_"告诉我关于 FHA 贷款的信息"_ 期望响应中包含关键字 `"FHA"` 并调用 `product_info` 工具。
 
