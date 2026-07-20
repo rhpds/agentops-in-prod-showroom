@@ -275,11 +275,6 @@ image::eval31.png[MLflow Prompts Traces tab showing Version 1 and Version 2 trac
 +
 跟踪按 prompt 版本分组。你可以确切地看到每个版本的哪些测试用例通过或失败:
 
-你现在可以看到来自版本 1 和版本 2 的评估跟踪，评估列显示每个跟踪的通过/失败：
-+
-image::eval31.png[MLflow Prompts 跟踪选项卡，并排显示版本 1 和版本 2 跟踪，包含评估列 contains_expected has_numeric_result 和 mortgage_guidelines,link=self,window=blank,width=700]
-+
-跟踪按 prompt 版本分组。你可以确切地看到每个版本的哪些测试用例通过或失败：
 +
 --
 * **版本 1** 跟踪应该为 `contains_expected` 显示更多一致的 `True` 值——代理调用了正确的工具并包含了预期的关键字。
