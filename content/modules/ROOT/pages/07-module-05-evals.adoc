@@ -141,6 +141,16 @@ image::reveal-values.png[]
 
 . 复制 `LLM_API_KEY` 值用于你的 notebook 单元格。
 
+. 要获取 `MLFLOW_TRACKING_TOKEN` 值, 导航至 *Terminal* 标签并且运行:
++
+[source,bash,subs="+attributes"]
+----
+TOKEN=$(oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password} > /dev/null 2>&1 && oc whoami --show-token)
+echo $\{TOKEN}
+----
++
+复制token 值，然后粘贴到notebook的环境变量cell的 `MLFLOW_TRACKING_TOKEN` 变量种.
+
 . 运行环境变量配置、**Setup** 和 **Configure MLflow** 单元格。这将需要一些时间来处理。请记住，如果单元格左侧显示 `[*]`，它仍在执行中。
 
 . 验证输出显示你的 MLflow URI、实验名称和 LLM 端点。
