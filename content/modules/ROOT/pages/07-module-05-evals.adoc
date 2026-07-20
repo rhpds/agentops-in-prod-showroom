@@ -215,6 +215,15 @@ NOTE：当你更新系统 prompt 并注册新版本时，MLflow 会保留历史�
 image::nav-datasets.png[]
 +
 
+You'll see the `public_assistant_eval` dataset with 6 records:
++
+image::eval7.1.png[MLflow Datasets page showing public_assistant_eval with 6 records and their inputs and expectations,link=self,window=blank,width=700]
++
+Each record shows the user message input alongside the expected answer and expected tool calls. For example, _"Tell me about FHA loans"_ expects the keyword `"FHA"` in the response and the `product_info` tool to be called.
+
+NOTE: Datasets are stored on the MLflow server, not as local files. This means they're versioned, shareable across team members, and can be reused across evaluation runs. When a new team member joins, they run evaluations against the same test cases—ensuring consistent quality standards across the team.
+
+IMPORTANT: Teams without evaluation datasets often discover quality issues only after customer complaints—weeks too late. A structured dataset catches regressions during development, before they reach production.
 
 你将看到带有 6 条记录的 `public_assistant_eval` 数据集：
 +
