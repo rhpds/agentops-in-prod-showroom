@@ -75,7 +75,7 @@ MLflow 跟踪建立在 https://opentelemetry.io/[OpenTelemetry^] 之上，这是
 
 在模块 1 中，你点击了**探索产品**并与潜在客户代理聊天。那次对话看起来像是一个简单的交流，但 MLflow 捕获了每一步。让我们找到那个跟踪。
 
-. 在 MLflow 中，点击左侧边栏中的 **实验**，然后选择 **mortgage-ai** 实验。这是由 mortgage-ai 应用程序配置的实验，所有跟踪都记录在此处。
+. 在 MLflow 中，点击左侧边栏中的 **Experiments**，然后选择 **mortgage-ai** 实验。这是由 mortgage-ai 应用程序配置的实验，所有跟踪都记录在此处。
 
 . 点击左侧边栏中的 **跟踪**。你将看到所有跟踪请求的列表，按最近排序：
 +
