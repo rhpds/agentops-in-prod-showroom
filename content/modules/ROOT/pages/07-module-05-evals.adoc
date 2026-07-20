@@ -288,7 +288,7 @@ image::eval32.png[MLflow 列下拉菜单，显示所有评估选项以启用评�
 +
 image::eval10.png[MLflow 跟踪详细信息，显示输入、输出、跨度序列和带有反馈和期望的评估侧边栏,link=self,window=blank,width=500]
 +
-详细视图将跟踪信息（输入、输出、跨度序列）与评估评估相结合。**Feedback** 部分显示确定性评分器结果，**Expectations** 部分显示来自数据集的预期值。
+详细视图将跟踪信息（输入、输出、跨度序列）与 evaluation assessments相结合。**Feedback** 部分显示确定性评分器结果，**Expectations** 部分显示来自数据集的预期值。
 
 == 练习 6：运行 LLM-as-a-Judge 评估
 
