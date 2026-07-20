@@ -105,7 +105,7 @@ image::mlflow4.png[CEO 执行仪表板，显示模块 1 中的投资组合健康
 
 === 查找 CEO 跟踪
 
-. 返回 MLflow **跟踪**列表并定位 _"显示当前流水线状态"_ 的跟踪：
+. 返回 MLflow **跟踪**列表并定位 _"Show me the current pipeline status"_ 的跟踪：
 +
 image::find-trace.png[MLflow 跟踪列表，突出显示流水线状态跟踪,link=self,window=blank,width=700]
 +
