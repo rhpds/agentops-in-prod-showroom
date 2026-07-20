@@ -271,11 +271,11 @@ image::eval8.png[MLflow Evaluation Runs showing the evaluation run with 6 traces
 +
 每行显示跟踪 ID、发送到代理的请求、接收的响应和令牌计数.
 
-你将看到带有所有 6 个跟踪的评估运行：
+你将看到带有所有 6 个跟踪的评估运行:
 +
 image::eval8.png[MLflow Evaluation Runs showing the evaluation run with 6 traces and their requests responses and token counts,link=self,window=blank,width=700]
 +
-每行显示跟踪 ID、发送到代理的请求、接收的响应和令牌计数。
+每行显示跟踪 ID、发送到代理的请求、接收的响应和令牌计数.
 
 . 点击左侧边栏中的 **Traces** 以查看逐跟踪评估。点击 **Columns** 并启用 **All Assessments** 以查看每个跟踪的评分器结果：
 +
