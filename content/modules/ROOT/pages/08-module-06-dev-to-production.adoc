@@ -269,11 +269,11 @@ image::eval30.png[Notebook 比较 V1 基线与 V2 修改后的 prompt，显示 c
 image::prompt-traces.png[]
 +
 
-You can now see evaluation traces from both Version 1 and Version 2, with assessment columns showing per-trace pass/fail:
+你现在可以看到来自版本 1 和版本 2 的评估跟踪，评估列显示每个跟踪的通过/失败:
 +
 image::eval31.png[MLflow Prompts Traces tab showing Version 1 and Version 2 traces side by side with assessment columns contains_expected has_numeric_result and mortgage_guidelines,link=self,window=blank,width=700]
 +
-The traces are grouped by prompt version. You can see exactly which test cases passed or failed for each version:
+跟踪按 prompt 版本分组。你可以确切地看到每个版本的哪些测试用例通过或失败:
 
 你现在可以看到来自版本 1 和版本 2 的评估跟踪，评估列显示每个跟踪的通过/失败：
 +
