@@ -274,12 +274,12 @@ image::prompt-traces.png[]
 image::eval31.png[MLflow Prompts Traces tab showing Version 1 and Version 2 traces side by side with assessment columns contains_expected has_numeric_result and mortgage_guidelines,link=self,window=blank,width=700]
 +
 跟踪按 prompt 版本分组。你可以确切地看到每个版本的哪些测试用例通过或失败:
-
 +
 --
 * **版本 1** 跟踪应该为 `contains_expected` 显示更多一致的 `True` 值——代理调用了正确的工具并包含了预期的关键字。
 * **版本 2** 跟踪可能会在多个测试用例中显示 `False`——代理从常识回答而不是调用 `product_info` 工具，错过了预期的关键字。
--- +
+--
++
 点击任何失败的跟踪以了解为什么响应错过了预期的关键字并诊断根本原因。
 
 . 要并排比较 prompt 版本，导航到 **Prompts** > **public-assistant-system-prompt** 并点击 **文本** 选项卡以查看差异：
