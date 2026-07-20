@@ -229,7 +229,7 @@ IMPORTANT: 没有评估数据集的团队通常只在客户投诉后发现质量
 +
 image::eval7.1.png[MLflow Datasets page showing public_assistant_eval with 6 records and their inputs and expectations,link=self,window=blank,width=700]
 +
-Each record shows the user message input alongside the expected answer and expected tool calls. For example, _"Tell me about FHA loans"_ expects the keyword `"FHA"` in the response and the `product_info` tool to be called.
+
 
 == 练习 5：运行简单评估
 
