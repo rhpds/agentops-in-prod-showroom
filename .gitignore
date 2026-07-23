@@ -37,4 +37,4 @@ package-lock.json
 # Ignore yarn.lock for Yarn
 yarn.lock
 .serena/
-.serena
+.serena/
