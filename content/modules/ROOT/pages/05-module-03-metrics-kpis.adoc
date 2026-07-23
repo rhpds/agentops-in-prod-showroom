@@ -33,9 +33,9 @@ TIP：在本模块中，你扮演 **SRE / 平台工程角色**，专注于系统
 |`http_request_duration_seconds`
 |我们响应有多快？有异常值吗？
 
-|LLM 令牌使用量
+|LLM Token使用量
 |`llm_tokens_total`
-|我们消耗了多少令牌？每次对话的成本是多少？
+|我们消耗了多少Token？每次对话的成本是多少？
 
 |LLM 推理延迟
 |`llm_inference_duration_seconds`
@@ -171,18 +171,18 @@ image::grafana2.png[Grafana 概览和 HTTP 面板，显示请求速率和延迟,
 
 向下滚动到 **AI 代理指标** 行。这里开始有趣了。这些指标是智能体应用程序独有的：
 
-image::grafana1.png[Grafana AI 代理指标，显示令牌使用和工具调用成功率,link=self,window=blank,width=700]
+image::grafana1.png[Grafana AI 代理指标，显示Token使用和工具调用成功率,link=self,window=blank,width=700]
 
 本部分顶部的 4 个统计面板显示：
 
 * **活动聊天会话**：实时 WebSocket 连接。现在有多少用户在聊天？
-* **LLM 令牌总数**：自 API 启动以来累计消耗的令牌。这是你的成本代理，在截图中 18.5K 令牌。
+* **LLM Token总数**：自 API 启动以来累计消耗的Token。这是你的成本代理，在截图中 18.5K Token。
 * **工具调用成功率**：代理工具是否工作？100% 意味着一切健康。
 * **平均 LLM 延迟**：LLM 推理调用的中位时间。在截图中 1.75s。
 
 在统计下方，详细信息面板显示：
 
-* **按模型的 LLM 令牌使用量**：哪个模型消耗最多令牌？输入还是输出占主导地位？
+* **按模型的 LLM Token使用量**：哪个模型消耗最多Token？输入还是输出占主导地位？
 * **按角色的 LLM 推理延迟**：哪个代理角色最慢？慢的承保代理可能表示复杂的合规工具调用。
 * **代理路由分布**：简单与复杂路由的饼图。复杂查询的高比率意味着能力模型在做大部分工作。
 * **按状态的工具调用**：绿色表示成功，红色表示失败。红色峰值意味着工具集成正在中断。
@@ -190,7 +190,7 @@ image::grafana1.png[Grafana AI 代理指标，显示令牌使用和工具调用�
 [%collapsible]
 .AI 代理指标的 PromQL 详细信息（点击展开）
 ====
-* **LLM 令牌**：`sum(increase(llm_tokens_total{namespace=~"$namespace"}[1h]))`
+* **LLM Token**：`sum(increase(llm_tokens_total{namespace=~"$namespace"}[1h]))`
 * **工具成功率**：`(sum(tool_calls_total{namespace=~"$namespace", status="success"}) / sum(tool_calls_total{namespace=~"$namespace"}) * 100) or vector(100)`
 * **LLM 延迟**：`histogram_quantile(0.50, sum(rate(llm_inference_duration_seconds_bucket{namespace=~"$namespace"}[5m])) by (le))`
 * **路由分布**：`sum(agent_routing_total{namespace=~"$namespace"}) by (complexity)`
@@ -311,7 +311,7 @@ IMPORTANT：**LokiStack 是 Red Hat AI 的支持功能。** 日志在 Pod 生命
 
 **关键要点：**
 
-* 智能体应用需要超出 HTTP 的指标：令牌使用、推理延迟、路由决策和工具成功率
+* 智能体应用需要超出 HTTP 的指标：Token使用、推理延迟、路由决策和工具成功率
 * 日志提供指标聚合掉的细节。对于调试临时容器，此细节至关重要。
 * 指标回答"多少？"和"多快？"。日志回答"确切发生了什么？"。
 
