@@ -121,13 +121,12 @@ os.environ["LLM_BASE_URL"] = "<from llm-credentials secret>"
 os.environ["LLM_API_KEY"] = "<from llm-credentials secret>"
 os.environ["LLM_MODEL"] = "gpt-oss-120b"
 os.environ["MLFLOW_TRACKING_URI"] = "https://mlflow.redhat-ods-applications.svc.cluster.local:8443"
-os.environ["MLFLOW_TRACKING_TOKEN"] = "<from terminal>"
 os.environ["MLFLOW_EXPERIMENT_NAME"] = "mortgage-ai"
 os.environ["MLFLOW_TRACKING_AUTH"] = "kubernetes"
 os.environ["MLFLOW_TRACKING_INSECURE_TLS"] = "true"
 ----
 +
-You need to fill in 2 values: `LLM_API_KEY` and `MLFLOW_TRACKING_TOKEN`
+You need to fill in 3 values: `LLM_API_KEY`, `LLM_BASE_URL`, and `LLM_MODEL`
 +
 --
 * `LLM_API_KEY`: extract this from the **llm-credentials** secret. In the OpenShift Console, navigate to **Workloads > Secrets** in the `{user_project}` namespace, find **llm-credentials** by using the search bar to filter. 
@@ -141,15 +140,7 @@ image::reveal-values.png[]
 +
 . Copy the `LLM_API_KEY` value for your notebook cell.
 
-. To get the `MLFLOW_TRACKING_TOKEN` value, navigate to the *Terminal* tab and run:
-+
-[source,bash,subs="+attributes"]
-----
-TOKEN=$(oc login --insecure-skip-tls-verify $(oc whoami --show-server) -u {user} -p {password} > /dev/null 2>&1 && oc whoami --show-token)
-echo $\{TOKEN}
-----
-+
-Copy the token value and paste it into the `MLFLOW_TRACKING_TOKEN` variable in the notebook's environment variables cell.
+. From the same secret, copy the `LLM_BASE_URL` and `LLM_MODEL` values into the matching fields in the notebook cell.
 
 . Run the environment variable configuration, **Setup** and **Configure MLflow** cells. This will take a bit to process. Remember, if the cell shows `[*]` on the left it is still executing.
 
