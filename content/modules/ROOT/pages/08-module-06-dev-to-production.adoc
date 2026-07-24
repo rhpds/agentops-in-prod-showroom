@@ -172,7 +172,7 @@ This notebook is purpose-built for prompt regression detection. It registers a m
 
 . Run the **Install Dependencies** cell. 
 
-. Run the environment variables configuration cell. Copy the **LLM_API_KEY** and **MLFLOW_TRACKING_TOKEN** values from **evaluate_agent.ipynb** (same as Module 5). 
+. Run the environment variables configuration cell. Copy the **LLM_API_KEY**, **LLM_BASE_URL**, and **LLM_MODEL** values from **evaluate_agent.ipynb** (same as Module 5).
 
 . Run the **Setup**, **Configure MLflow** and **1. Load Existing Prompt (Version 1)** cells.
 
