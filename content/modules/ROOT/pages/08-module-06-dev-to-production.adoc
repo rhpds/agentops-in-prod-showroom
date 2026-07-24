@@ -172,7 +172,7 @@ image::eval25.png[JupyterLab showing evaluate_agent_v2.ipynb open with Prompt Re
 
 . **Install Dependencies** セルを実行します。
 
-. 環境変数の構成セルを実行します。**evaluate_agent.ipynb** (モジュール 5 と同じ) から **LLM_API_KEY** と **MLFLOW_TRACKING_TOKEN** の値をコピーします。
+. 環境変数の構成セルを実行します。**evaluate_agent.ipynb** (モジュール 5 と同じ) から **LLM_API_KEY** と **LLM_BASE_URL** の値をコピーします。
 
 . **Setup**、**Configure MLflow**、および **1. Load Existing Prompt (Version 1)** のセルを実行します。
 
