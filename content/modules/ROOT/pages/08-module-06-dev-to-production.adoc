@@ -172,7 +172,7 @@ image::eval25.png[JupyterLab 显示 evaluate_agent_v2.ipynb 打开，标题为 P
 
 . 运行 **安装依赖** 单元格。
 
-. 运行环境变量配置单元格。从 **evaluate_agent.ipynb**（与模块 5 相同）复制 **LLM_API_KEY** 和 **MLFLOW_TRACKING_TOKEN** 值。
+. 运行环境变量配置单元格。从 **evaluate_agent.ipynb**（与模块 5 相同）复制  **LLM_API_KEY** , **LLM_BASE_URL** , 和 **LLM_MODEL** 。
 
 . 运行 **设置**、**配置 MLflow** 和 **1. 加载现有 Prompt（版本 1）** 单元格。
 
