@@ -140,7 +140,7 @@ image::reveal-values.png[]
 +
 . Copy the `LLM_API_KEY` value for your notebook cell.
 
-. Copy `LLM_BASE_URL` and `LLM_MODEL` value and paste it into the notebook's environment variables cell same like `LLM_API_KEY`.
+. From the same secret, copy the `LLM_BASE_URL` and `LLM_MODEL` values into the matching fields in the notebook cell.
 
 . Run the environment variable configuration, **Setup** and **Configure MLflow** cells. This will take a bit to process. Remember, if the cell shows `[*]` on the left it is still executing.
 
