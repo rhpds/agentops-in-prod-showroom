@@ -119,14 +119,14 @@ IMPORTANT: **JupyterLab は初めてですか？** ノートブックのセル�
 ----
 os.environ["LLM_BASE_URL"] = "<from llm-credentials secret>"
 os.environ["LLM_API_KEY"] = "<from llm-credentials secret>"
-os.environ["LLM_MODEL"] = "nvidia/nemotron-3-nano"
+os.environ["LLM_MODEL"] = "gpt-oss-120b"
 os.environ["MLFLOW_TRACKING_URI"] = "https://mlflow.redhat-ods-applications.svc.cluster.local:8443"
 os.environ["MLFLOW_EXPERIMENT_NAME"] = "mortgage-ai"
 os.environ["MLFLOW_TRACKING_AUTH"] = "kubernetes"
 os.environ["MLFLOW_TRACKING_INSECURE_TLS"] = "true"
 ----
 +
-入力する必要がある値は1つです：`LLM_API_KEY`、`LLM_BASE_URL`
+入力する必要がある値は3つです：`LLM_API_KEY`、`LLM_BASE_URL` 、 `LLM_MODEL`
 +
 --
 * `LLM_API_KEY`: これを **llm-credentials** シークレットから抽出します。OpenShift Console(OCP Consoleタブ) で、`{user_project}` ネームスペースの **Workloads > シークレット(もしくはSecrets)** に移動し、検索バーを使用してフィルタリングし、**llm-credentials** を見つけます。
@@ -139,7 +139,7 @@ image::eval2.2.png[OpenShift Console Secrets page showing llm-credentials secret
 image::reveal-values.png[]
 +
 . ノートブックのセルに `LLM_API_KEY` の値をコピーします。
-. `LLM_API_KEY`の手順と同様に、ノートブックのセルに `LLM_BASE_URL` の値をコピーします。
+. `LLM_API_KEY` の手順と同様に、ノートブックのセルに `LLM_BASE_URL` および `LLM_MODEL` の値をコピーします。
 
 . 環境変数の構成、**Setup**、および **Configure MLflow** セルを実行します。処理に少し時間がかかります。セルの左側に `[*]` が表示されている場合、それはまだ実行中であることを覚えておいてください。
 
