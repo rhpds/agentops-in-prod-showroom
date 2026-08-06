@@ -217,10 +217,6 @@ NOTE: 数据集存储在 MLflow 服务器上，而不是本地文件中。这意
 
 IMPORTANT: 没有评估数据集的团队通常只在客户投诉后发现质量问题——几周后就太晚了。结构化数据集在开发期间捕获回归，在它们到达生产之前.
 
-+
-image::eval7.1.png[MLflow Datasets page showing public_assistant_eval with 6 records and their inputs and expectations,link=self,window=blank,width=700]
-+
-
 
 == 练习 5：运行简单评估
 
