@@ -200,7 +200,7 @@ image::mlflow7.png[MLflow span detail for ceo_pipeline_summary showing input day
 image::mlflow8.png[MLflow span detail for ChatOpenAI showing model nvidia/nemotron-3-nano with system prompt and completion,link=self,window=blank,width=700]
 +
 --
-* **Model (モデル)**: `nvidia/nemotron-3-nano`, このリクエストを処理している正確なモデル
+* **Model (モデル)**: このリクエストを処理しているモデル
 * **Inputs → messages**: システムプロンプト (_"あなたは Fed Aura Capital のエグゼクティブアシスタントです"_) と、ツールの結果を含む会話のコンテキスト
 * **Outputs → choices**: 安全フィルターやフォーマット処理前の、完全な LLM の応答
 --
