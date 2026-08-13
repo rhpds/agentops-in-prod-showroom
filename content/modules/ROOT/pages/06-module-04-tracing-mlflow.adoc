@@ -197,7 +197,7 @@ image::mlflow7.png[MLflow span detail for ceo_pipeline_summary showing input day
 [start=5]
 . 最後の **ChatOpenAI** スパンをクリックして、実際の LLM 呼び出しを確認します：
 +
-image::mlflow8.png[MLflow span detail for ChatOpenAI showing model nvidia/nemotron-3-nano with system prompt and completion,link=self,window=blank,width=700]
+image::mlflow8.png[MLflow span detail for ChatOpenAI showing model with system prompt and completion,link=self,window=blank,width=700]
 +
 --
 * **Model (モデル)**: このリクエストを処理しているモデル
