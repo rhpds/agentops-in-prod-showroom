@@ -14,7 +14,12 @@ ui:
     url: https://github.com/rhpds/rhdp_showroom_theme/releases/download/latest/ui-bundle.zip
     snapshot: true
   supplemental_files:
-    - path: ./content/supplemental-ui
+    - path: partials/header-content.hbs
+      contents: ./content/supplemental-ui/partials/header-content.hbs
+    - path: partials/footer-content.hbs
+      contents: ./content/supplemental-ui/partials/footer-content.hbs
+    - path: img/logo-cai-team.svg
+      contents: ./content/supplemental-ui/img/logo-cai-team.svg
 
 runtime:
   fetch: true
